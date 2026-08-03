@@ -1,0 +1,2 @@
+2026-06-11 17:02:07 [seed 0] config: {"seed": 0, "timestamp": "2026-06-11T17:02:07", "train": ["adbench:cardio", "text:sci"], "test": ["adbench:thyroid", "text:rec"], "adapt_modes": ["zero_shot", "leaves"], "latent_dim": 64, "n_sum_components": 3, "epochs": 100, "finetune_epochs": 10, "use_sos": false, "vtree_method": "chow_liu"}
+2026-06-11 17:02:07 [seed 0] training shared PC once on 2 source dataset(s)

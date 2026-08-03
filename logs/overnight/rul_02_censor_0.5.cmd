@@ -1,0 +1,1 @@
+    /Users/eriknielsen/miniconda3/envs/expllm_env/bin/python -m poc.time_series.run_rul --seeds 0 1 --vtree chain --censor-frac 0.5 --epochs 60 --no-partial --out logs/overnight/rul_02_censor_0.5.json

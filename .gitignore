@@ -1,7 +1,6 @@
 CLAUDE.md
 bak
 .pytest_cache
-logs/
 data/
 .env
 
