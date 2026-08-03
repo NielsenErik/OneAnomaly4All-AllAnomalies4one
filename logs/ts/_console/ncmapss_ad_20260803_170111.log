@@ -1,0 +1,20 @@
+==============================================================================
+ experiment: ncmapss_ad   (config/ts/ncmapss_ad.yaml)
+ Detection on real N-C-MAPSS releases, per-cycle aggregation, circuit vs the
+ output:     logs/ts/ncmapss_ad
+==============================================================================
+
+3 variant(s) × 3 seed(s) = 9 run(s)
+
+  dataset-DS01                           dataset=ncmapss:DS01     stages=ad
+  dataset-DS02                           dataset=ncmapss:DS02     stages=ad
+  dataset-DS03                           dataset=ncmapss:DS03     stages=ad
+
+  [data missing] dataset-DS01: N-C-MAPSS DS01.h5 not found (see data/README.md)
+  [data missing] dataset-DS02: N-C-MAPSS DS02.h5 not found (see data/README.md)
+  [data missing] dataset-DS03: N-C-MAPSS DS03.h5 not found (see data/README.md)
+
+skipping this config (skip_if_missing_data: true).  Run
+  python -m poc.time_series.check_data
+for download instructions.
+

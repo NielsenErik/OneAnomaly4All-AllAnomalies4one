@@ -1,0 +1,30 @@
+==============================================================================
+ experiment: cmapss_rul   (config/ts/cmapss_rul.yaml)
+ Censoring ablation, point/distributional accuracy vs ridge/MLP/CQR, survival
+ output:     logs/ts/cmapss_rul
+==============================================================================
+
+8 variant(s) × 3 seed(s) = 24 run(s)
+
+  censor_frac-0.2_rul_test_windows-all   dataset=cmapss:FD001     stages=rul
+  censor_frac-0.2_rul_test_windows-last  dataset=cmapss:FD001     stages=rul
+  censor_frac-0.35_rul_test_windows-all  dataset=cmapss:FD001     stages=rul
+  censor_frac-0.35_rul_test_windows-last dataset=cmapss:FD001     stages=rul
+  censor_frac-0.5_rul_test_windows-all   dataset=cmapss:FD001     stages=rul
+  censor_frac-0.5_rul_test_windows-last  dataset=cmapss:FD001     stages=rul
+  censor_frac-0.7_rul_test_windows-all   dataset=cmapss:FD001     stages=rul
+  censor_frac-0.7_rul_test_windows-last  dataset=cmapss:FD001     stages=rul
+
+  [data missing] censor_frac-0.2_rul_test_windows-all: C-MAPSS FD001 files not found (see data/README.md)
+  [data missing] censor_frac-0.2_rul_test_windows-last: C-MAPSS FD001 files not found (see data/README.md)
+  [data missing] censor_frac-0.35_rul_test_windows-all: C-MAPSS FD001 files not found (see data/README.md)
+  [data missing] censor_frac-0.35_rul_test_windows-last: C-MAPSS FD001 files not found (see data/README.md)
+  [data missing] censor_frac-0.5_rul_test_windows-all: C-MAPSS FD001 files not found (see data/README.md)
+  [data missing] censor_frac-0.5_rul_test_windows-last: C-MAPSS FD001 files not found (see data/README.md)
+  [data missing] censor_frac-0.7_rul_test_windows-all: C-MAPSS FD001 files not found (see data/README.md)
+  [data missing] censor_frac-0.7_rul_test_windows-last: C-MAPSS FD001 files not found (see data/README.md)
+
+skipping this config (skip_if_missing_data: true).  Run
+  python -m poc.time_series.check_data
+for download instructions.
+

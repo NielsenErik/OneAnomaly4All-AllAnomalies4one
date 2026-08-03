@@ -108,10 +108,10 @@
     }
   },
   "_timing": {
-    "ad": 1.97,
-    "explain": 7.5,
-    "rul": 2.48,
-    "calibration": 1.43
+    "ad": 6.37,
+    "explain": 27.23,
+    "rul": 9.55,
+    "calibration": 5.1
   },
   "explain": {
     "per_kind": {
@@ -177,8 +177,8 @@
       "mean_residual_nats": 1.1920928955078125e-06
     },
     "cost_s": {
-      "pc_exact": 0.2698788642883301,
-      "sampling_shap": 0.010243415832519531
+      "pc_exact": 0.90289306640625,
+      "sampling_shap": 0.02980804443359375
     }
   },
   "rul": {
