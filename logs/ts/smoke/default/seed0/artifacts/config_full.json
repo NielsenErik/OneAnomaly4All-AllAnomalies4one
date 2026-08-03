@@ -4,7 +4,7 @@
   "seeds": [
     0
   ],
-  "device": "cpu",
+  "device": "auto",
   "log_root": "logs/ts/smoke",
   "stages": [
     "ad",

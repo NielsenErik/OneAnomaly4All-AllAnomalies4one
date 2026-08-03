@@ -1,8 +1,8 @@
 {
   "seed": 0,
-  "config_hash": "bcfe838da921",
+  "config_hash": "44c6bb8278c5",
   "name": "smoke",
-  "device": "cpu",
+  "device": "auto",
   "stages": [
     "ad",
     "explain",

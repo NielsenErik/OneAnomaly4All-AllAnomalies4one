@@ -1,4 +1,4 @@
-# Summary — logs/ts/smoke
+# Summary — logs/ts
 
 80 result rows.
 

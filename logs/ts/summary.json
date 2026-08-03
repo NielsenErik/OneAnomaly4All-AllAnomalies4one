@@ -1,5 +1,5 @@
 {
-  "root": "logs/ts/smoke",
+  "root": "logs/ts",
   "n_rows": 80,
   "results": [
     {

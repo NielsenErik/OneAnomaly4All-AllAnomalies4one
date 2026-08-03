@@ -1,1 +1,2 @@
 {"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 14.7, "config_hash": "bcfe838da921", "finished": "2026-08-03T14:40:33"}
+{"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 13.5, "config_hash": "44c6bb8278c5", "finished": "2026-08-03T15:14:42"}
