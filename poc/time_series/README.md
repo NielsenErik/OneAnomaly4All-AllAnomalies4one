@@ -18,12 +18,42 @@ Two things are being demonstrated, and they are separable:
 
 ---
 
-## Quick start
+## Quick start — the config-driven pipeline (use this)
+
+Since 2026-08-03 there is one entry point for training, evaluation, logging and
+aggregation, driven by YAML configs, and it runs on **real C-MAPSS and
+N-C-MAPSS** as well as the simulator:
 
 ```bash
-# from the repo root, with the project env active
-export PYTHONPATH=.
+bash poc/time_series/launch/run_smoke.sh                            # ~3 min, checks everything
+bash poc/time_series/launch/run_config.sh config/ts/cmapss_ad.yaml  # one experiment
+bash poc/time_series/launch/run_workstation.sh                      # the full batch
+```
 
+- configs: [`config/ts/`](../../config/ts) — one file per experiment, with the
+  question it answers written at the top
+- launchers, tiers, env knobs, resume, failure triage:
+  [`launch/README.md`](launch/README.md)
+- data acquisition and what is real vs injected: [`data/README.md`](../../data/README.md)
+- stages: `ad`, `explain`, `rul`, `calibration`, `scaling` — all five run from
+  the same config and write the same structured rows
+
+```
+runner.py      expand config -> variants x seeds, resume, isolate failures
+pipeline.py    the five stages
+datasets.py    synthetic | cmapss:FD00x | ncmapss:DS0x, one interface
+data_real.py   the NASA loaders
+conformal.py   split conformal on the circuit's own predictive
+ts_logging.py  per-run artifacts (config, env, git, curves, status)
+aggregate.py   many runs -> summary.csv / summary.md
+```
+
+The scripts documented in the rest of this file (`run_ad.py`, `run_rul.py`,
+`run_explain.py`, `bench_scaling.py`) still work unchanged and remain the
+quickest way to poke at one thing:
+
+```bash
+export PYTHONPATH=.
 python -m poc.time_series.bench_scaling      # 1. tree vs DAG scaling      (~1 min)
 python -m poc.time_series.run_ad             # 2. anomaly detection        (~10 min)
 python -m poc.time_series.run_rul            # 3. RUL / survival           (~25 min)
@@ -35,8 +65,9 @@ If `python` is not the project interpreter:
 PYTHONPATH=. ~/miniconda3/envs/expllm_env/bin/python -m poc.time_series.bench_scaling
 ```
 
-Everything is synthetic and offline — no downloads, no credentials, seeded and
-reproducible.
+The simulator needs no downloads and is seeded and reproducible; the two real
+datasets are opt-in (`python -m poc.time_series.check_data` says what is
+present and how to get the rest).
 
 ---
 

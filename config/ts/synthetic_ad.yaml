@@ -1,0 +1,38 @@
+# Reference AD run on the synthetic fleet — the control arm for every real-data
+# result.  The settled finding it reproduces: PARITY on detection (three-way tie
+# with conv-AE and Mahalanobis), not superiority.  Any real-data number is read
+# against this row, so it is rerun rather than quoted from the old logs.
+#
+#   PYTHONPATH=. python -m poc.time_series.runner config/ts/synthetic_ad.yaml
+name: synthetic_ad
+description: |
+  Detection on the C-MAPSS-shaped simulator: circuit vs the full baseline
+  suite, plus the two queries no baseline expresses (exact marginalisation
+  under dead sensors; the exact typed marginal/conditional/structural split).
+
+seeds: [0, 1, 2, 3, 4]
+device: auto
+stages: [ad]
+log_root: logs/ts/synthetic_ad
+
+dataset:
+  source: synthetic
+  units: 60
+  channels: 14
+  regimes: 3
+  window: 8
+  stride: 2
+  inject_rate: 0.12
+  strength: 1.0
+
+model:
+  vtree: chain          # settled best structure in the synthetic ablation
+  K: 6
+  epochs: 40
+  lr: 0.05
+
+eval:
+  fast_baselines: false
+  missing: true
+  typed: true
+  n_dead: 3

@@ -1,0 +1,61 @@
+# STRUCTURE ABLATION ON REAL DATA — matched budget, only the vtree changes.
+#
+# The synthetic version of this sweep is SETTLED and must not be rerun: the
+# hand-built chain (HMM-shaped) region graph won on AUROC and likelihood, and
+# curvature region graphs (orc/forman), spectral, chow_liu, SOS and
+# multi-partition all lost.  The one finding worth carrying forward is that
+# `forman_rg` had the BEST likelihood and near-WORST AUROC — density fit and
+# detection are different objectives, and selecting structure on NLL is a trap.
+#
+# What is genuinely open is whether that ordering survives a real background
+# process.  The synthetic generator has time-adjacency structure by
+# construction, which is exactly what the hand-built chain encodes, so the chain
+# was arguably told the answer.  Real engine data is the fair test of "does a
+# learner that must discover the structure lose to being told it?".
+#
+# This is a TIER-2 experiment: informative, not decisive.  Run it after the
+# detection / explanation / calibration configs.
+#
+#   PYTHONPATH=. python -m poc.time_series.runner config/ts/cmapss_structure.yaml
+name: cmapss_structure
+description: |
+  Same data, same capacity, same epochs — only the vtree / region graph
+  changes.  Reports AUROC and held-out NLL per structure on real C-MAPSS.
+
+seeds: [0, 1, 2]
+device: auto
+stages: [ad]
+log_root: logs/ts/cmapss_structure
+skip_if_missing_data: true
+
+dataset:
+  source: cmapss
+  subset: FD001
+  cap: 125
+  window: 20
+  stride: 2
+  per_regime: auto
+  max_test_windows: 8000
+
+model:
+  K: 8
+  epochs: 50
+  lr: 0.05
+
+eval:
+  fast_baselines: true     # the comparison is structure-vs-structure
+  baselines: false
+  missing: false
+  typed: true
+
+grid:
+  model.vtree:
+    - chain                # HMM-shaped region graph (synthetic winner)
+    - chain_grouped
+    - time                 # balanced temporal vtree
+    - channel
+    - random               # the control: is structure doing anything at all?
+    - chow_liu
+    - spectral
+    - orc_rg               # n-ary Ollivier-Ricci curvature region graph
+    - forman_rg

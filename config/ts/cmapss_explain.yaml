@@ -1,0 +1,51 @@
+# EXPLANATION ON REAL C-MAPSS — the experiment the paper stands on.
+#
+# Detection is a tie, so the contribution is that the circuit can say WHY:
+# correctly (localisation against ground truth), completely (a theorem, not an
+# estimate) and faithfully (deletion curves).  Everything measured here was
+# measured on our own generator until now; this is the run that decides whether
+# it survives a real background process.
+#
+# Read the per-kind table, not the pooled one.  `spike` is solved by z-score
+# (0.999) and claiming credit for it is claiming credit for nothing; `desync`
+# and `decouple` are the columns where a joint conditional view has something
+# no per-channel monitor can reach.
+#
+#   PYTHONPATH=. python -m poc.time_series.runner config/ts/cmapss_explain.yaml
+name: cmapss_explain
+description: |
+  Exact attribution vs Gaussian conditional / AE reconstruction / sampling-SHAP
+  / z-score on real C-MAPSS, scored on correctness, completeness, faithfulness.
+
+seeds: [0, 1, 2]
+device: auto
+stages: [explain]
+log_root: logs/ts/cmapss_explain
+skip_if_missing_data: true
+
+dataset:
+  source: cmapss
+  subset: FD001
+  cap: 125
+  window: 20
+  stride: 2
+  inject_rate: 0.15        # more injected windows -> tighter localisation CIs
+  per_regime: auto
+  official_test: true
+
+model:
+  vtree: chain
+  K: 8
+  epochs: 50
+
+eval:
+  shapley_orders: 8
+  shap_samples: 32
+  deletion: true
+  n_complete: 64
+  max_explain_windows: 1500   # attribution is O(C) exact passes per view
+  plots: true
+  examples: true
+
+grid:
+  dataset.subset: [FD001, FD002, FD004]

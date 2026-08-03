@@ -1,0 +1,53 @@
+# RUL on the synthetic fleet — the control arm for the real-data RUL runs, and
+# the record of a FAILED gate.
+#
+# T1 ("RUL as an exact censored survival query") was killed here: with
+# tau_where=deep, K=12 and 3 seeds, the exact censored term was worth +0.079 /
+# +0.085 CRPS at 20%/35% censoring and -0.472 / -2.866 at 50%/70%.  The trend is
+# the REVERSE of the hypothesis — the censored term should matter most where
+# censoring is heaviest, and it does the most damage there.  Mechanism:
+# log P(tau >= c | x) has a trivial maximiser (push all mass above every
+# censoring time) and at 70% there are too few uncensored units to anchor
+# against it.  That is a property of the objective, not a coding bug.
+#
+# This config exists so the negative is reproducible on demand, and so the real
+# -data runs have a matched control.  Do not re-derive the gate from it.
+#
+#   PYTHONPATH=. python -m poc.time_series.runner config/ts/synthetic_rul.yaml
+name: synthetic_rul
+description: |
+  Censoring ablation across four censoring rates on the simulator, plus
+  ridge/MLP/CQR baselines and survival under partial evidence.
+
+seeds: [0, 1, 2]
+device: auto
+stages: [rul]
+log_root: logs/ts/synthetic_rul
+
+dataset:
+  source: synthetic
+  units: 60
+  channels: 14
+  regimes: 3
+  window: 8
+  rul_stride: 3
+  bins: 20
+  cap: 130
+  censor_frac: 0.35
+
+model:
+  vtree: chain
+  K: 6
+  rul_K: 12
+  tau_where: deep
+  epochs: 40
+  rul_epochs: 60
+
+eval:
+  censoring_ablation: true
+  partial_evidence: true
+  survival_demo: true
+  alpha: 0.10
+
+grid:
+  dataset.censor_frac: [0.2, 0.35, 0.5, 0.7]

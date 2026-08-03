@@ -173,7 +173,7 @@ def completeness_error(pc, X: torch.Tensor, order=None) -> Dict[str, float]:
     """
     contrib = pc.chain_rule_attribution(X, order=order)
     with torch.no_grad():
-        total = pc.pc.log_prob(pc._prep(X))
+        total = pc.pc.log_prob(pc._prep(X)).cpu()
     resid = (contrib.sum(1) - total).abs()
     return {"max_residual_nats": float(resid.max()),
             "mean_residual_nats": float(resid.mean())}
@@ -240,7 +240,7 @@ def explain_window(pc, x: torch.Tensor, channel_names: Optional[List[str]] = Non
     names = channel_names or [f"ch{c}" for c in range(len(marg))]
 
     with torch.no_grad():
-        total = float(-pc.pc.log_prob(pc._prep(xb))[0])
+        total = float(-pc.pc.log_prob(pc._prep(xb))[0].cpu())
 
     ranked = torch.argsort(cond, descending=True)[:top].tolist()
     verdicts = []

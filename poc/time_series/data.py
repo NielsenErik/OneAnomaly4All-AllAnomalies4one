@@ -414,6 +414,18 @@ class RULTask:
     cap: float                     # RUL values are capped at this many cycles
     channel_groups: List[List[int]]
     meta: dict = field(default_factory=dict)
+    # Unit id of every window.  Needed wherever exchangeability is asserted at
+    # the UNIT level — split conformal above all: overlapping windows from one
+    # engine are near-duplicates, so a random window split for calibration
+    # would report coverage that does not hold on a new engine.
+    unit_train: Optional[torch.Tensor] = None
+    unit_test: Optional[torch.Tensor] = None
+    # Raw (capped, unbinned) training RUL in cycles.  `tau_train` is the BIN,
+    # which is what the circuit is trained on; anything calibrating against the
+    # real target — split conformal above all — needs the cycles, otherwise the
+    # coverage guarantee is about a rounded quantity rather than the truth.
+    # Meaningless for censored windows, where the value is only a lower bound.
+    rul_train: Optional[torch.Tensor] = None
 
     def bin_centers(self) -> torch.Tensor:
         edges = torch.linspace(0, self.cap, self.n_bins + 1)
@@ -464,7 +476,7 @@ def make_rul_task(
         return np.clip(np.digitize(np.minimum(rul, cap), edges[1:-1]), 0, n_bins - 1)
 
     def build(units, force_uncensored: bool):
-        Xs, taus, deltas, regs, raw = [], [], [], [], []
+        Xs, taus, deltas, regs, raw, uids = [], [], [], [], [], []
         for u in units:
             if force_uncensored and fleet.censored[u]:
                 continue                     # test set is failure-observed only
@@ -480,11 +492,12 @@ def make_rul_task(
             # the window was taken, all that is known is τ ≥ recorded value
             deltas.append(np.full(len(W), 0 if fleet.censored[u] else 1))
             regs.append(fleet.regime[u][right])
+            uids.append(np.full(len(W), int(u)))
         cat = lambda a: np.concatenate(a, axis=0)
-        return cat(Xs), cat(taus), cat(deltas), cat(regs), cat(raw)
+        return cat(Xs), cat(taus), cat(deltas), cat(regs), cat(raw), cat(uids)
 
-    Xtr, ttr, dtr, rtr, _ = build(tr_units, force_uncensored=False)
-    Xte, tte, _, rte, rawte = build(te_units, force_uncensored=True)
+    Xtr, ttr, dtr, rtr, rawtr, utr = build(tr_units, force_uncensored=False)
+    Xte, tte, _, rte, rawte, ute = build(te_units, force_uncensored=True)
 
     return RULTask(
         X_train=torch.from_numpy(Xtr.astype(np.float32)),
@@ -500,6 +513,9 @@ def make_rul_task(
         meta={"train_units": len(tr_units), "test_units": len(te_units),
               "censored_units": int(sum(fleet.censored[u] for u in tr_units)),
               "n_regimes": fleet.n_regimes, "seed": seed},
+        unit_train=torch.from_numpy(utr.astype(np.int64)),
+        unit_test=torch.from_numpy(ute.astype(np.int64)),
+        rul_train=torch.from_numpy(rawtr.astype(np.float32)),
     )
 
 

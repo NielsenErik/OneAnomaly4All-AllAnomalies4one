@@ -216,7 +216,10 @@ def main(argv=None) -> None:
     ap.add_argument("--bins", type=int, default=20)
     ap.add_argument("--cap", type=float, default=130.0)
     ap.add_argument("--vtree", default="time")
-    ap.add_argument("--tau-where", default="root", choices=["root", "deep"])
+    # 'deep' is the default since 2026-08-03: 'root' caps the window↔τ coupling
+    # at a K×K discrete latent, which collapsed to a CONSTANT predictive and
+    # invalidated a whole gate (hand-off §3).  'root' is kept for the ablation.
+    ap.add_argument("--tau-where", default="deep", choices=["root", "deep"])
     ap.add_argument("--K", type=int, default=10)
     ap.add_argument("--leaf-components", type=int, default=1)
     ap.add_argument("--epochs", type=int, default=50)

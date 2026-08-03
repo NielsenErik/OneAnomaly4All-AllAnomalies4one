@@ -1,0 +1,57 @@
+# DETECTION ON REAL N-C-MAPSS (flight conditions, 1 Hz).
+#
+# The hardest of the three sources and the most convincing if it works.
+# N-C-MAPSS engines fly real recorded flight profiles, so the "normal" data has
+# operating-point variation that no simulator of ours reproduces — which is
+# exactly the regime where a per-channel detector should struggle and a joint
+# density should earn its keep.
+#
+# `aggregate: cycle` reduces each flight to one row (per-cycle channel means),
+# so a window means the same thing here as in C-MAPSS and the results are
+# comparable across sources.  `aggregate: raw` asks a different, much shorter-
+# horizon question (seconds inside one flight) and is available in the grid
+# below for one dataset as a contrast.
+#
+# Only X_s (the 14 physical sensors) is used.  X_v and T are model internals a
+# real engine does not report; switching them on inflates every score.
+#
+#   PYTHONPATH=. python -m poc.time_series.runner config/ts/ncmapss_ad.yaml
+name: ncmapss_ad
+description: |
+  Detection on real N-C-MAPSS releases, per-cycle aggregation, circuit vs the
+  full baseline suite plus the dead-sensor and typed queries.
+
+seeds: [0, 1, 2]
+device: auto
+stages: [ad]
+log_root: logs/ts/ncmapss_ad
+skip_if_missing_data: true
+
+dataset:
+  source: ncmapss
+  dataset: DS02
+  channels_groups: [X_s]
+  aggregate: cycle
+  subsample: 10            # only used when aggregate: raw
+  cap: 70                  # N-C-MAPSS units run ~50-100 flights
+  window: 10
+  stride: 1
+  inject_rate: 0.12
+  regimes: 3               # k-means on (alt, Mach, TRA, T2)
+  per_regime: auto
+  cache: true
+  max_test_windows: 12000
+
+model:
+  vtree: chain
+  K: 8
+  epochs: 50
+  lr: 0.05
+
+eval:
+  fast_baselines: false
+  missing: true
+  typed: true
+
+grid:
+  dataset.dataset: [DS01, DS02, DS03]

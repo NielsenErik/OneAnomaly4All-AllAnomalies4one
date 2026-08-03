@@ -33,6 +33,7 @@ from src.probabilistic_circuits import (
     chain_region_graph,
     delta_window_transform,
     learned_region_graph,
+    move_circuit_,
     GaussianLeaf,
     GaussianMixtureLeaf,
     RegionGraphPC,
@@ -53,6 +54,43 @@ VTREE_CHOICES = (
     "orc_rg", "forman_rg", "spectral_rg", "orc_rg_multi", "forman_rg_multi",
     "chain", "chain_grouped", "chain_full",
 )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Device handling
+# ═══════════════════════════════════════════════════════════════════════════
+
+def resolve_device(device: Optional[str] = None) -> torch.device:
+    """
+    'auto' -> cuda when present, else mps, else cpu.
+
+    A word of warning that belongs next to the flag: a probabilistic circuit is
+    a deep DAG of MANY SMALL tensor ops, not a few large matmuls, so it is
+    launch-latency bound.  On a 4080 the win over a modern CPU is real but
+    modest for small circuits and only grows with K, the window and the batch.
+    Measure before assuming — `--device` is a knob, not an upgrade.
+    """
+    if device in (None, "auto"):
+        if torch.cuda.is_available():
+            return torch.device("cuda")
+        if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+            return torch.device("mps")
+        return torch.device("cpu")
+    return torch.device(device)
+
+
+class DegenerateModelError(RuntimeError):
+    """
+    Raised when a trained circuit is provably carrying no information.
+
+    Three separate silent degeneracies have each produced a confident WRONG
+    result in this project (leaf jitter not covering every leaf type; uniform
+    sum-node weights in the DAG layout; τ attached at the root making
+    E[τ|x] constant).  All three were invisible in the training loss and
+    surfaced only in a query — after the conclusions had been drawn.  The fix
+    is to make degeneracy LOUD: a predictive that does not depend on its input
+    is refused rather than returned.
+    """
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -200,6 +238,8 @@ class WindowPC:
         use_sos: bool = False,
         delta: bool = False,
         seed: int = 0,
+        device: Optional[str] = None,
+        weight_jitter: float = 0.5,
     ):
         self.window, self.n_channels = window, n_channels
         self.d = window * n_channels
@@ -210,11 +250,15 @@ class WindowPC:
         self.use_sos = use_sos
         self.delta = delta
         self.seed = seed
+        self.device = resolve_device(device)
+        self.weight_jitter = weight_jitter
         self.pc = None
+        self.history: List[float] = []
 
     def _prep(self, X: torch.Tensor) -> torch.Tensor:
         """Optional first-difference reparameterisation.  Unit-determinant, so
         the density stays exact and log p is directly comparable."""
+        X = X.to(self.device)
         if not self.delta:
             return X
         return delta_window_transform(X, self.window, self.n_channels)
@@ -224,11 +268,21 @@ class WindowPC:
         return (lambda i: GaussianMixtureLeaf(i, n_components=c)) if c > 1 else GaussianLeaf
 
     def fit(self, X: torch.Tensor, epochs: int = 60, lr: float = 0.05,
-            batch_size: int = 256, verbose: bool = False) -> "WindowPC":
+            batch_size: int = 256, verbose: bool = False,
+            log_every: int = 0) -> "WindowPC":
+        """
+        Structure learning and closed-form leaf initialisation happen on CPU
+        (they are numpy/statistics, not tensor algebra); only the gradient loop
+        runs on `self.device`.  The per-epoch NLL is kept in `self.history` so
+        the pipeline can write a training curve for every run.
+        """
         torch.manual_seed(self.seed)
-        X = self._prep(X)
+        X_cpu = X.detach().cpu()
+        if self.delta:
+            X_cpu = delta_window_transform(X_cpu, self.window, self.n_channels)
         vt = build_window_vtree(self.vtree_method, self.window, self.n_channels,
-                                X=X, channel_groups=self.channel_groups, seed=self.seed)
+                                X=X_cpu, channel_groups=self.channel_groups,
+                                seed=self.seed)
         if self.use_sos:
             # SOS / squared circuit: subtractive mixtures, exactly normalised by
             # the pairwise construction.  region_graph=True is required — the
@@ -238,30 +292,62 @@ class WindowPC:
                                 seed=self.seed, region_graph=True)
         else:
             self.pc = RegionGraphPC(vt, n_sum_components=self.K,
-                                    leaf_factory=self._leaf_factory(), seed=self.seed)
+                                    leaf_factory=self._leaf_factory(),
+                                    weight_jitter=self.weight_jitter, seed=self.seed)
         self.pc.validate()
-        self.pc.fit_leaves(X)
+        self.pc.fit_leaves(X_cpu)
+        move_circuit_(self.pc, self.device)   # DAG-safe; .to() is exponential here
+
+        Xd = X_cpu.to(self.device)
         opt = torch.optim.Adam(self.pc.parameters(), lr=lr)
-        n = len(X)
+        n = len(Xd)
+        self.history = []
         for ep in range(epochs):
-            perm = torch.randperm(n)
+            perm = torch.randperm(n, device=self.device)
             tot = 0.0
             for s in range(0, n, batch_size):
-                xb = X[perm[s:s + batch_size]]
+                xb = Xd[perm[s:s + batch_size]]
                 loss = -self.pc.log_prob(xb).mean()
                 opt.zero_grad(); loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.pc.parameters(), 1.0)
                 opt.step()
                 tot += float(loss.detach()) * len(xb)
-            if verbose and ep % max(epochs // 6, 1) == 0:
-                print(f"    [pc] epoch {ep:3d}  nll {tot / n:8.3f}")
+            self.history.append(tot / max(n, 1))
+            every = log_every or (max(epochs // 6, 1) if verbose else 0)
+            if every and ep % every == 0:
+                print(f"    [pc] epoch {ep:3d}  nll {self.history[-1]:8.3f}")
         return self
+
+    # ── degeneracy guardrail ─────────────────────────────────────────────
+
+    @torch.no_grad()
+    def assert_informative(self, X: torch.Tensor, min_sd: float = 1e-3) -> float:
+        """
+        Refuse a circuit whose score is effectively constant in x.
+
+        Every silent degeneracy this project has hit (see DegenerateModelError)
+        showed up here and nowhere else: the training loss looked fine while
+        the model had collapsed to a product of marginals or worse.  Cheap to
+        check, so it is checked on every fitted model rather than trusted.
+        """
+        s = self.score(X[: min(len(X), 512)])
+        sd = float(s.std())
+        if not np.isfinite(sd) or sd < min_sd:
+            raise DegenerateModelError(
+                f"degenerate density: -log p(x) has sd {sd:.3e} over "
+                f"{min(len(X), 512)} inputs, i.e. the score barely depends on x. "
+                "Check weight_jitter (must be > 0), leaf jitter and the vtree "
+                "before trusting any number from this model.")
+        return sd
 
     @torch.no_grad()
     def score(self, X: torch.Tensor, batch_size: int = 512) -> torch.Tensor:
+        """−log p(x).  Always returned on CPU: every consumer (metrics, plots,
+        sklearn baselines) is numpy-side, and a stray device tensor there is a
+        crash at the end of a long run rather than at the start."""
         X = self._prep(X)
         out = [-self.pc.log_prob(X[s:s + batch_size]) for s in range(0, len(X), batch_size)]
-        return torch.cat(out)
+        return torch.cat(out).cpu()
 
     @torch.no_grad()
     def score_with_missing(self, X: torch.Tensor, dead_channels: Sequence[int],
@@ -276,7 +362,7 @@ class WindowPC:
         X = self._prep(X)
         out = [-self.pc.log_marginal(X[s:s + batch_size], marg)
                for s in range(0, len(X), batch_size)]
-        return torch.cat(out)
+        return torch.cat(out).cpu()
 
     @torch.no_grad()
     def typed_scores(self, X: torch.Tensor, batch_size: int = 512
@@ -306,8 +392,8 @@ class WindowPC:
                 lp_c = self.pc.log_marginal(xb, others)          # log p(x_c)
                 lp_o = self.pc.log_marginal(xb, chan)            # log p(x_-c)
                 lp_j = self.pc.log_prob(xb)                      # log p(x)
-                m.append(-lp_c)
-                cd.append(-(lp_j - lp_o))                        # −log p(x_c|x_-c)
+                m.append(-lp_c.cpu())
+                cd.append(-(lp_j - lp_o).cpu())                  # −log p(x_c|x_-c)
             marg_out.append(torch.cat(m)); cond_out.append(torch.cat(cd))
         marginal = torch.stack(marg_out, dim=1)
         conditional = torch.stack(cond_out, dim=1)
@@ -331,7 +417,8 @@ class WindowPC:
                 cols = []
                 for s in range(0, len(Xp), batch_size):
                     xb = Xp[s:s + batch_size]
-                    cols.append(self.pc.log_marginal(xb, [f]) - self.pc.log_prob(xb))
+                    cols.append((self.pc.log_marginal(xb, [f])
+                                 - self.pc.log_prob(xb)).cpu())
                 grid[:, t, c] = torch.cat(cols)
         return grid
 
@@ -364,7 +451,7 @@ class WindowPC:
             for i, f in enumerate(order):
                 rest = order[i + 1:]
                 cur = self.pc.log_marginal(xb, rest) if rest else self.pc.log_prob(xb)
-                out[s:s + len(xb), f] = cur - prev
+                out[s:s + len(xb), f] = (cur - prev).cpu()
                 prev = cur
         return out
 
@@ -390,7 +477,7 @@ class WindowPC:
                 rest = [f for cc in perm[i + 1:] for f in chan(cc)]
                 cur = (self.pc.log_marginal(Xp, rest) if rest
                        else self.pc.log_prob(Xp))
-                acc[:, c] += cur - prev
+                acc[:, c] += (cur - prev).cpu()
                 prev = cur
         return -(acc / n_orders)          # higher = more responsible
 
@@ -424,10 +511,12 @@ class SurvivalPC:
         vtree_method: str = "time",
         n_sum_components: int = 8,
         leaf_components: int = 1,
-        tau_where: str = "root",
+        tau_where: str = "deep",
         channel_groups: Optional[Sequence[Sequence[int]]] = None,
         delta: bool = False,
         seed: int = 0,
+        device: Optional[str] = None,
+        weight_jitter: float = 0.5,
     ):
         self.window, self.n_channels = window, n_channels
         self.d = window * n_channels
@@ -439,7 +528,10 @@ class SurvivalPC:
         self.channel_groups = channel_groups
         self.delta = delta
         self.seed = seed
+        self.device = resolve_device(device)
+        self.weight_jitter = weight_jitter
         self.pc: Optional[RegionGraphPC] = None
+        self.history: List[float] = []
 
     # ── construction / training ──────────────────────────────────────────
 
@@ -447,12 +539,15 @@ class SurvivalPC:
         """First-difference the WINDOW only.  Unit determinant, so the joint
         density over (window, tau) stays exactly normalised; tau is a separate
         variable and must never be differenced."""
+        X = X.to(self.device)
         if not self.delta:
             return X
         return delta_window_transform(X, self.window, self.n_channels)
 
     def _augment(self, X: torch.Tensor, tau: torch.Tensor) -> torch.Tensor:
-        return torch.cat([self._prep(X), tau.reshape(-1, 1).to(X.dtype)], dim=1)
+        Xp = self._prep(X)
+        return torch.cat([Xp, tau.reshape(-1, 1).to(dtype=Xp.dtype,
+                                                    device=Xp.device)], dim=1)
 
     def fit(
         self,
@@ -464,6 +559,7 @@ class SurvivalPC:
         batch_size: int = 256,
         use_censored: bool = True,
         verbose: bool = False,
+        log_every: int = 0,
     ) -> "SurvivalPC":
         """
         use_censored=False drops the censored units entirely — the standard
@@ -474,27 +570,38 @@ class SurvivalPC:
             keep = delta == 1
             X, tau, delta = X[keep], tau[keep], delta[keep]
 
+        # structure + leaf init on CPU (numpy statistics), training on device
+        X_cpu = X.detach().cpu()
+        base_in = (delta_window_transform(X_cpu, self.window, self.n_channels)
+                   if self.delta else X_cpu)
         base = build_window_vtree(self.vtree_method, self.window, self.n_channels,
-                                  X=self._prep(X), channel_groups=self.channel_groups,
+                                  X=base_in, channel_groups=self.channel_groups,
                                   seed=self.seed)
         vt = attach_variable(base, self.tau_idx, where=self.tau_where)
         self.pc = RegionGraphPC(
             vt, n_sum_components=self.K,
             leaf_factory=mixed_leaf_factory(self.tau_idx, self.n_bins,
                                             self.leaf_components),
+            weight_jitter=self.weight_jitter,
             seed=self.seed)
         self.pc.validate()
-        self.pc.fit_leaves(self._augment(X, tau))
+        self.pc.fit_leaves(torch.cat(
+            [base_in, tau.detach().cpu().reshape(-1, 1).to(base_in.dtype)], dim=1))
+        move_circuit_(self.pc, self.device)   # DAG-safe; .to() is exponential here
 
+        Xd = X_cpu.to(self.device)
+        taud = tau.to(self.device)
+        deltad = delta.to(self.device)
         opt = torch.optim.Adam(self.pc.parameters(), lr=lr)
-        n = len(X)
+        n = len(Xd)
         inf = float("inf")
+        self.history = []
         for ep in range(epochs):
-            perm = torch.randperm(n)
+            perm = torch.randperm(n, device=self.device)
             tot = 0.0
             for s in range(0, n, batch_size):
                 idx = perm[s:s + batch_size]
-                xb, tb, db = X[idx], tau[idx], delta[idx]
+                xb, tb, db = Xd[idx], taud[idx], deltad[idx]
                 zb = self._augment(xb, tb)
                 obs = db == 1
                 terms = []
@@ -510,8 +617,10 @@ class SurvivalPC:
                 torch.nn.utils.clip_grad_norm_(self.pc.parameters(), 1.0)
                 opt.step()
                 tot += float(loss.detach()) * len(idx)
-            if verbose and ep % max(epochs // 6, 1) == 0:
-                print(f"    [surv] epoch {ep:3d}  censored-NLL {tot / n:8.3f}")
+            self.history.append(tot / max(n, 1))
+            every = log_every or (max(epochs // 6, 1) if verbose else 0)
+            if every and ep % every == 0:
+                print(f"    [surv] epoch {ep:3d}  censored-NLL {self.history[-1]:8.3f}")
         return self
 
     # ── exact queries ────────────────────────────────────────────────────
@@ -528,10 +637,10 @@ class SurvivalPC:
             xb = X[s:s + batch_size]
             cols = []
             for k in range(self.n_bins):
-                tau_k = torch.full((len(xb),), float(k))
+                tau_k = torch.full((len(xb),), float(k), device=self.device)
                 cols.append(self.pc.log_prob(self._augment(xb, tau_k)))
             joint = torch.stack(cols, dim=1)
-            out.append(joint - torch.logsumexp(joint, dim=1, keepdim=True))
+            out.append((joint - torch.logsumexp(joint, dim=1, keepdim=True)).cpu())
         return torch.cat(out)
 
     @torch.no_grad()
@@ -546,12 +655,13 @@ class SurvivalPC:
         out = []
         for s in range(0, len(X), batch_size):
             xb = X[s:s + batch_size]
-            zb = self._augment(xb, torch.zeros(len(xb)))
-            tb = (t_bin[s:s + batch_size] if isinstance(t_bin, torch.Tensor)
-                  else torch.full((len(xb),), float(t_bin)))
+            zb = self._augment(xb, torch.zeros(len(xb), device=self.device))
+            tb = (t_bin[s:s + batch_size].to(self.device)
+                  if isinstance(t_bin, torch.Tensor)
+                  else torch.full((len(xb),), float(t_bin), device=self.device))
             num = self.pc.log_box(zb, {self.tau_idx: (tb + 1.0, inf)})
             den = self.pc.log_marginal(zb, [self.tau_idx])
-            out.append(num - den)
+            out.append((num - den).cpu())
         return torch.cat(out)
 
     @torch.no_grad()
@@ -563,8 +673,8 @@ class SurvivalPC:
         out = []
         for s in range(0, len(X), batch_size):
             xb = X[s:s + batch_size]
-            zb = self._augment(xb, torch.zeros(len(xb)))
-            out.append(-self.pc.log_marginal(zb, [self.tau_idx]))
+            zb = self._augment(xb, torch.zeros(len(xb), device=self.device))
+            out.append(-self.pc.log_marginal(zb, [self.tau_idx]).cpu())
         return torch.cat(out)
 
     def bin_centers(self) -> torch.Tensor:
@@ -572,14 +682,39 @@ class SurvivalPC:
         return 0.5 * (edges[:-1] + edges[1:])
 
     @torch.no_grad()
-    def predict(self, X: torch.Tensor) -> Dict[str, torch.Tensor]:
-        """Point + distributional RUL predictions in CYCLES."""
+    def predict(self, X: torch.Tensor, check_degenerate: bool = True,
+                min_sd: float = 1e-3) -> Dict[str, torch.Tensor]:
+        """
+        Point + distributional RUL predictions in CYCLES.
+
+        GUARDRAIL (hand-off §3).  A predictive that is constant across inputs
+        is refused instead of returned.  This is not defensive programming for
+        its own sake: `tau_where='root'` once made `predict` emit the same
+        102.4 cycles for all 851 test windows (sd 0.0), and an entire
+        pre-registered gate was run and reported on that model before anyone
+        noticed.  The training loss showed nothing wrong.  Everything the
+        circuit does downstream — CRPS, PICP, the censoring ablation — is
+        meaningless once p(τ|x) stops depending on x, so it is checked here,
+        at the one place every consumer passes through.
+        """
         logp = self.log_pmf(X)
         p = logp.exp()
-        centers = self.bin_centers()
+        centers = self.bin_centers().to(p.device)
         mean = (p * centers).sum(1)
         mode = centers[p.argmax(1)]
         cdf = p.cumsum(1)
+
+        if check_degenerate and len(mean) > 1:
+            sd = float(mean.std())
+            if not np.isfinite(sd) or sd < min_sd * max(self.cap, 1.0):
+                raise DegenerateModelError(
+                    f"degenerate predictive: E[tau|x] has sd {sd:.2e} over "
+                    f"{len(mean)} inputs — p(tau|x) is effectively independent "
+                    "of x. Check tau_where (use 'deep'; 'root' caps the "
+                    "coupling at a KxK latent and collapses easily), "
+                    "weight_jitter (must be > 0) and leaf jitter before "
+                    "trusting any result from this model.")
+
         def q(level: float) -> torch.Tensor:
             idx = (cdf < level).sum(1).clamp(max=self.n_bins - 1)
             return centers[idx]

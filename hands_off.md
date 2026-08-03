@@ -1,4 +1,356 @@
-# Hand-off — making RUL work (time-series PoC)
+# Hand-off — time-series PoC
+
+_Last updated: 2026-08-03 (evening), after building the config-driven
+experiment pipeline and the real-data layer. The morning hand-off (overnight
+batch + corrected RUL gate) is preserved in full below as §7; two earlier ones
+are archived after it. Nothing was deleted._
+
+Read `CLAUDE.md` (hard constraints), then
+[`poc/time_series/launch/README.md`](poc/time_series/launch/README.md) (how to
+run anything) and [`data/README.md`](data/README.md) (what is real and what is
+injected). This file is the state of play and the next actions.
+
+---
+
+## 0. What changed today, and what to do with it
+
+The three top-priority actions from the morning hand-off are now **built and
+tested**; none of them has been *run at scale* yet, which is the next session's
+job.
+
+| morning action | state |
+|---|---|
+| 1. degeneracy guardrail (§8 below) | **DONE** — `DegenerateModelError` raised by `SurvivalPC.predict` and `WindowPC.assert_informative`; `tau_where` now defaults to `deep` everywhere; tests pin both |
+| 2. conformalise the circuit's own predictive | **BUILT** — `poc/time_series/conformal.py`, split by ENGINE, two modes (CQR-style and PIT recalibration), wired as the `calibration` stage |
+| 3. real data | **BUILT** — real C-MAPSS (all four subsets, official test units + RUL file) and N-C-MAPSS (HDF5, per-cycle or raw) behind the same task interface; anomaly/RUL protocol unchanged |
+
+Plus the infrastructure that was missing: one config-driven runner for all five
+stages, per-run logging (config, git commit, GPU, curves, status, artifacts),
+resume-on-restart, cross-run aggregation, and workstation launchers.
+
+**Run this first, next session:**
+
+```bash
+bash poc/time_series/launch/run_smoke.sh                     # ~3 min, proves the wiring
+# put the NASA files in data/cmapss/ and data/ncmapss/ (data/README.md), then:
+TIERS="1 2" JOBS=3 bash poc/time_series/launch/run_workstation.sh
+```
+
+Tier 1 is detection + explanation on real C-MAPSS — the credibility gap and the
+contribution. Tier 2 is calibration + RUL. Everything is resumable, so an
+interrupted night costs nothing.
+
+**One bug worth knowing about**, found while building this: calling
+`nn.Module.to(device)` on a region-graph circuit is *exponential in depth* —
+`to()` recurses over `children()` with no memoisation, so every shared
+sub-circuit is visited once per path. That is the same `K^depth` blowup the DAG
+rebuild removed, reintroduced through a PyTorch convenience method (a 6×8
+window went from 0.2 s to 400 s per fit, silently and with correct results).
+Use `move_circuit_(circuit, device)` from `src/probabilistic_circuits.py`;
+never `.to()`. A test pins it.
+
+---
+
+## 1. Status board
+
+| workstream | state |
+|---|---|
+| DAG / region-graph rebuild of the circuit layer | **DONE**, 216 tests pass |
+| AD detection | **DONE** — parity with the best baselines, not superiority |
+| Explainability (the contribution) | **DONE** — holds under every robustness check run so far |
+| T1 "RUL as an exact censored survival query" | **DEAD** — failed the pre-registered gate on a valid model |
+| RUL as a *model* (not as a novelty claim) | **works** — beats ridge/MLP/CQR on RMSE, but badly uncalibrated |
+| Degeneracy guardrail | **DONE** (2026-08-03 evening) |
+| Conformal layer on the exact predictive | **BUILT, not yet run at scale** |
+| Experiment pipeline / configs / launchers / logging | **DONE** (2026-08-03 evening), 29 new tests |
+| Real data (C-MAPSS + N-C-MAPSS) | **PLUMBED AND TESTED, NOT YET RUN** — the files are not in the repo; this is still the credibility gap until tier 1 has run |
+
+**One-line thesis that the evidence supports:** *parity on detection,
+exclusivity on explanation.* The circuit ties the best detectors and is the
+only one that can say why — correctly, completely, and in a form an operator
+can act on.
+
+**Do not claim:** that the circuit detects better (it does not), or that exact
+censoring handling improves prognosis (it does not).
+
+---
+
+## 2. What the overnight batch settled
+
+### AD detection — three-way tie (3 seeds, current generator)
+
+| detector | AUROC | AP |
+|---|---|---|
+| conv autoencoder | 0.9446 ± 0.0131 | 0.9198 |
+| **RegionGraphPC (chain)** | 0.9368 ± 0.0092 | 0.9033 |
+| Mahalanobis | 0.9364 ± 0.0097 | 0.9049 |
+| 1-NN distance | 0.9311 ± 0.0108 | 0.8886 |
+| z-score | 0.8514 ± 0.0125 | 0.7274 |
+
+### Structure ablation — the chain wins on AUROC *and* likelihood
+
+| vtree / region graph | AUROC | train NLL |
+|---|---|---|
+| **chain (HMM-shaped)** | **0.9368** | **37.62** |
+| time (balanced temporal) | 0.9176 | 63.84 |
+| orc_rg (n-ary curvature) | 0.8933 | 39.42 |
+| spectral | 0.8895 | 44.21 |
+| forman_rg | 0.8834 | **32.84** |
+| random | 0.8825 | 72.64 |
+| chow_liu | 0.8752 | 43.98 |
+| channel | 0.8704 | 44.97 |
+| SOS / squared (K=2) | 0.9067 | — |
+| orc_rg_multi (multi-partition) | 0.9118 | — |
+
+Note `forman_rg`: **best likelihood, near-worst AUROC**. Density fit and
+detection are different objectives — worth a sentence in the paper, and a
+warning against selecting structure on NLL.
+
+Curvature region graphs lose to the hand-built chain. SOS and multi-partition
+both lose too. All three are reportable negatives; none needs re-running.
+
+### Explanation quality vs ground truth (3 seeds) — the contribution
+
+| attribution method | localisation AUROC | prec@k |
+|---|---|---|
+| **PC conditional (exact)** | **0.9021 ± 0.0165** | 0.7510 |
+| PC Shapley (exact conditionals) | 0.8997 ± 0.0246 | **0.7511** |
+| AE reconstruction | 0.8570 ± 0.0324 | 0.6710 |
+| PC marginal (exact) | 0.8350 ± 0.0247 | 0.5798 |
+| Gaussian conditional (exact) | 0.7750 ± 0.0251 | 0.6546 |
+| PC structural (exact) | 0.7747 ± 0.0434 | 0.6197 |
+| z-score | 0.7451 ± 0.0167 | 0.5088 |
+| AE sampling-SHAP (32/ch) | 0.4975 ± 0.0289 | 0.1377 |
+
+- Completeness residual **1.78e-5 nats** (float32 round-off) — completeness is
+  a theorem here, not an estimation target.
+- **The robustness check that mattered:** raising sampling-SHAP from 32 to 128
+  samples/channel moved it 0.4975 → **0.5152**. Still chance. Quadrupling the
+  budget buys nothing, which kills the "you under-resourced the baseline"
+  objection — the strongest available attack on this result.
+- Per-kind: on `desync` PC conditional/structural reach 0.851 while PC
+  *marginal* collapses to 0.545 — a 0.31 gap between two views of the SAME
+  circuit. On `spike`, z-score gets 0.999: never claim credit for univariate
+  anomalies. On `decouple` the Gaussian conditional wins (0.757) — an honest
+  negative.
+
+### RUL — the gate, run twice
+
+The first gate was **void**: every run used `--tau-where root`, which is
+degenerate (see §3). Re-run with `--tau-where deep --K 12`, 3 seeds:
+
+| censoring | CRPS drop | CRPS censored | Δ | RMSE cens | PICP |
+|---|---|---|---|---|---|
+| 20% | 11.016 | 10.937 | +0.079 | 23.116 | 0.519 |
+| 35% | 12.245 | 12.160 | +0.085 | 24.713 | 0.497 |
+| 50% | 10.508 | 10.981 | −0.472 | 22.701 | 0.490 |
+| 70% | 11.953 | 14.819 | **−2.866** | 28.185 | 0.384 |
+
+**GATE FAILED, validly this time.** The trend is the reverse of the hypothesis:
+the censored term should be most valuable at 70% censoring and does the most
+damage there, over-predicting remaining life (RMSE 28.19 vs 24.62).
+
+*Mechanism:* `log P(τ ≥ c | x)` has a trivial maximiser — push all mass above
+every censoring time. Only uncensored units anchor against it, and at 70% there
+are too few. A real property of the objective with a free categorical τ, not a
+coding bug. Per the pre-registration, **T1 is retired to a limitations
+paragraph.**
+
+*But the model improved anyway* (from the τ-placement fix, not from censoring):
+
+| | PC (τ deep) | ridge | CQR |
+|---|---|---|---|
+| RMSE @20% | **23.12** | 24.35 | 27.72 |
+| RMSE @50% | **22.61** | 24.00 | 32.76 |
+| CRPS | **10.5–12.2** | n/a | n/a |
+| PICP (nominal 0.90) | 0.38–0.52 | — | **0.82–0.91** |
+
+### The most interesting scientific finding
+
+**Exact ≠ calibrated.** The density is exactly normalised and its 90% intervals
+cover 38–52%. Post-hoc conformal, with no exactness guarantee whatsoever,
+reaches 82–91%. This directly complicates the project's "exact therefore
+trustworthy" framing and deserves its own paragraph.
+
+---
+
+## 3. The bug class that has now cost three wrong answers — FIX THIS FIRST
+
+Three silent degeneracies have each produced a confident, wrong, *published-to-
+me* result. All three were invisible in the training loss and surfaced only in
+a query:
+
+1. **Leaf jitter didn't cover all leaf types** — `CategoricalLeaf` /
+   `GaussianMixtureLeaf` siblings started identical and stayed identical.
+2. **Sum-node weights initialised uniformly** — in the DAG the K units of a
+   region are sums over the *same* shared product list, so they are identical
+   functions receiving identical gradients. Fixed via `weight_jitter`.
+3. **τ attached at the root** — `predict()` returned a *constant* 102.4 cycles
+   for all 851 test windows (sd 0.0). The entire first RUL gate was run on this.
+
+**DONE, 2026-08-03 evening.** `SurvivalPC.predict` raises `DegenerateModelError`
+when `E[τ|x]` has sd below `1e-3·cap`, and `WindowPC.assert_informative` does
+the same for a constant density (it is called on every model the pipeline
+fits). `tau_where` now defaults to `deep` in `SurvivalPC`, `run_rul.py` and the
+config schema. Two tests pin the behaviour, including the escape hatch
+(`predict(..., check_degenerate=False)`), which you have to ask for explicitly.
+
+A fourth member of this bug family turned up the same day and is worth adding
+to the list: **`nn.Module.to()` on a region-graph circuit is exponential in
+depth** (no memoisation over `children()`), silently turning a 0.2 s fit into
+400 s with correct results. Use `move_circuit_`.
+
+---
+
+## 4. Next actions, in priority order
+
+1. ~~**Degeneracy guardrail**~~ — **DONE** (§3).
+2. ~~**Conformalise the circuit's own predictive**~~ — **BUILT**
+   (`poc/time_series/conformal.py`, `calibration` stage,
+   `config/ts/cmapss_calibration.yaml`). Split by ENGINE, not by window:
+   overlapping windows of one engine are near-duplicates and calibrating on
+   them would report a coverage that evaporates on a new unit. Two modes:
+   CQR-style additive (finite-sample guarantee) and PIT recalibration (sharper,
+   no guarantee) — the gap between them says whether the miscalibration is a
+   location or a shape error. **Still to do: run it at scale and read the
+   result.** *Do not* present it as evidence for T1; T1 is dead independently.
+3. **Real data — RUN IT.** The plumbing is done and tested (real C-MAPSS all
+   four subsets with the official test units and RUL file; N-C-MAPSS with
+   per-cycle aggregation; censoring simulated on real trajectories; the anomaly
+   protocol byte-identical to the synthetic one). What has *not* happened is
+   the run: the NASA files are not in the repo. Put them in `data/cmapss/` and
+   `data/ncmapss/` (`python -m poc.time_series.check_data`), then run tiers 1–3.
+   Until that has happened, every number in §2 still comes from a generator we
+   wrote, and the referee's objection stands.
+   - Note on scope: turbofan data has no anomaly labels, so injected anomalies
+     remain ours even on real data. That is a deliberate trade — injection is
+     the only source of the per-channel ground truth the *localisation* claim is
+     scored against. ESA-ADB (real annotations) is still the right next source
+     after this, and is not yet plumbed.
+4. **Write-up** as a Paper A section ("AD as a tractable query"): parity on
+   detection, exclusivity on explanation, plus the exact≠calibrated result.
+
+**Explicitly do NOT:**
+- re-run the structure / curvature / SOS sweep **on synthetic data** — it has
+  answered. (`config/ts/cmapss_structure.yaml` re-asks it on *real* data, where
+  it is genuinely open because the hand-built chain was arguably told the
+  answer by our own generator. It is tier 5: informative, not decisive.)
+- extend RUL beyond action 2 — the gate settled it;
+- chase the 0.008 AUROC gap to conv-AE — seed noise, and the wrong claim anyway.
+
+---
+
+## 5. Reproduce
+
+```bash
+# the pipeline (preferred — resumable, logged, aggregated)
+bash poc/time_series/launch/run_smoke.sh                            # ~3 min
+bash poc/time_series/launch/run_config.sh config/ts/cmapss_ad.yaml  # one experiment
+TIERS="1 2" JOBS=3 bash poc/time_series/launch/run_workstation.sh   # real-data core
+PYTHONPATH=. python -m poc.time_series.aggregate logs/ts --recursive
+
+# the old single-purpose drivers still work unchanged
+export PYTHONPATH=.
+PY=~/miniconda3/envs/expllm_env/bin/python
+bash poc/time_series/run_all_overnight.sh          # ≈5.5 h, gate-first ordering
+$PY -m poc.time_series.summarize_overnight logs/overnight
+$PY -m poc.time_series.run_rul --seeds 0 1 2 --vtree chain --tau-where deep \
+    --K 12 --censor-frac 0.7 --epochs 60 --no-partial
+$PY -m poc.time_series.run_explain --seeds 0 1 2 --shapley 8 --plots --examples
+```
+
+Results from the August batch: `logs/overnight/` (+ `logs/overnight2/` for the
+corrected gate), figures in `logs/overnight/figs/`. Pipeline runs land in
+`logs/ts/<experiment>/` with `summary.md` / `summary.csv` per experiment.
+
+---
+
+## 6. File map + gotchas
+
+| what | where |
+|---|---|
+| region graphs, chain/HMM structure, delta transform, box queries | `src/probabilistic_circuits.py` |
+| `RegionGraphPC` (DAG), `SquaredPC(region_graph=)`, `move_circuit_` | same |
+| `WindowPC` / `SurvivalPC`, `attach_variable`, degeneracy guardrails | `poc/time_series/circuits.py` |
+| attribution, metrics, plots, worked examples | `poc/time_series/explain.py` |
+| synthetic fleet, windowing, ground-truth channels | `poc/time_series/data.py` |
+| **real C-MAPSS / N-C-MAPSS loaders, censoring, health proxy** | `poc/time_series/data_real.py` |
+| **dataset registry + task builders (all three sources)** | `poc/time_series/datasets.py` |
+| **the five experiment stages** | `poc/time_series/pipeline.py` |
+| **config schema, grid/variant expansion, overrides** | `poc/time_series/config.py` |
+| **runner (resume, isolation, plan)** | `poc/time_series/runner.py` |
+| **per-run logging, env/git capture, resume keys** | `poc/time_series/ts_logging.py` |
+| **cross-run aggregation → csv/md** | `poc/time_series/aggregate.py` |
+| **split conformal on the exact predictive** | `poc/time_series/conformal.py` |
+| **configs, one per question** | `config/ts/*.yaml` |
+| **launchers, tiers, env knobs** | `poc/time_series/launch/` |
+| data acquisition, real-vs-injected table | `data/README.md` |
+| old single-purpose drivers | `run_ad.py`, `run_rul.py`, `run_explain.py`, `bench_scaling.py` |
+| old batch + one-page summary | `run_all_overnight.sh`, `summarize_overnight.py` |
+
+- τ must get a `CategoricalLeaf` (closed-form interval). `InputNode` has no
+  closed-form CDF and raises if boxed.
+- `--tau-where root` is **degenerate**; `deep` is now the default everywhere.
+  `root` is kept only as an ablation, and `predict` will now refuse it loudly
+  when it collapses.
+- **Never call `.to(device)` on a circuit** — use `move_circuit_`. See §0.
+- `weight_jitter=0` silently collapses every region to one component.
+- Multi-partition region graphs give up structured decomposability, so
+  `SquaredPC` refuses them (by design, with an explanation).
+- The deletion/faithfulness column is scored with the PC's own scorer, so PC
+  attributions have home-field advantage there. Localisation columns do not —
+  ground truth comes from the generator.
+- The generator was fixed twice (Mahalanobis scored 1.000 on v1; `decouple` was
+  undetectable on v2). Results establish *mechanism*, not *magnitude*.
+
+---
+
+## 7. The experiment pipeline (added 2026-08-03 evening)
+
+One config → `variants × seeds` runs → one summary. Five stages, all driven
+from the same YAML and all writing the same structured rows:
+
+| stage | what it measures |
+|---|---|
+| `ad` | detection vs the full baseline suite + the dead-sensor query + the exact typed (marginal/conditional/structural) split |
+| `explain` | correctness (localisation vs ground truth), completeness (a theorem), faithfulness (deletion curves) |
+| `rul` | censoring ablation, point/distributional accuracy vs ridge/MLP/CQR, survival under partial evidence |
+| `calibration` | split conformal on the circuit's own predictive, engine-level split |
+| `scaling` | tree vs DAG layout |
+
+Properties worth relying on:
+
+- **Resumable.** Each run writes `status.json` with a config hash; a completed
+  run with a matching hash is skipped. Re-launching after a crash costs nothing.
+- **Isolated.** A failing variant is recorded and the batch continues. A
+  degenerate model is a *failed run*, not a row of numbers.
+- **Self-describing.** Every run stores its resolved config, git commit + dirty
+  flag, host, GPU, thread counts, per-epoch curves, peak RSS/GPU, the full
+  console transcript, and raw score/attribution arrays for later re-analysis.
+- **Honest by construction.** Splits are always by unit; the anomaly protocol is
+  identical across synthetic and real; the seed count is printed next to every
+  mean ± sd.
+
+Config knobs live in `poc/time_series/config.py::DEFAULTS` (the full schema with
+comments). `grid:` gives a cartesian ablation, `variants:` gives named
+non-cartesian ones, and they compose.
+
+**Device note.** `DEVICE=cpu` with `JOBS=3` is usually faster than one CUDA
+process on this workload: a circuit is thousands of *small* ops, so it is
+launch-latency bound, and BLAS oversubscription on tiny tensors is a real cost.
+The GPU pays off as `K`, the window and the batch grow. Both paths are
+supported and `env.json` records which ran.
+
+---
+---
+
+# ARCHIVE — hand-off of 2026-08-02 ("making RUL work")
+
+_Superseded by the section above: the overnight batch answered its open
+questions. Kept for the hypothesis list (H1–H5), which is still the best
+record of what was suspected and why._
+
+## (original title) Hand-off — making RUL work
 
 _Last updated: 2026-08-02.  Previous hand-off (ProbMoE routing) is archived at
 the bottom of this file — nothing was deleted._

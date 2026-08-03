@@ -2090,6 +2090,37 @@ class RegionGraphPC(nn.Module):
         return circuit_size(self.root)
 
 
+def move_circuit_(module: nn.Module, device) -> nn.Module:
+    """
+    Move a circuit to `device` IN PLACE, DAG-safely.
+
+    Do not call `nn.Module.to()` on a region-graph circuit.  `to()` is
+    implemented as `_apply`, which recurses over `children()` with NO
+    memoisation, so on a DAG where K sum units share one product list every
+    shared sub-circuit is visited once per PATH — the count is exponential in
+    depth.  On a chain region graph over a 6x8 window that turns a 0.2 s
+    training run into a 400 s one, silently: the result is correct, only the
+    traversal is absurd.  (This is the same K^depth blowup the region-graph
+    layout exists to remove, reintroduced through the back door by a PyTorch
+    convenience method.)
+
+    `modules()` DOES memoise, so iterating it and rewriting each parameter once
+    is linear in the number of distinct nodes.
+    """
+    device = torch.device(device)
+    for m in module.modules():
+        for name, p in list(m._parameters.items()):
+            if p is None or p.device == device:
+                continue
+            with torch.no_grad():
+                m._parameters[name] = nn.Parameter(
+                    p.data.to(device), requires_grad=p.requires_grad)
+        for name, b in list(m._buffers.items()):
+            if b is not None and b.device != device:
+                m._buffers[name] = b.to(device)
+    return module
+
+
 def circuit_size(root: nn.Module) -> Dict[str, int]:
     """
     Count DISTINCT nodes of a circuit (by identity, so DAG sharing is counted
