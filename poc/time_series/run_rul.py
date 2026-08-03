@@ -125,8 +125,8 @@ def run_once(args, seed: int) -> Dict[str, Dict[str, float]]:
     # B. baselines.  They cannot use censored units, so they see the
     #    failure-observed subset — the same data as the ablation's first arm.
     keep = task.delta_train == 1
-    Xb, yb = task.X_train[keep], task.rul_test.new_tensor(
-        (task.tau_train[keep].float() + 0.5) * _bin_width(task))
+    Xb = task.X_train[keep]
+    yb = ((task.tau_train[keep].float() + 0.5) * _bin_width(task)).to(task.rul_test)
     for b in rul_baselines(seed=seed, alpha=args.alpha):
         t0 = time.time()
         b.fit(Xb, yb)
@@ -154,11 +154,14 @@ def partial_evidence_demo(pc: SurvivalPC, task, n_dead: int = 3) -> Dict[str, fl
 
     # exact: marginalise the dead sensors OUT of the joint, then renormalise
     # over τ.  Nothing is filled in, so the predictive stays a valid density.
+    # Every exact query on SurvivalPC returns CPU tensors; this one calls the
+    # inner circuit directly, so it has to come back to CPU itself or it will
+    # not line up with bin_centers()/task.rul_test.
     rows = []
     with torch.no_grad():
         for k in range(task.n_bins):
             z = pc._augment(task.X_test, torch.full((len(task.X_test),), float(k)))
-            rows.append(pc.pc.log_marginal(z, marg))
+            rows.append(pc.pc.log_marginal(z, marg).cpu())
     joint = torch.stack(rows, dim=1)
     logp = joint - torch.logsumexp(joint, dim=1, keepdim=True)
     p = logp.exp()

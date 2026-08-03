@@ -79,17 +79,21 @@ queue_config() {                     # queue_config <config.yaml> [extra args...
   name="$(basename "${cfg%.yaml}")"
   local seeds_arg=""
   [ -n "${SEEDS:-}" ] && seeds_arg="--seeds $SEEDS"
-  printf '%s\n' "$PY -m poc.time_series.runner $cfg --device $DEVICE --log-root $OUT/$name $seeds_arg $EXTRA $* > $CONSOLE_DIR/${name}_${STAMP}.log 2>&1; echo \"[\$(date +%H:%M:%S)] done $name (exit \$?)\"" >> "$QUEUE_FILE"
+  # NUL-terminated, and read back with `xargs -0`.  Without -0, xargs applies
+  # its OWN quote processing to the queue file and strips the double quotes
+  # around the trailing echo, after which bash sees a bare `(` and every
+  # queued config dies with "syntax error near unexpected token `('".
+  printf '%s\0' "$PY -m poc.time_series.runner $cfg --device $DEVICE --log-root $OUT/$name $seeds_arg $EXTRA $* > $CONSOLE_DIR/${name}_${STAMP}.log 2>&1; echo \"[\$(date +%H:%M:%S)] done $name (exit \$?)\"" >> "$QUEUE_FILE"
 }
 
 flush_queue() {
   local n
-  n="$(wc -l < "$QUEUE_FILE" | tr -d ' ')"
+  n="$(tr -cd '\0' < "$QUEUE_FILE" | wc -c | tr -d ' ')"
   [ "$n" -eq 0 ] && { echo "(nothing queued)"; return 0; }
   echo "running $n config(s), $JOBS at a time; per-config console logs in $CONSOLE_DIR/"
   # A failing config must not take the batch down: each line ends with `echo`,
   # so xargs always sees success and continues.  Failures are visible in the
   # per-config log and in each run's status.json.
-  xargs -P "$JOBS" -I{} bash -c '{}' < "$QUEUE_FILE"
+  xargs -0 -P "$JOBS" -I{} bash -c '{}' < "$QUEUE_FILE"
   : > "$QUEUE_FILE"
 }
