@@ -1,0 +1,21 @@
+# Direction 2 (encoder-free) — raw tabular, SOS / subtractive-mixture density.
+# Squared PC per modality; compare held-out NLL / AUROC against ef_tabular.
+#   python -m src.experiment config/ef_tabular_sos.yaml
+name: ef_tabular_sos
+direction: encoder_free
+
+train:
+  - adbench:cardio
+test:
+  - adbench:thyroid
+
+adapt: [zero_shot, leaves, finetune]
+seeds: [0, 1, 2, 3, 4]
+
+baselines: []
+
+n_sum_components: 2
+epochs: 40
+finetune_epochs: 10
+use_sos: true
+vtree_method: chow_liu

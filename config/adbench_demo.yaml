@@ -1,0 +1,21 @@
+# Tabular transfer demo: train once on cardio, integrate thyroid without
+# heavy retraining.  Run with:
+#   python -m src.experiment config/adbench_demo.yaml
+name: adbench_demo
+
+train:
+  - adbench:cardio
+test:
+  - adbench:thyroid
+
+adapt: [zero_shot, leaves, finetune]
+seeds: [0, 1, 2]
+
+# literature baselines, evaluated in the same latent space (src/baselines.py)
+baselines: [iforest, lof, ocsvm, knn, gmm]
+
+latent_dim: 32
+n_sum_components: 3
+epochs: 40
+finetune_epochs: 10
+vtree_method: chow_liu

@@ -1,0 +1,39 @@
+# Direction 2 (encoder-free) + ProbMoE router — the F1 detection kill-shot.
+#
+# ProbRoutedRawPC adds an exact, cardinality-constrained routing posterior over
+# the per-modality experts (Zhao, Shao, Van den Broeck, Zeng, ICML 2026). The
+# density score is UNCHANGED (the exact normalised mixture); the routing queries
+# ride ALONGSIDE it as extra anomaly signals, logged under adaptation tags
+# `<mode>+route:<signal>` for {shift, entropy, expected_k, neg_max_marginal}.
+# The kill-shot question (hands_off.md §5): does any routing signal add AUROC
+# *after* the density?
+#
+# IMPORTANT (anti-p-hacking, per hands_off.md §5): [k_min, k_max] are FROZEN
+# here, not swept to maximise AUROC. Routing rows are emitted only where the
+# scored input dimension has >=2 compatible experts (single-expert routing is
+# degenerate) — swap in same-dimension ADBench modalities to exercise it fully.
+#   python -m src.experiment config/ef_tabular_route.yaml
+name: ef_tabular_route
+direction: encoder_free
+router: true
+
+train:
+  - adbench:cardio
+  - adbench:thyroid
+test:
+  - adbench:breastw
+
+adapt: [zero_shot, leaves, finetune]
+seeds: [0, 1, 2, 3, 4]
+
+# frozen Dynamic-k range (do not sweep); null k_max -> N experts
+k_min: 1
+k_max: null
+routing_signals: [shift, entropy, expected_k, neg_max_marginal]
+
+baselines: []
+
+n_sum_components: 3
+epochs: 40
+finetune_epochs: 10
+vtree_method: chow_liu
