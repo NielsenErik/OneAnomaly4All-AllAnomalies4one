@@ -93,8 +93,8 @@ class GaussianConditional:
 def ae_channel_error(ae, X: torch.Tensor) -> np.ndarray:
     """Per-channel reconstruction error — the standard deep attribution."""
     with torch.no_grad():
-        A = ae._reshape(X)
-        return ((ae.net(A) - A) ** 2).mean(dim=2).numpy()
+        A = ae._reshape(X)                      # already on the AE's device
+        return ((ae.net(A) - A) ** 2).mean(dim=2).cpu().numpy()
 
 
 def sampling_shap(ae, X: torch.Tensor, background: torch.Tensor,
@@ -113,7 +113,8 @@ def sampling_shap(ae, X: torch.Tensor, background: torch.Tensor,
     Xr = X.reshape(N, w, C)
     Br = background.reshape(-1, w, C)
     with torch.no_grad():
-        base = ((ae.net(ae._reshape(X)) - ae._reshape(X)) ** 2).mean(dim=(1, 2)).numpy()
+        Xd = ae._reshape(X)
+        base = ((ae.net(Xd) - Xd) ** 2).mean(dim=(1, 2)).cpu().numpy()
     out = np.zeros((N, C))
     for c in range(C):
         acc = np.zeros(N)
@@ -123,8 +124,8 @@ def sampling_shap(ae, X: torch.Tensor, background: torch.Tensor,
             pert[:, :, c] = Br[idx][:, :, c]
             flat = pert.reshape(N, -1)
             with torch.no_grad():
-                e = ((ae.net(ae._reshape(flat)) - ae._reshape(flat)) ** 2
-                     ).mean(dim=(1, 2)).numpy()
+                fd = ae._reshape(flat)
+                e = ((ae.net(fd) - fd) ** 2).mean(dim=(1, 2)).cpu().numpy()
             acc += np.abs(e - base)
         out[:, c] = acc / n_samples
     return out

@@ -272,7 +272,8 @@ def stage_explain(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, A
         log.info(f"  explain: capped test set to {cap_n} windows")
 
     pc = _fit_window_pc(cfg, task, seed, log)
-    ae = ConvAutoencoder(task.window, task.n_channels, seed=seed).fit(task.X_train)
+    ae = ConvAutoencoder(task.window, task.n_channels, seed=seed,
+                         device=cfg.get("device")).fit(task.X_train)
     gc = GaussianConditional(task.window, task.n_channels).fit(task.X_train)
     zs = ChannelZScore(task.window, task.n_channels).fit(task.X_train)
 
