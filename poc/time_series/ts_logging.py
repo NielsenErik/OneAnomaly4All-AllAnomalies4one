@@ -179,6 +179,14 @@ class RunLogger:
     # ── lifecycle ────────────────────────────────────────────────────────
 
     def __enter__(self) -> "RunLogger":
+        # A run directory holds ONE run.  results.jsonl used to be opened in
+        # append mode and never truncated, so every re-run (--force, a fixed
+        # bug, a changed evaluator) stacked another copy of every row on top of
+        # the old ones.  The aggregator then averaged them: seven attempts of a
+        # three-seed config reported "21 seeds", mixing results from before and
+        # after the fix being tested.  Truncating here is what makes a re-run
+        # mean "replace", which is what every caller already assumes.
+        open(self.path("results.jsonl"), "w").close()
         self._fh = open(self.path("run.log"), "a", buffering=1)
         self._saved = (sys.stdout, sys.stderr)
         if self.echo:

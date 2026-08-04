@@ -223,12 +223,22 @@ class Standardizer:
         X = np.concatenate([fleet.series[u] for u in unit_idx], axis=0)
         R = np.concatenate([fleet.regime[u] for u in unit_idx], axis=0)
         keys = range(fleet.n_regimes) if self.per_regime else [-1]
+        # Global per-channel spread — the reference the per-regime scale is
+        # floored against.  An ABSOLUTE `+1e-6` is not enough: WITHIN one
+        # operating condition many C-MAPSS sensors are exactly constant (they
+        # only vary BETWEEN conditions), so the regime-wise std is 0, the
+        # divisor becomes 1e-6, and the transformed test set explodes — FD002
+        # came out with sd 1.3e7 against a training sd of 0.78, which drowns a
+        # 5-sigma injected spike in numerical garbage and puts every detector
+        # at chance.  Same failure as an absolute floor on a leaf's sigma, same
+        # fix: floor RELATIVE to the quantity being normalised.
+        gsd = X.std(0)
         for k in keys:
             sel = np.ones(len(X), dtype=bool) if k < 0 else (R == k)
             if sel.sum() < 2:
                 sel = np.ones(len(X), dtype=bool)
             self.mu[k] = X[sel].mean(0)
-            self.sd[k] = X[sel].std(0) + 1e-6
+            self.sd[k] = np.maximum(np.maximum(X[sel].std(0), 0.01 * gsd), 1e-3)
         return self
 
     def transform(self, x: np.ndarray, regime: Optional[np.ndarray] = None) -> np.ndarray:

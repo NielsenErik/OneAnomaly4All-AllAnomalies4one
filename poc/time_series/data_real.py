@@ -172,16 +172,36 @@ def subsample_units(fleet: Fleet, max_units: Optional[int], seed: int = 0) -> Fl
                  channel_groups=fleet.channel_groups)
 
 
-def _regimes_from_settings(ops: np.ndarray, n_regimes: int, seed: int = 0) -> np.ndarray:
-    """Operating regime id by k-means on the operational settings."""
+def _fit_regimes(ops: np.ndarray, n_regimes: int, seed: int = 0):
+    """
+    (labels, model) — operating regime id by k-means on the operational
+    settings, returning the FITTED model so the same clustering can be applied
+    elsewhere.
+
+    Returning the model is the whole point.  Clustering train and test
+    independently gives two label sets that are arbitrary permutations of each
+    other: "regime 3" in train is not "regime 3" in test.  The standardiser
+    then normalises every test window with the mean/std of a DIFFERENT
+    operating condition, and since C-MAPSS conditions differ by orders of
+    magnitude on some sensors, the test set comes out ~100x the training scale.
+    Every detector then sits at chance on FD002/FD004 — including on a 5-sigma
+    injected spike, which is what gave this away.
+    """
     if n_regimes <= 1:
-        return np.zeros(len(ops), dtype=int)
+        return np.zeros(len(ops), dtype=int), None
     from sklearn.cluster import KMeans
     n_regimes = min(n_regimes, len(np.unique(ops.round(2), axis=0)))
     if n_regimes <= 1:
+        return np.zeros(len(ops), dtype=int), None
+    km = KMeans(n_clusters=n_regimes, n_init=10, random_state=seed).fit(ops)
+    return km.labels_.astype(int), km
+
+
+def _assign_regimes(km, ops: np.ndarray) -> np.ndarray:
+    """Apply a regime clustering fitted on the TRAINING settings."""
+    if km is None:
         return np.zeros(len(ops), dtype=int)
-    return KMeans(n_clusters=n_regimes, n_init=10,
-                  random_state=seed).fit_predict(ops).astype(int)
+    return km.predict(ops).astype(int)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -243,7 +263,7 @@ def load_cmapss(
     names = [CMAPSS_COLUMNS[5 + i] for i in range(sens_tr.shape[1]) if keep[i]]
     sens_tr = sens_tr[:, keep]
 
-    reg_tr = _regimes_from_settings(ops_tr, n_regimes, seed=seed)
+    reg_tr, regime_km = _fit_regimes(ops_tr, n_regimes, seed=seed)
     groups = correlation_groups(sens_tr, n_groups)
 
     def build(raw: np.ndarray, reg: np.ndarray, sens: np.ndarray,
@@ -273,7 +293,8 @@ def load_cmapss(
     if with_test and os.path.exists(test_path) and os.path.exists(rul_path):
         te = _cmapss_raw(test_path)
         sens_te = te[:, 5:][:, keep]
-        reg_te = _regimes_from_settings(te[:, 2:5], n_regimes, seed=seed)
+        # the TRAIN clustering, applied — never a fresh fit
+        reg_te = _assign_regimes(regime_km, te[:, 2:5])
         rul_end = np.loadtxt(rul_path).reshape(-1)
         test = build(te, reg_te, sens_te, rul_end)
         test = subsample_units(test, max_units, seed + 1)
@@ -434,7 +455,10 @@ def load_ncmapss(
                 b["W"] = b["W"][:max_rows]
 
         W = b["W"]
-        reg_all = (_regimes_from_settings(W, n_regimes, seed=sd)
+        # one fleet clustered in one go, so train/test slices taken from it
+        # later share the label space by construction (unlike C-MAPSS, whose
+        # train and test come from separate files and must share a fitted model)
+        reg_all = (_fit_regimes(W, n_regimes, seed=sd)[0]
                    if W is not None else np.zeros(len(X), dtype=int))
 
         series, ruls, regimes, healths = [], [], [], []

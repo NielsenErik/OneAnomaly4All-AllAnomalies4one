@@ -123,7 +123,15 @@ def load_fleets(spec: Dict[str, Any], seed: int = 0) -> FleetPair:
             subset=str(spec.get("subset", "FD001")),
             data_dir=spec.get("data_dir"),
             cap=cap,
-            n_regimes=spec.get("regimes"),
+            # NOT `spec["regimes"]`: that key is the SYNTHETIC generator's knob
+            # and defaults to 3, so it silently overrode the authoritative
+            # per-subset table (FD001/FD003 = 1 condition, FD002/FD004 = 6).
+            # FD002/FD004 were being k-means clustered into 3 regimes instead
+            # of 6, which made per-regime normalisation depend on an arbitrary
+            # seed-dependent merge of two real conditions — and that, not the
+            # model, is what made AUROC swing 0.48-0.89 across seeds for EVERY
+            # method.  None => use the table.  `cmapss_regimes` overrides.
+            n_regimes=spec.get("cmapss_regimes"),
             n_groups=int(spec.get("groups", 3)),
             max_units=spec.get("max_units"),
             with_test=bool(spec.get("official_test", True)),
