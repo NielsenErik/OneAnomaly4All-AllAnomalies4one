@@ -80,8 +80,44 @@ present and how to get the rest).
 | `baselines.py`     | Simple tier (z-score, moving average, diagonal Gaussian, PCA, 1-NN, Mahalanobis) and advanced tier (IForest, GMM, conv AE, Deep SVDD); RUL: ridge, MLP, conformalised quantile regression. |
 | `metrics.py`       | AUROC / AP (no point adjustment), CRPS, interval score, PICP/MPIW, calibration error, NASA score.                                                                                          |
 | `bench_scaling.py` | Experiment 1 — the layout comparison.                                                                                                                                                     |
+| `bench_device.py`  | CPU vs GPU vs `torch.compile`, for both evaluators, with the correctness gate. Run it once per machine before committing to a batch.                                                       |
 | `run_ad.py`        | Experiment 2 — detection, dead-sensor query, typed decomposition, vtree ablation.                                                                                                         |
 | `run_rul.py`       | Experiment 3 — censoring ablation, calibration vs CQR, survival under partial evidence.                                                                                                   |
+
+---
+
+## Which evaluator, which device
+
+Two evaluators, identical semantics, selected with `evaluator: layered | recursive`
+in any config or `--evaluator` on the runner:
+
+* **layered** (default) — `CompiledCircuit`, §6a of `src/probabilistic_circuits.py`.
+  Compiles the DAG once into a topological layer schedule, so the Python loop is
+  O(depth) instead of O(#nodes): 1057 nodes → 16 layers on the standard 8×14/K=6
+  window. Gated against the recursion on a real batch at every fit.
+* **recursive** — the per-node reference. Works on every circuit (including SOS,
+  which the compiled path refuses rather than guessing at). Keep it for debugging
+  and for the A/B; do not produce results with it.
+
+The device answer follows from the evaluator, and this is the part that is easy to
+get backwards:
+
+| evaluator | GPU vs CPU                                      |
+| --------- | ----------------------------------------------- |
+| recursive | GPU **loses** at every batch size (0.19–0.54×)  |
+| layered   | GPU **wins** from batch ~128, ~2.2× at 2048+    |
+
+So "a circuit is GPU-hostile" was a statement about the recursion, not about
+circuits. Measure your own machine:
+
+```bash
+PYTHONPATH=. python -m poc.time_series.bench_device            # both evaluators, batch sweep
+PYTHONPATH=. python -m poc.time_series.bench_device --compile  # + torch.compile
+BENCH_DEVICE=1 bash poc/time_series/launch/run_workstation.sh  # before an overnight batch
+```
+
+Every `run.log` records the device, the evaluator and windows/s, so a finished run
+says which regime it was in instead of leaving it to be assumed.
 
 ---
 

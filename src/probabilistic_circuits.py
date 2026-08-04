@@ -1386,10 +1386,31 @@ class GaussianLeaf(LeafNode):
         return F.softplus(self.log_sigma) + 1e-5
 
     def fit(self, X) -> None:
-        """Median / MAD initialisation from data (robust to outliers)."""
+        """
+        Median / MAD initialisation from data (robust to outliers).
+
+        The floor is not cosmetic.  MAD is exactly 0 whenever a feature takes
+        one value on more than half the samples — which is the NORM, not an
+        edge case, for sensors read under discrete operating conditions
+        (C-MAPSS FD002/FD004: 20 of 420 features, MAD = 0 exactly).  With only
+        an absolute `+1e-6` guard that gives σ ≈ 1.5e-6 on standardised data,
+        so an ordinary observation sits at |z| ≈ 7e5 and contributes
+        log f ≈ −2.3e11.  The first gradient step then blows the whole circuit
+        to NaN, and every seed of those two subsets fails.
+
+        So the floor is RELATIVE to the feature's own spread: a leaf may be
+        sharp, but never sharper than the data it was fitted to.  1% of the
+        standard deviation was chosen by measurement, not taste — it is the
+        loosest floor that fixes the degenerate features, and on C-MAPSS it
+        binds on exactly the 20 broken features of FD002/FD004 and on ZERO
+        features of FD001/FD003, so previously recorded numbers for the
+        subsets that already worked are unchanged.
+        """
         vals = _column(X, self.feature_idx)
         mu = float(np.median(vals))
-        sigma = float(np.median(np.abs(vals - mu)) + 1e-6) * 1.4826
+        mad_sigma = float(np.median(np.abs(vals - mu))) * 1.4826
+        spread = float(np.std(vals))
+        sigma = max(mad_sigma, 0.01 * spread, 1e-3)
         with torch.no_grad():
             self.mu.fill_(mu)
             self.log_sigma.fill_(_inv_softplus(sigma))
@@ -2548,7 +2569,7 @@ class CompiledCircuit(nn.Module):
 
     def forward(self, x: torch.Tensor,
                 marg_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        x = x.to(dtype=self.dtype_)
+        x = x.to(device=self._device(), dtype=self.dtype_)
         B = x.shape[0]
         # One growing value buffer.  Slots were numbered in evaluation order, so
         # concatenating each layer's output keeps slot i at column i, and every
@@ -2575,8 +2596,15 @@ class CompiledCircuit(nn.Module):
                     g = vals[:, idx[0]]                      # (B, A)
                     m = g.max(dim=1, keepdim=True).values
                     m = torch.where(torch.isfinite(m), m, torch.zeros_like(m))
-                    out = m + torch.log(
-                        torch.exp(g - m) @ logw.exp().transpose(0, 1) + 1e-45)
+                    prod = torch.exp(g - m) @ logw.exp().transpose(0, 1)
+                    # log(0) must stay −inf: a sum node all of whose children
+                    # are −inf HAS probability zero, and an ε floor here would
+                    # silently turn that into ≈ −103, which is a wrong answer
+                    # that no longer matches the reference.  The `where` keeps
+                    # the value exact and the gradient finite.
+                    safe = torch.where(prod > 0, prod, torch.ones_like(prod))
+                    out = m + torch.where(prod > 0, torch.log(safe),
+                                          torch.full_like(prod, -float("inf")))
                 else:
                     g = vals[:, idx.reshape(-1)].reshape(B, plan.n_nodes,
                                                          plan.arity)

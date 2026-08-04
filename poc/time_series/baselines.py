@@ -37,6 +37,17 @@ from src.baselines import (
 from .circuits import resolve_device
 
 
+def _bdev(device) -> torch.device:
+    """Device for a torch BASELINE.
+
+    `None` means CPU here, NOT "auto".  A baseline that quietly follows
+    `resolve_device(None)` onto the GPU while the run is configured for CPU is
+    both a crash waiting to happen (numpy consumers downstream) and a silent
+    change to numbers that were recorded on CPU.  The caller has to ask.
+    """
+    return torch.device("cpu") if device is None else resolve_device(device)
+
+
 def _np(X) -> np.ndarray:
     if isinstance(X, torch.Tensor):
         X = X.detach().cpu().numpy()
@@ -144,7 +155,7 @@ class ConvAutoencoder:
         self.w, self.C = window, n_channels
         self.hidden, self.latent, self.epochs, self.lr, self.seed = (
             hidden, latent, epochs, lr, seed)
-        self.device = resolve_device(device)
+        self.device = _bdev(device)
 
     def _reshape(self, X) -> torch.Tensor:
         t = X if isinstance(X, torch.Tensor) else torch.from_numpy(_np(X)).float()
@@ -264,7 +275,7 @@ class MLPRegressorRUL:
     def __init__(self, epochs: int = 80, lr: float = 1e-3, seed: int = 0,
                  device=None, **kw):
         self.epochs, self.lr, self.seed = epochs, lr, seed
-        self.device = resolve_device(device)
+        self.device = _bdev(device)
 
     def fit(self, X, y, delta=None) -> "MLPRegressorRUL":
         torch.manual_seed(self.seed)
@@ -307,7 +318,7 @@ class ConformalQuantileRUL:
                  cal_frac: float = 0.3, seed: int = 0, device=None, **kw):
         self.alpha, self.epochs, self.lr = alpha, epochs, lr
         self.cal_frac, self.seed = cal_frac, seed
-        self.device = resolve_device(device)
+        self.device = _bdev(device)
 
     @staticmethod
     def _pinball(pred, target, q):
