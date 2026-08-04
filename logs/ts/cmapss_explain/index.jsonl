@@ -1,9 +1,0 @@
-{"experiment": "cmapss_explain", "variant": "subset-FD001", "seed": 0, "run_dir": "subset-FD001/seed0", "status": "ok", "wall_s": 37.2, "config_hash": "916efea32637", "finished": "2026-08-04T11:32:39"}
-{"experiment": "cmapss_explain", "variant": "subset-FD001", "seed": 1, "run_dir": "subset-FD001/seed1", "status": "ok", "wall_s": 35.0, "config_hash": "916efea32637", "finished": "2026-08-04T11:33:14"}
-{"experiment": "cmapss_explain", "variant": "subset-FD001", "seed": 2, "run_dir": "subset-FD001/seed2", "status": "ok", "wall_s": 33.8, "config_hash": "916efea32637", "finished": "2026-08-04T11:33:48"}
-{"experiment": "cmapss_explain", "variant": "subset-FD002", "seed": 0, "run_dir": "subset-FD002/seed0", "status": "ok", "wall_s": 60.3, "config_hash": "c25c36e0b5c3", "finished": "2026-08-04T11:34:48"}
-{"experiment": "cmapss_explain", "variant": "subset-FD002", "seed": 1, "run_dir": "subset-FD002/seed1", "status": "ok", "wall_s": 60.2, "config_hash": "c25c36e0b5c3", "finished": "2026-08-04T11:35:48"}
-{"experiment": "cmapss_explain", "variant": "subset-FD002", "seed": 2, "run_dir": "subset-FD002/seed2", "status": "ok", "wall_s": 60.4, "config_hash": "c25c36e0b5c3", "finished": "2026-08-04T11:36:49"}
-{"experiment": "cmapss_explain", "variant": "subset-FD004", "seed": 0, "run_dir": "subset-FD004/seed0", "status": "ok", "wall_s": 68.1, "config_hash": "ce331db50c80", "finished": "2026-08-04T11:37:57"}
-{"experiment": "cmapss_explain", "variant": "subset-FD004", "seed": 1, "run_dir": "subset-FD004/seed1", "status": "ok", "wall_s": 68.1, "config_hash": "ce331db50c80", "finished": "2026-08-04T11:39:05"}
-{"experiment": "cmapss_explain", "variant": "subset-FD004", "seed": 2, "run_dir": "subset-FD004/seed2", "status": "ok", "wall_s": 68.4, "config_hash": "ce331db50c80", "finished": "2026-08-04T11:40:13"}

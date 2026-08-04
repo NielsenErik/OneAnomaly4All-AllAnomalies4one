@@ -1,6 +1,0 @@
-tau@root  K= 6:    1 distinct predicted RUL values over 851 windows  (K^2 = 36)
-           spread: min 102.4 max 102.4 sd 0.0; true sd 43.5
-tau@root  K=12:    1 distinct predicted RUL values over 851 windows  (K^2 = 144)
-           spread: min 102.9 max 102.9 sd 0.0; true sd 43.5
-tau@deep  K=12:  693 distinct predicted RUL values over 851 windows  (K^2 = 144)
-           spread: min 8.6 max 124.6 sd 38.1; true sd 43.5

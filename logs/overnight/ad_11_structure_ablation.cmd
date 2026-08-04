@@ -1,1 +1,0 @@
-    /Users/eriknielsen/miniconda3/envs/expllm_env/bin/python -m poc.time_series.run_ad --seeds 0 1 2 --epochs 40 --vtree-ablation --ablation-methods random time channel chain chow_liu spectral orc_rg forman_rg --out logs/overnight/ad_11_structure_ablation.json
