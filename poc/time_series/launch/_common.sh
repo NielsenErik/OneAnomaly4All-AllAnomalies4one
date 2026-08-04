@@ -86,11 +86,26 @@ queue_config() {                     # queue_config <config.yaml> [extra args...
   name="$(basename "${cfg%.yaml}")"
   local seeds_arg=""
   [ -n "${SEEDS:-}" ] && seeds_arg="--seeds $SEEDS"
+  local log="$CONSOLE_DIR/${name}_${STAMP}.log"
+
+  # With one job the console output goes to the TERMINAL as well as the file:
+  # a multi-hour config that prints only "done" at the end is indistinguishable
+  # from a hung one, which is exactly how the RUL tier looked.  With JOBS > 1
+  # several configs would interleave into unreadable soup, so there we keep the
+  # plain redirect and print where to tail instead.  QUIET=1 forces the old
+  # behaviour.
+  local sink="> $log 2>&1"
+  if [ "$JOBS" -eq 1 ] && [ -z "${QUIET:-}" ]; then
+    sink="2>&1 | tee $log"
+  fi
+
   # NUL-terminated, and read back with `xargs -0`.  Without -0, xargs applies
   # its OWN quote processing to the queue file and strips the double quotes
   # around the trailing echo, after which bash sees a bare `(` and every
   # queued config dies with "syntax error near unexpected token `('".
-  printf '%s\0' "$PY -m poc.time_series.runner $cfg --device $DEVICE --log-root $OUT/$name $seeds_arg $EXTRA $* > $CONSOLE_DIR/${name}_${STAMP}.log 2>&1; echo \"[\$(date +%H:%M:%S)] done $name (exit \$?)\"" >> "$QUEUE_FILE"
+  # NOTE: with the tee form the exit status below is tee's, so the runner's own
+  # per-run status.json remains the authority on whether a run failed.
+  printf '%s\0' "$PY -m poc.time_series.runner $cfg --device $DEVICE --log-root $OUT/$name $seeds_arg $EXTRA $* $sink; echo \"[\$(date +%H:%M:%S)] done $name (exit \$?)\"" >> "$QUEUE_FILE"
 }
 
 flush_queue() {
@@ -98,9 +113,31 @@ flush_queue() {
   n="$(tr -cd '\0' < "$QUEUE_FILE" | wc -c | tr -d ' ')"
   [ "$n" -eq 0 ] && { echo "(nothing queued)"; return 0; }
   echo "running $n config(s), $JOBS at a time; per-config console logs in $CONSOLE_DIR/"
-  # A failing config must not take the batch down: each line ends with `echo`,
-  # so xargs always sees success and continues.  Failures are visible in the
+  if [ "$JOBS" -gt 1 ] || [ -n "${QUIET:-}" ]; then
+    echo "  progress (per-epoch ETA) is in those files, not here — watch with:"
+    echo "    tail -f $CONSOLE_DIR/*_${STAMP}.log"
+  fi
+  # A failing config must not take the batch down: each queued line ends with
+  # `echo`, so a non-zero exit never propagates.  Failures stay visible in the
   # per-config log and in each run's status.json.
-  xargs -0 -P "$JOBS" -I{} bash -c '{}' < "$QUEUE_FILE"
+  #
+  # Deliberately NOT `xargs -I{}`: BSD xargs caps a constructed argument at 255
+  # bytes, and these commands cross that as soon as the log paths get long.
+  # The failure mode is "xargs: command line cannot be assembled, too long"
+  # followed by the entire batch being skipped — a silent no-op that looks like
+  # a fast success.  A read loop has no such limit on either platform.
+  if [ "$JOBS" -eq 1 ]; then
+    while IFS= read -r -d '' cmd; do
+      bash -c "$cmd"
+    done < "$QUEUE_FILE"
+  else
+    while IFS= read -r -d '' cmd; do
+      bash -c "$cmd" &
+      while [ "$(jobs -pr | wc -l)" -ge "$JOBS" ]; do
+        wait -n 2>/dev/null || sleep 1
+      done
+    done < "$QUEUE_FILE"
+    wait
+  fi
   : > "$QUEUE_FILE"
 }
