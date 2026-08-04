@@ -1,0 +1,90 @@
+{
+  "task_ad": {
+    "kind": "ad",
+    "n_train": 5290,
+    "n_test": 4608,
+    "d": 300,
+    "window": 20,
+    "n_channels": 15,
+    "anomaly_rate": 0.1317274272441864,
+    "kind_counts": {
+      "normal": 4001,
+      "spike": 130,
+      "offset": 113,
+      "drift": 102,
+      "desync": 111,
+      "decouple": 105,
+      "organic": 46
+    },
+    "train_units": 100,
+    "test_units": 100,
+    "n_regimes": 3,
+    "seed": 0,
+    "per_regime_norm": true,
+    "official_test_fleet": true,
+    "dataset": "cmapss:FD001",
+    "cap": 125.0,
+    "subset": "FD001",
+    "dropped_constant_sensors": 6,
+    "source": "NASA C-MAPSS (real)"
+  },
+  "ad": {
+    "circuit": {
+      "auroc": 0.8472486491227276,
+      "ap": 0.7197134792975366,
+      "auroc[decouple]": 0.5472512824174909,
+      "auroc[desync]": 0.6987419811713739,
+      "auroc[drift]": 0.9995050257043582,
+      "auroc[offset]": 0.9986817454928303,
+      "auroc[organic]": 0.9998152635754105,
+      "auroc[spike]": 0.9112779497433334
+    },
+    "typed": {
+      "normal": {
+        "marginal": 23.446950912475586,
+        "conditional": 23.324071884155273,
+        "structural": 5.211962699890137,
+        "n": 4001
+      },
+      "decouple": {
+        "marginal": 23.90013885498047,
+        "conditional": 23.639816284179688,
+        "structural": 4.736654281616211,
+        "n": 105
+      },
+      "desync": {
+        "marginal": 23.30181121826172,
+        "conditional": 36.850460052490234,
+        "structural": 23.705495834350586,
+        "n": 111
+      },
+      "drift": {
+        "marginal": 660.88916015625,
+        "conditional": 746.0618286132812,
+        "structural": 108.0936279296875,
+        "n": 102
+      },
+      "offset": {
+        "marginal": 395.801513671875,
+        "conditional": 471.7103576660156,
+        "structural": 98.48773193359375,
+        "n": 113
+      },
+      "organic": {
+        "marginal": 110.83759307861328,
+        "conditional": 155.23765563964844,
+        "structural": 88.54743957519531,
+        "n": 46
+      },
+      "spike": {
+        "marginal": 52.82951354980469,
+        "conditional": 66.87545013427734,
+        "structural": 20.112424850463867,
+        "n": 130
+      }
+    }
+  },
+  "_timing": {
+    "ad": 10.98
+  }
+}
