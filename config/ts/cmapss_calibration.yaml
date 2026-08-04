@@ -53,9 +53,11 @@ eval:
   conformal: true
   conformal_modes: [cqr, pit]
   cal_frac: 0.3            # of the training ENGINES
-  alpha: 0.10
+  alphas: [0.10, 0.20]
   baselines: true
 
 grid:
   dataset.subset: [FD001, FD002]
-  eval.alpha: [0.10, 0.20]
+  # alpha is NOT a grid axis: it never enters training, so a second value here
+  # retrained a bit-identical circuit (~37 min of GPU each).  It is a list
+  # under eval.alphas now, evaluated from the single fit.

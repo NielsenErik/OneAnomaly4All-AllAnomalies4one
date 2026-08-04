@@ -124,6 +124,12 @@ DEFAULTS: Dict[str, Any] = {
         "max_explain_windows": 1500,  # attribution is O(C) passes; cap for real data
         "kinds": ["spike", "offset", "drift", "decouple", "desync"],
         "alpha": 0.10,
+        # Evaluate ONE trained circuit at several miscoverage levels / test
+        # protocols.  Neither affects training, so putting them in the config
+        # grid retrains an identical model per value.  Leave empty to use the
+        # single `alpha` / the dataset's `rul_test_windows`.
+        "alphas": [],                 # e.g. [0.10, 0.20]
+        "test_protocols": [],         # e.g. [all, last]
         "censoring_ablation": True,   # train twice: drop-censored vs exact term
         "conformal": True,
         "conformal_modes": ["cqr", "pit"],

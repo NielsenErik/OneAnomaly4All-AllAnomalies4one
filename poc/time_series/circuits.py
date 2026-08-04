@@ -232,6 +232,40 @@ def mixed_leaf_factory(
 # Model 1 — window density for anomaly detection
 # ═══════════════════════════════════════════════════════════════════════════
 
+def _compile_or_fallback(model, x_probe: torch.Tensor, box_feature=None):
+    """
+    Use the compiled layer-parallel evaluator when the circuit supports it,
+    the recursion when it does not.  Shared by WindowPC and SurvivalPC.
+
+    `box_feature` (SurvivalPC's τ) additionally gates the BOX query, because
+    that is the term carrying the censored likelihood: a compiled evaluator
+    that is right on densities and wrong on intervals would silently corrupt
+    exactly the quantity the survival model exists to compute.
+
+    Signed/SOS circuits are refused by the compiler and keep running on the
+    recursion — slower and correct, which is the right way round.
+    """
+    model.compiled = None
+    if getattr(model, "evaluator", "layered") == "recursive" \
+            or getattr(model, "use_sos", False):
+        return model.pc
+    try:
+        comp = model.pc.compile_(x_probe=x_probe, device=model.device)
+        if box_feature is not None:
+            lo = torch.full((len(x_probe),), 1.0, device=x_probe.device)
+            comp.assert_matches_reference(
+                model.pc.root, x_probe,
+                boxes={int(box_feature): (lo, float("inf"))})
+        model.compiled = comp
+        return comp
+    except (NotImplementedError, RuntimeError) as exc:
+        print(f"    [pc] compiled evaluator unavailable ({exc}); "
+              "falling back to the recursion")
+        model.pc.use_recursive()
+        model.compiled = None
+        return model.pc
+
+
 class WindowPC:
     """Exact window density; anomaly score = −log p(x)."""
 
@@ -343,25 +377,8 @@ class WindowPC:
             self.compiled.write_back()
         return self
 
-    def _compile_or_fallback(self, x_probe: torch.Tensor):
-        """Fast evaluator when the circuit supports it, recursion when not.
-
-        Signed/SOS circuits are not compiled (§6a is monotone-only), so the
-        SOS ablation keeps running — slower, and correct, which is the right
-        way round.
-        """
-        self.compiled = None
-        if self.evaluator == "recursive" or self.use_sos:
-            return self.pc
-        try:
-            self.compiled = self.pc.compile_(x_probe=x_probe, device=self.device)
-            return self.compiled
-        except (NotImplementedError, RuntimeError) as exc:
-            print(f"    [pc] compiled evaluator unavailable ({exc}); "
-                  "falling back to the recursion")
-            self.pc.use_recursive()
-            self.compiled = None
-            return self.pc
+    def _compile_or_fallback(self, x_probe: torch.Tensor, box_feature=None):
+        return _compile_or_fallback(self, x_probe, box_feature)
 
     # ── degeneracy guardrail ─────────────────────────────────────────────
 
@@ -566,6 +583,7 @@ class SurvivalPC:
         seed: int = 0,
         device: Optional[str] = None,
         weight_jitter: float = 0.5,
+        evaluator: str = "layered",
     ):
         self.window, self.n_channels = window, n_channels
         self.d = window * n_channels
@@ -579,6 +597,8 @@ class SurvivalPC:
         self.seed = seed
         self.device = resolve_device(device)
         self.weight_jitter = weight_jitter
+        self.evaluator = evaluator
+        self.compiled = None
         self.pc: Optional[RegionGraphPC] = None
         self.history: List[float] = []
 
@@ -641,13 +661,18 @@ class SurvivalPC:
         Xd = X_cpu.to(self.device)
         taud = tau.to(self.device)
         deltad = delta.to(self.device)
-        opt = torch.optim.Adam(self.pc.parameters(), lr=lr)
-        n = len(Xd)
+        # Compile, gated on BOTH query types this loop uses: the plain density
+        # for observed failures and the box query for censored units.  A box
+        # bug would corrupt exactly the censored term — the one thing this
+        # model exists to get right — so it is checked, not assumed.
         inf = float("inf")
+        probe = self._augment(Xd[: min(len(Xd), 64)],
+                              taud[: min(len(Xd), 64)].to(Xd.dtype))
+        model = _compile_or_fallback(self, probe, box_feature=self.tau_idx)
+        params = list(model.parameters())
+        opt = torch.optim.Adam(params, lr=lr)
+        n = len(Xd)
         self.history = []
-        # the un-accelerated path: SurvivalPC needs box queries for censoring,
-        # which the compiled evaluator does not support, so this loop is the
-        # slowest thing in the whole batch and the one that most needs an ETA
         for ep in track(range(epochs),
                         f"survival fit ({'censored' if use_censored else 'observed'})",
                         total=epochs):
@@ -660,21 +685,23 @@ class SurvivalPC:
                 obs = db == 1
                 terms = []
                 if obs.any():
-                    terms.append(self.pc.log_prob(zb[obs]))
+                    terms.append(model.log_prob(zb[obs]))
                 if (~obs).any():
                     # P(τ ≥ c) per sample: ONE circuit pass, per-sample interval
                     lo = tb[~obs].to(zb.dtype)
-                    terms.append(self.pc.log_box(
+                    terms.append(model.log_box(
                         zb[~obs], {self.tau_idx: (lo, inf)}))
                 loss = -torch.cat(terms).mean()
                 opt.zero_grad(); loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.pc.parameters(), 1.0)
+                torch.nn.utils.clip_grad_norm_(params, 1.0)
                 opt.step()
                 tot += float(loss.detach()) * len(idx)
             self.history.append(tot / max(n, 1))
             every = log_every or (max(epochs // 6, 1) if verbose else 0)
             if every and ep % every == 0:
                 print(f"    [surv] epoch {ep:3d}  censored-NLL {self.history[-1]:8.3f}")
+        if self.compiled is not None:
+            self.compiled.write_back()
         return self
 
     # ── exact queries ────────────────────────────────────────────────────

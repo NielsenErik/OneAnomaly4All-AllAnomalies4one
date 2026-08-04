@@ -2101,6 +2101,9 @@ class RegionGraphPC(nn.Module):
         or marginalized).  Exact for smooth + decomposable circuits whose boxed
         leaves implement log_interval.  This is the survival / censoring query.
         """
+        comp = self.compiled
+        if comp is not None:
+            return comp.log_box(z, boxes, marginalized=list(marginalized) or None)
         return eval_log_marginal(self.root, z, marginalized, boxes=boxes)
 
     def log_partition(self) -> torch.Tensor:
@@ -2534,8 +2537,61 @@ class CompiledCircuit(nn.Module):
 
     # ── the hot loop ─────────────────────────────────────────────────────
 
+    def _box_values(self, cls: str, cols: torch.Tensor, lo, hi,
+                    B: int) -> torch.Tensor:
+        """
+        log ∫_lo^hi f for the leaves of group `cls` at positions `cols`.
+
+        Endpoints may be scalars or per-sample (B,) tensors — the censored
+        likelihood needs the latter, because every unit is censored at its own
+        time and a per-sample endpoint is what turns "one box query per
+        distinct threshold" into ONE batched pass.
+
+        The same helpers as the recursion are reused deliberately: the box
+        maths is subtle in the tails (see `_gauss_log_interval`) and two
+        independent implementations would be two things to keep right.
+        """
+        def _pair(v, extra_dims: int):
+            t = v if isinstance(v, torch.Tensor) else torch.as_tensor(
+                float(v), dtype=self.dtype_, device=cols.device)
+            if t.dim() == 0:                      # scalar -> broadcast over B
+                return t
+            t = t.to(dtype=self.dtype_, device=cols.device)
+            return t.reshape(-1, *([1] * extra_dims))     # (B, 1[, 1])
+
+        if cls == "GaussianLeaf":
+            mu = getattr(self, "GaussianLeaf_mu").index_select(0, cols)
+            sigma = (F.softplus(getattr(self, "GaussianLeaf_log_sigma")
+                                .index_select(0, cols)) + 1e-5)
+            out = _gauss_log_interval(mu.unsqueeze(0), sigma.unsqueeze(0),
+                                      _pair(lo, 1), _pair(hi, 1))
+        elif cls == "GaussianMixtureLeaf":
+            mus = getattr(self, "GaussianMixtureLeaf_mus").index_select(0, cols)
+            sig = (F.softplus(getattr(self, "GaussianMixtureLeaf_log_sigmas")
+                              .index_select(0, cols)) + 1e-5)
+            lw = F.log_softmax(getattr(self, "GaussianMixtureLeaf_logits")
+                               .index_select(0, cols), dim=-1)
+            comp = _gauss_log_interval(mus.unsqueeze(0), sig.unsqueeze(0),
+                                       _pair(lo, 2), _pair(hi, 2))
+            out = torch.logsumexp(lw + comp, dim=-1)
+        else:                                     # CategoricalLeaf
+            lp = F.log_softmax(getattr(self, "CategoricalLeaf_logits")
+                               .index_select(0, cols), dim=-1)      # (n, C)
+            ks = torch.arange(lp.shape[-1], device=lp.device, dtype=lp.dtype)
+            lo_t, hi_t = _pair(lo, 1), _pair(hi, 1)
+            keep = ((ks >= torch.ceil(lo_t)) & (ks <= torch.floor(hi_t)))
+            if keep.dim() == 1:                   # scalar endpoints
+                keep = keep.unsqueeze(0)
+            masked = lp.unsqueeze(0).masked_fill(~keep.unsqueeze(1), -float("inf"))
+            out = torch.nan_to_num(torch.logsumexp(masked, dim=-1),
+                                   nan=-1e30, neginf=-1e30)
+        if out.shape[0] == 1 and B > 1:
+            out = out.expand(B, -1)
+        return out
+
     def _leaf_values(self, x: torch.Tensor,
-                     marg_mask: Optional[torch.Tensor]) -> List[torch.Tensor]:
+                     marg_mask: Optional[torch.Tensor],
+                     boxes: Optional[Dict[int, Tuple]] = None) -> List[torch.Tensor]:
         """All leaves of each type in one kernel.  Marginalised features get
         log ∫ f = 0, which is what makes the exact-marginal query as cheap as
         the density query instead of a second traversal."""
@@ -2564,18 +2620,29 @@ class CompiledCircuit(nn.Module):
                 val = torch.where(marg_mask.index_select(0, feat),
                                   torch.zeros((), dtype=val.dtype, device=val.device),
                                   val)
+            if boxes:
+                # loop over BOXED FEATURES (one, for survival), never over
+                # nodes: the per-node loop is the thing this class exists to
+                # remove, and a box query must not smuggle it back in
+                for f, (lo, hi) in boxes.items():
+                    cols = (feat == int(f)).nonzero(as_tuple=True)[0]
+                    if cols.numel() == 0:
+                        continue
+                    val = val.index_copy(
+                        1, cols, self._box_values(cls, cols, lo, hi, x.shape[0]))
             out.append(val)
         return out
 
     def forward(self, x: torch.Tensor,
-                marg_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+                marg_mask: Optional[torch.Tensor] = None,
+                boxes: Optional[Dict[int, Tuple]] = None) -> torch.Tensor:
         x = x.to(device=self._device(), dtype=self.dtype_)
         B = x.shape[0]
         # One growing value buffer.  Slots were numbered in evaluation order, so
         # concatenating each layer's output keeps slot i at column i, and every
         # gather only ever reads columns written by an earlier layer.
         parts = [x.new_zeros(B, 1)]                          # slot 0 = log 1
-        parts.extend(self._leaf_values(x, marg_mask))
+        parts.extend(self._leaf_values(x, marg_mask, boxes))
         vals = torch.cat(parts, dim=1)
 
         s = 0
@@ -2614,13 +2681,29 @@ class CompiledCircuit(nn.Module):
 
     # ── query API, matching the recursive evaluator ──────────────────────
 
+    def _mask(self, x: torch.Tensor,
+              marginalized: Optional[Sequence[int]]) -> Optional[torch.Tensor]:
+        if not marginalized:
+            return None
+        mask = torch.zeros(x.shape[1], dtype=torch.bool, device=self._device())
+        mask[list(marginalized)] = True
+        return mask
+
     def log_prob(self, x: torch.Tensor,
                  marginalized: Optional[Sequence[int]] = None) -> torch.Tensor:
-        mask = None
-        if marginalized:
-            mask = torch.zeros(x.shape[1], dtype=torch.bool, device=x.device)
-            mask[list(marginalized)] = True
-        return self.forward(x, mask)
+        return self.forward(x, self._mask(x, marginalized))
+
+    def log_box(self, x: torch.Tensor, boxes: Dict[int, Tuple],
+                marginalized: Optional[Sequence[int]] = None) -> torch.Tensor:
+        """
+        log P(boxed features fall in their intervals, others observed at x).
+
+        This is the censored-likelihood query: for a unit last seen alive at
+        bin c, the box [c, ∞) on τ IS the exact contribution to the likelihood.
+        Endpoints may be per-sample, so a batch whose units were each censored
+        at a different time is one pass.
+        """
+        return self.forward(x, self._mask(x, marginalized), boxes)
 
     def log_partition(self, n_features: int) -> torch.Tensor:
         """Marginalising EVERY variable: must be 0 for a normalised circuit."""
@@ -2636,6 +2719,7 @@ class CompiledCircuit(nn.Module):
     @torch.no_grad()
     def assert_matches_reference(self, root: nn.Module, x: torch.Tensor,
                                  marginalized: Sequence[int] = (),
+                                 boxes: Optional[Dict[int, Tuple]] = None,
                                  atol: float = 1e-4, rtol: float = 1e-4) -> float:
         """
         Compare against the recursive oracle and REFUSE on mismatch.
@@ -2644,13 +2728,9 @@ class CompiledCircuit(nn.Module):
         and the failure mode is silent — the loss still goes down.  Every
         speedup number in this project has to pass through here first.
         """
-        ref = eval_log_marginal(root, x.to(self._device()), marginalized)
-        got = self.forward(x.to(self._device()),
-                           None if not marginalized else
-                           torch.zeros(x.shape[1], dtype=torch.bool,
-                                       device=self._device()).index_fill_(
-                               0, torch.tensor(list(marginalized),
-                                               device=self._device()), True))
+        xd = x.to(self._device())
+        ref = eval_log_marginal(root, xd, marginalized, boxes=boxes)
+        got = self.forward(xd, self._mask(xd, marginalized), boxes)
         # compare on CPU in float64: MPS has no float64, and the whole point of
         # the gate is that the comparison itself must not lose precision
         ref_c, got_c = ref.detach().cpu().double(), got.detach().cpu().double()

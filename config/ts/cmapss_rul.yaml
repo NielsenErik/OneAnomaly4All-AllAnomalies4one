@@ -57,6 +57,7 @@ model:
   lr: 0.05
 
 eval:
+  test_protocols: [all, last]
   censoring_ablation: true
   partial_evidence: true
   survival_demo: true
@@ -64,5 +65,8 @@ eval:
   alpha: 0.10
 
 grid:
+  # censor_frac DOES change the training data, so it stays an axis.
   dataset.censor_frac: [0.2, 0.35, 0.5, 0.7]
-  dataset.rul_test_windows: [all, last]
+  # rul_test_windows does NOT (verified: X/tau/delta bit-identical) — it only
+  # selects which test windows are scored, so it moved to eval.test_protocols
+  # and both protocols are reported from a single fit.

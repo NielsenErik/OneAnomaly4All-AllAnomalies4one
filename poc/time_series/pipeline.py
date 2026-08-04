@@ -421,12 +421,48 @@ def _eval_survival(pc: SurvivalPC, task, alpha: float) -> Dict[str, float]:
     }
 
 
+def _test_protocol_views(task, protocols: Sequence[str]):
+    """
+    (name, task_view) for each test-window protocol, from ONE task.
+
+    "all" scores every window of every test unit; "last" scores only the final
+    window per unit (the literature protocol).  Both are TEST-TIME selections —
+    the training windows are bit-identical — so running them as separate config
+    variants retrained the same circuit twice.  Verified equal to rebuilding
+    the task with `rul_test_windows: last`.
+    """
+    import copy as _copy
+
+    views = []
+    for name in protocols:
+        if name == "all":
+            views.append(("all", task))
+            continue
+        if task.unit_test is None:
+            raise ValueError("rul_test_windows='last' needs per-window unit ids")
+        u = task.unit_test.numpy()
+        idx = torch.as_tensor(
+            [int(np.where(u == unit)[0][-1]) for unit in dict.fromkeys(u.tolist())],
+            dtype=torch.long)
+        v = _copy.copy(task)
+        v.X_test = task.X_test[idx]
+        v.tau_test = task.tau_test[idx]
+        v.rul_test = task.rul_test[idx]
+        v.regime_test = task.regime_test[idx]
+        v.unit_test = task.unit_test[idx]
+        views.append(("last", v))
+    return views
+
+
 def stage_rul(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, Any]:
     ev = _ecfg(cfg)
     alpha = float(ev["alpha"])
     pair, task = prepare_task(cfg, seed, log, "rul")
     out: Dict[str, Any] = {}
     kept: Optional[SurvivalPC] = None
+    # One fit, evaluated under every test-window protocol asked for.
+    protocols = list(ev.get("test_protocols") or [_dcfg(cfg).get("rul_test_windows", "all")])
+    views = _test_protocol_views(task, protocols)
 
     # ── A. the censoring ablation: same model, same budget, one term differs
     arms = [(True, "SurvivalPC (exact censored lik.)")]
@@ -439,10 +475,14 @@ def stage_rul(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, Any]:
         try:
             pc = _fit_survival(cfg, task, seed, log, use_c,
                                tag="surv_censored" if use_c else "surv_dropped")
-            r = _eval_survival(pc, task, alpha)
-            log.result(_row(cfg, "rul", label, **r, fit_s=pc.fit_seconds,
-                            params=pc.size()["parameters"],
-                            censored_frac=censored_frac))
+            for pname, view in views:
+                ptag = f" [{pname}]" if len(views) > 1 else ""
+                r = _eval_survival(pc, view, alpha)
+                log.result(_row(cfg, "rul", f"{label}{ptag}", **r,
+                                fit_s=pc.fit_seconds,
+                                params=pc.size()["parameters"],
+                                test_protocol=pname,
+                                censored_frac=censored_frac))
             if use_c:
                 kept = pc
         except DegenerateModelError as exc:
@@ -461,17 +501,21 @@ def stage_rul(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, Any]:
         for b in rul_baselines(seed=seed, alpha=alpha, device=cfg.get("device")):
             t0 = time.time()
             b.fit(Xb, yb)
-            pred = b.predict(task.X_test)
-            r = {"rmse": rmse(pred["mean"], task.rul_test),
-                 "mae": mae(pred["mean"], task.rul_test),
-                 "nasa": nasa_score(pred["mean"], task.rul_test)}
-            if "lo" in pred:
-                r.update({"picp": picp(pred["lo"], pred["hi"], task.rul_test),
-                          "mpiw": mpiw(pred["lo"], pred["hi"]),
-                          "interval_score": crps_from_interval(
-                              pred["lo"], pred["hi"], task.rul_test, alpha)})
-            log.result(_row(cfg, "rul", b.name, **r, fit_s=time.time() - t0,
-                            train_rows=int(keep.sum())))
+            fit_s = time.time() - t0
+            for pname, view in views:
+                ptag = f" [{pname}]" if len(views) > 1 else ""
+                pred = b.predict(view.X_test)
+                r = {"rmse": rmse(pred["mean"], view.rul_test),
+                     "mae": mae(pred["mean"], view.rul_test),
+                     "nasa": nasa_score(pred["mean"], view.rul_test)}
+                if "lo" in pred:
+                    r.update({"picp": picp(pred["lo"], pred["hi"], view.rul_test),
+                              "mpiw": mpiw(pred["lo"], pred["hi"]),
+                              "interval_score": crps_from_interval(
+                                  pred["lo"], pred["hi"], view.rul_test, alpha)})
+                log.result(_row(cfg, "rul", f"{b.name}{ptag}", **r, fit_s=fit_s,
+                                test_protocol=pname,
+                                train_rows=int(keep.sum())))
 
     # ── C. query reach: survival under partial evidence ───────────────────
     if kept is not None and ev["partial_evidence"]:
@@ -567,7 +611,11 @@ def stage_calibration(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[st
     engine, which is the only coverage anyone cares about.
     """
     ev = _ecfg(cfg)
-    alpha = float(ev["alpha"])
+    # ONE fit, MANY alphas.  alpha never enters training — it selects a
+    # quantile of the conformal scores at the very end — so putting it in the
+    # config grid retrained a bit-identical circuit once per alpha.  On real
+    # C-MAPSS that was ~37 min of GPU per duplicate, half the calibration tier.
+    alphas = [float(a) for a in (ev.get("alphas") or [ev["alpha"]])]
     pair, task = prepare_task(cfg, seed, log, "rul")
 
     if task.unit_train is None:
@@ -595,44 +643,54 @@ def stage_calibration(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[st
     y_cal = (task.rul_train[sel] if task.rul_train is not None
              else (task.tau_train[sel].float() + 0.5) * bw)
     true = task.rul_test
+    out: Dict[str, Any] = {}
 
-    raw = _eval_survival(pc, task, alpha)
-    log.result(_row(cfg, "calibration", "SurvivalPC (raw exact predictive)", **raw))
-    out: Dict[str, Any] = {"raw": raw}
+    # alpha goes in the METHOD NAME, not just a column: the aggregator groups
+    # by method, so two alphas sharing a name would be averaged into a number
+    # that means nothing.
+    for alpha in alphas:
+        tag = f" · a={alpha:.2f}" if len(alphas) > 1 else ""
+        raw = _eval_survival(pc, task, alpha)
+        log.result(_row(cfg, "calibration",
+                        f"SurvivalPC (raw exact predictive){tag}", alpha=alpha, **raw))
+        out[f"raw@{alpha}"] = raw
 
-    for mode in ev["conformal_modes"]:
-        cp = ConformalPredictive(pc, alpha=alpha, mode=mode).calibrate(X_cal, y_cal)
-        pred = cp.predict(task.X_test)
-        r = {
-            "rmse": rmse(pred["mean"], true), "mae": mae(pred["mean"], true),
-            "crps": crps_from_pmf(torch.as_tensor(pred["pmf"]), task.tau_test, bw),
-            "picp": picp(pred["lo"], pred["hi"], true),
-            "mpiw": mpiw(pred["lo"], pred["hi"]),
-            "interval_score": crps_from_interval(pred["lo"], pred["hi"], true, alpha),
-            **{f"diag_{k}": v for k, v in cp.diagnostics.items()},
-        }
-        log.result(_row(cfg, "calibration", f"SurvivalPC + split conformal ({mode})",
-                        **r))
-        log.info(f"  conformal[{mode}]: PICP {r['picp']:.3f} (nominal "
-                 f"{1 - alpha:.2f}), MPIW {r['mpiw']:.1f} "
-                 f"(raw PICP {raw['picp']:.3f}, MPIW {raw['mpiw']:.1f})")
-        out[mode] = r
+        for mode in ev["conformal_modes"]:
+            cp = ConformalPredictive(pc, alpha=alpha, mode=mode).calibrate(X_cal, y_cal)
+            pred = cp.predict(task.X_test)
+            r = {
+                "rmse": rmse(pred["mean"], true), "mae": mae(pred["mean"], true),
+                "crps": crps_from_pmf(torch.as_tensor(pred["pmf"]), task.tau_test, bw),
+                "picp": picp(pred["lo"], pred["hi"], true),
+                "mpiw": mpiw(pred["lo"], pred["hi"]),
+                "interval_score": crps_from_interval(pred["lo"], pred["hi"], true, alpha),
+                **{f"diag_{k}": v for k, v in cp.diagnostics.items()},
+            }
+            log.result(_row(cfg, "calibration",
+                            f"SurvivalPC + split conformal ({mode}){tag}",
+                            alpha=alpha, **r))
+            log.info(f"  conformal[{mode}] a={alpha:.2f}: PICP {r['picp']:.3f} "
+                     f"(nominal {1 - alpha:.2f}), MPIW {r['mpiw']:.1f} "
+                     f"(raw PICP {raw['picp']:.3f}, MPIW {raw['mpiw']:.1f})")
+            out[f"{mode}@{alpha}"] = r
 
-    # the adversary, trained on exactly the same fit windows
-    if ev["baselines"]:
-        keep = sub.delta_train == 1
-        yb = (sub.tau_train[keep].float() + 0.5) * bw
-        for b in rul_baselines(seed=seed, alpha=alpha, device=cfg.get("device")):
-            if "conformal" not in b.name.lower():
-                continue
-            b.fit(sub.X_train[keep], yb)
-            pred = b.predict(task.X_test)
-            log.result(_row(cfg, "calibration", b.name,
-                            rmse=rmse(pred["mean"], true),
-                            picp=picp(pred["lo"], pred["hi"], true),
-                            mpiw=mpiw(pred["lo"], pred["hi"]),
-                            interval_score=crps_from_interval(
-                                pred["lo"], pred["hi"], true, alpha)))
+        # the adversary, trained on exactly the same fit windows.  It DOES
+        # depend on alpha (pinball loss + conformal width), so it is refit per
+        # alpha — it is an MLP, which costs seconds, not the circuit.
+        if ev["baselines"]:
+            keep = sub.delta_train == 1
+            yb = (sub.tau_train[keep].float() + 0.5) * bw
+            for b in rul_baselines(seed=seed, alpha=alpha, device=cfg.get("device")):
+                if "conformal" not in b.name.lower():
+                    continue
+                b.fit(sub.X_train[keep], yb)
+                pred = b.predict(task.X_test)
+                log.result(_row(cfg, "calibration", f"{b.name}{tag}", alpha=alpha,
+                                rmse=rmse(pred["mean"], true),
+                                picp=picp(pred["lo"], pred["hi"], true),
+                                mpiw=mpiw(pred["lo"], pred["hi"]),
+                                interval_score=crps_from_interval(
+                                    pred["lo"], pred["hi"], true, alpha)))
     return out
 
 
