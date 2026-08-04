@@ -1,0 +1,61 @@
+# EXACT ≠ CALIBRATED, and the fix.
+#
+# The most interesting negative in the project: the density is exactly
+# normalised and its nominal 90% intervals cover 38-52% of the truth, while
+# conformalised quantile regression — with no exactness property at all —
+# covers 82-91%.  Exactness buys the query set; it does not buy coverage,
+# because a model can be exactly normalised with respect to a distribution that
+# is simply wrong.
+#
+# This config runs the honest response: split conformal ON TOP of the circuit's
+# own predictive, calibrated on held-out ENGINES (never held-out windows of the
+# same engine — overlapping windows are near-duplicates and would report a
+# coverage that evaporates on a new unit).  The density is untouched, so every
+# exact query survives; only the interval is recalibrated.  "Exact density,
+# guaranteed coverage" is a defensible hybrid.
+#
+# It is NOT evidence for T1.  That gate failed independently and stays failed.
+#
+#   PYTHONPATH=. python -m poc.time_series.runner config/ts/cmapss_calibration.yaml
+name: cmapss_calibration
+description: |
+  Split conformal (CQR-style and PIT recalibration) applied to the circuit's own
+  exact predictive, against the raw circuit and against CQR, on real C-MAPSS.
+
+seeds: [0, 1, 2, 3, 4]
+device: auto
+evaluator: layered      # layered | recursive (same numbers; see bench_device)
+stages: [calibration]
+log_root: logs/ts/cmapss_calibration
+skip_if_missing_data: true
+
+dataset:
+  source: cmapss
+  subset: FD001
+  cap: 125
+  window: 20
+  rul_stride: 2
+  bins: 25
+  censor_frac: 0.35
+  per_regime: auto
+  official_test: true
+  rul_test_windows: all
+
+model:
+  vtree: chain
+  rul_K: 12
+  tau_where: deep
+  rul_epochs: 60
+  K: 8
+  epochs: 50
+
+eval:
+  conformal: true
+  conformal_modes: [cqr, pit]
+  cal_frac: 0.3            # of the training ENGINES
+  alpha: 0.10
+  baselines: true
+
+grid:
+  dataset.subset: [FD001, FD002]
+  eval.alpha: [0.10, 0.20]

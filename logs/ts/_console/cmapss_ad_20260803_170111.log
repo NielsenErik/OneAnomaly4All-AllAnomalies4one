@@ -1,0 +1,22 @@
+==============================================================================
+ experiment: cmapss_ad   (config/ts/cmapss_ad.yaml)
+ Detection on real NASA C-MAPSS, FD001-FD004: circuit vs the full baseline
+ output:     logs/ts/cmapss_ad
+==============================================================================
+
+4 variant(s) × 3 seed(s) = 12 run(s)
+
+  subset-FD001                           dataset=cmapss:FD001     stages=ad
+  subset-FD002                           dataset=cmapss:FD002     stages=ad
+  subset-FD003                           dataset=cmapss:FD003     stages=ad
+  subset-FD004                           dataset=cmapss:FD004     stages=ad
+
+  [data missing] subset-FD001: C-MAPSS FD001 files not found (see data/README.md)
+  [data missing] subset-FD002: C-MAPSS FD002 files not found (see data/README.md)
+  [data missing] subset-FD003: C-MAPSS FD003 files not found (see data/README.md)
+  [data missing] subset-FD004: C-MAPSS FD004 files not found (see data/README.md)
+
+skipping this config (skip_if_missing_data: true).  Run
+  python -m poc.time_series.check_data
+for download instructions.
+

@@ -1,0 +1,131 @@
+{
+  "config": {
+    "seeds": [
+      0
+    ],
+    "window": 8,
+    "stride": 3,
+    "channels": 14,
+    "units": 40,
+    "regimes": 3,
+    "censor_frac": 0.35,
+    "bins": 20,
+    "cap": 130.0,
+    "vtree": "chain",
+    "tau_where": "root",
+    "K": 10,
+    "leaf_components": 1,
+    "epochs": 20,
+    "lr": 0.05,
+    "alpha": 0.1,
+    "n_dead": 3,
+    "delta": false,
+    "per_regime": true,
+    "survival_demo": false,
+    "no_partial": true,
+    "verbose": false,
+    "out": "logs/tmp_rul_chain.json"
+  },
+  "summary": {
+    "SurvivalPC (drop censored)": {
+      "rmse": 43.51165320022571,
+      "mae": 38.622408984554845,
+      "nasa": 200998.37240010325,
+      "crps": 23.157927452103614,
+      "interval_score": 146.1988950276243,
+      "picp": 0.574585635359116,
+      "mpiw": 117.0,
+      "calib_err": 0.08220994475138119
+    },
+    "SurvivalPC (exact censored lik.)": {
+      "rmse": 44.569833581919944,
+      "mae": 36.98433578519312,
+      "nasa": 624299.7846541671,
+      "crps": 24.45402430903998,
+      "interval_score": 148.40055248618785,
+      "picp": 0.5359116022099447,
+      "mpiw": 110.5,
+      "calib_err": 0.13392265193370165
+    },
+    "ridge regression": {
+      "rmse": 25.04383447719736,
+      "mae": 21.085566976407346,
+      "nasa": 7313.365252068318,
+      "crps": null,
+      "interval_score": null,
+      "picp": null,
+      "mpiw": null,
+      "calib_err": null
+    },
+    "MLP regressor": {
+      "rmse": 32.839015044917815,
+      "mae": 25.62626617038228,
+      "nasa": 54723.609542072365,
+      "crps": null,
+      "interval_score": null,
+      "picp": null,
+      "mpiw": null,
+      "calib_err": null
+    },
+    "quantile reg. + conformal (CQR)": {
+      "rmse": 35.33231852155804,
+      "mae": 27.71223932866892,
+      "nasa": 97057.41199903889,
+      "crps": null,
+      "interval_score": 169.9276490448588,
+      "picp": 0.8434622467771639,
+      "mpiw": 102.63578384532893,
+      "calib_err": null
+    }
+  },
+  "runs": [
+    {
+      "SurvivalPC (drop censored)": {
+        "rmse": 43.51165320022571,
+        "mae": 38.622408984554845,
+        "nasa": 200998.37240010325,
+        "crps": 23.157927452103614,
+        "picp": 0.574585635359116,
+        "mpiw": 117.0,
+        "interval_score": 146.1988950276243,
+        "calib_err": 0.08220994475138119,
+        "fit_s": 12.60973310470581,
+        "params": 10340
+      },
+      "SurvivalPC (exact censored lik.)": {
+        "rmse": 44.569833581919944,
+        "mae": 36.98433578519312,
+        "nasa": 624299.7846541671,
+        "crps": 24.45402430903998,
+        "picp": 0.5359116022099447,
+        "mpiw": 110.5,
+        "interval_score": 148.40055248618785,
+        "calib_err": 0.13392265193370165,
+        "fit_s": 26.91637420654297,
+        "params": 10340
+      },
+      "ridge regression": {
+        "rmse": 25.04383447719736,
+        "mae": 21.085566976407346,
+        "nasa": 7313.365252068318,
+        "fit_s": 0.0016052722930908203
+      },
+      "MLP regressor": {
+        "rmse": 32.839015044917815,
+        "mae": 25.62626617038228,
+        "nasa": 54723.609542072365,
+        "fit_s": 0.14256787300109863
+      },
+      "quantile reg. + conformal (CQR)": {
+        "rmse": 35.33231852155804,
+        "mae": 27.71223932866892,
+        "nasa": 97057.41199903889,
+        "picp": 0.8434622467771639,
+        "mpiw": 102.63578384532893,
+        "interval_score": 169.9276490448588,
+        "fit_s": 0.12929797172546387
+      }
+    }
+  ],
+  "partial_evidence": []
+}

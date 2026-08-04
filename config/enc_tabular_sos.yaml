@@ -1,0 +1,22 @@
+# Direction 1 (encoder) — tabular, SOS / subtractive-mixture density.
+# Same data as enc_tabular but the squared (sum-of-squares) PC mode; compare
+# its held-out NLL / AUROC against the monotone enc_tabular run.
+#   python -m src.experiment config/enc_tabular_sos.yaml
+name: enc_tabular_sos
+direction: encoder
+
+train:
+  - adbench:cardio
+test:
+  - adbench:thyroid
+
+adapt: [zero_shot, leaves]
+seeds: [0, 1, 2, 3, 4]
+
+baselines: [iforest, lof, knn, gmm]
+
+latent_dim: 16            # SOS partition is quadratic in K per vtree node
+n_sum_components: 2
+epochs: 40
+use_sos: true
+vtree_method: chow_liu

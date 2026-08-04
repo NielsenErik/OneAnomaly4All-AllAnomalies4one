@@ -1,0 +1,57 @@
+# RUL / SURVIVAL AND CALIBRATION ON REAL N-C-MAPSS.
+#
+# Same standing as cmapss_rul.yaml: T1 is dead and this does not reopen it.
+# What this measures is (a) the circuit as a RUL model against ridge/MLP/CQR on
+# the hardest real source, (b) whether the censoring negative reproduces off our
+# own generator, and (c) whether conformalising the exact predictive closes the
+# coverage gap here too.
+#
+# N-C-MAPSS ships a dev/test split by unit; it is used as-is.  Censoring is
+# simulated on the dev units (the real ones all run to failure).
+#
+#   PYTHONPATH=. python -m poc.time_series.runner config/ts/ncmapss_rul.yaml
+name: ncmapss_rul
+description: |
+  Censoring ablation + baselines + partial evidence + split conformal on real
+  N-C-MAPSS, per-cycle aggregation.
+
+seeds: [0, 1, 2]
+device: auto
+evaluator: layered      # layered | recursive (same numbers; see bench_device)
+stages: [rul, calibration]
+log_root: logs/ts/ncmapss_rul
+skip_if_missing_data: true
+
+dataset:
+  source: ncmapss
+  dataset: DS02
+  channels_groups: [X_s]
+  aggregate: cycle
+  cap: 70
+  window: 10
+  rul_stride: 1
+  bins: 20
+  censor_frac: 0.35
+  regimes: 3
+  per_regime: auto
+  rul_test_windows: all
+  cache: true
+
+model:
+  vtree: chain
+  K: 8
+  rul_K: 12
+  tau_where: deep
+  epochs: 50
+  rul_epochs: 60
+
+eval:
+  censoring_ablation: true
+  partial_evidence: true
+  survival_demo: true
+  conformal_modes: [cqr, pit]
+  cal_frac: 0.3
+  alpha: 0.10
+
+grid:
+  dataset.censor_frac: [0.35, 0.7]

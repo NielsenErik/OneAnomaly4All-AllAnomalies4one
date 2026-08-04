@@ -1,0 +1,33 @@
+[08:57:09] === run start · seed0 · seed 0 · hash 5c137cf15b7d ===
+[08:57:09] stages ['ad'] · device cuda · dataset cmapss:FD002
+[08:57:09] --- stage: ad ---
+[08:57:10]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.5s)
+[08:57:10]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.13782593607902527, 'kind_counts': {'normal': 10184, 'spike': 324, 'offset': 290, 'drift': 282, 'desync': 258, 'organic': 201, 'decouple': 273}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll      nan
+    [pc] epoch   6  nll      nan
+    [pc] epoch  12  nll      nan
+    [pc] epoch  18  nll      nan
+    [pc] epoch  24  nll      nan
+    [pc] epoch  30  nll      nan
+    [pc] epoch  36  nll      nan
+    [pc] epoch  42  nll      nan
+    [pc] epoch  48  nll      nan
+[09:27:09]   pc_train_nll: first=nan last=nan (50 epochs)
+[09:27:09] !!! FAILED after 1799.5s: DegenerateModelError: degenerate density: -log p(x) has sd nan over 512 inputs, i.e. the score barely depends on x. Check weight_jitter (must be > 0), leaf jitter and the vtree before trusting any number from this model.
+[11:28:41] === run start · seed0 · seed 0 · hash 66cfa58bf9d8 ===
+[11:28:41] stages ['ad'] · device cuda · dataset cmapss:FD002
+[11:28:41] --- stage: ad ---
+[11:28:42]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[11:28:42]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.13782593607902527, 'kind_counts': {'normal': 10184, 'spike': 324, 'offset': 290, 'drift': 282, 'desync': 258, 'organic': 201, 'decouple': 273}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 1396597249.886
+    [pc] epoch   6  nll 16232.195
+    [pc] epoch  12  nll 1186.176
+    [pc] epoch  18  nll  446.714
+    [pc] epoch  24  nll  432.006
+    [pc] epoch  30  nll  415.119
+    [pc] epoch  36  nll  392.793
+    [pc] epoch  42  nll  378.364
+    [pc] epoch  48  nll  365.039
+[11:29:04]   pc_train_nll: first=1396597249.8864 last=359.6592 (50 epochs)
+[11:29:04]   pc: fit 21.9s · 17,280 params · score sd 78.612 · device cuda · layered · 31,480 win/s
+[11:29:04] !!! FAILED after 22.6s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto

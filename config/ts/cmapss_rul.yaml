@@ -1,0 +1,68 @@
+# RUL / SURVIVAL ON REAL C-MAPSS.
+#
+# STATUS OF THE CLAIM BEING TESTED — read before interpreting anything here.
+# T1 ("RUL as an exact censored survival query") FAILED its pre-registered gate
+# on synthetic data: at 70% censoring the exact censored term did the most
+# damage (CRPS -2.87), the reverse of the hypothesis, and it was retired to a
+# limitations paragraph.  This config does NOT reopen that gate.  It runs the
+# same ablation on real trajectories for one reason: a negative measured only on
+# our own generator is worth less as a limitation than one measured on the
+# field's standard benchmark.  If it stays negative here, the limitation is
+# written with real evidence; if it reverses, that is a finding that needs its
+# own pre-registration before anything is claimed.
+#
+# What is NOT in doubt and IS worth reporting: the circuit as a RUL *model*
+# (RMSE against ridge/MLP/CQR), the survival function's qualitative
+# correctness, and survival under dead sensors — the query CQR cannot express
+# at all, since it needs a complete feature vector to emit an interval.
+#
+# Censoring on real data is SIMULATED by truncating engines (`censor_frac`):
+# NASA ran every training unit to failure, so the mechanism is absent by
+# construction.  The trajectories stay real; only the observation window is cut.
+#
+#   PYTHONPATH=. python -m poc.time_series.runner config/ts/cmapss_rul.yaml
+name: cmapss_rul
+description: |
+  Censoring ablation, point/distributional accuracy vs ridge/MLP/CQR, survival
+  under partial evidence — on real C-MAPSS with simulated right censoring.
+
+seeds: [0, 1, 2]
+device: auto
+evaluator: layered      # layered | recursive (same numbers; see bench_device)
+stages: [rul]
+log_root: logs/ts/cmapss_rul
+skip_if_missing_data: true
+
+dataset:
+  source: cmapss
+  subset: FD001
+  cap: 125
+  window: 20
+  rul_stride: 2
+  bins: 25              # 5 cycles per bin at cap=125
+  censor_frac: 0.35     # overridden by the grid
+  per_regime: auto
+  official_test: true
+  rul_test_windows: all # "last" = one prediction per engine, the literature
+                        # protocol; "all" gives far more test points.  Both are
+                        # run below.
+
+model:
+  vtree: chain
+  K: 8
+  rul_K: 12             # the tau coupling is the bottleneck; give it room
+  tau_where: deep       # 'root' collapses to a constant predictive (hand-off §3)
+  epochs: 50
+  rul_epochs: 60
+  lr: 0.05
+
+eval:
+  censoring_ablation: true
+  partial_evidence: true
+  survival_demo: true
+  n_dead: 3
+  alpha: 0.10
+
+grid:
+  dataset.censor_frac: [0.2, 0.35, 0.5, 0.7]
+  dataset.rul_test_windows: [all, last]

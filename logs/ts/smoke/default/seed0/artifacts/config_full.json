@@ -1,0 +1,110 @@
+{
+  "name": "smoke",
+  "description": "End-to-end wiring check: data -> circuit -> queries -> baselines -> conformal\n-> logs -> aggregation.  Fails loudly if anything in the chain is broken.\n",
+  "seeds": [
+    0
+  ],
+  "device": "auto",
+  "evaluator": "layered",
+  "log_root": "logs/ts/smoke",
+  "stages": [
+    "ad",
+    "explain",
+    "rul",
+    "calibration"
+  ],
+  "skip_if_missing_data": true,
+  "dataset": {
+    "source": "synthetic",
+    "window": 6,
+    "stride": 3,
+    "cap": 130,
+    "healthy_frac": 0.35,
+    "organic_frac": 0.85,
+    "inject_rate": 0.12,
+    "strength": 1.0,
+    "train_units": 0.6,
+    "per_regime": "auto",
+    "max_test_windows": null,
+    "units": 24,
+    "channels": 8,
+    "regimes": 2,
+    "groups": 3,
+    "dead_channels": 2,
+    "noise": 0.1,
+    "group_noise": 0.25,
+    "phi_ar": 0.85,
+    "subset": "FD001",
+    "official_test": true,
+    "dataset": "DS02",
+    "aggregate": "cycle",
+    "subsample": 10,
+    "channels_groups": [
+      "X_s"
+    ],
+    "max_units": null,
+    "max_rows": null,
+    "cache": true,
+    "data_dir": null,
+    "censor_frac": 0.35,
+    "bins": 12,
+    "rul_stride": 4,
+    "rul_test_windows": "all"
+  },
+  "model": {
+    "vtree": "chain",
+    "K": 4,
+    "leaf_components": 1,
+    "epochs": 6,
+    "lr": 0.05,
+    "batch_size": 256,
+    "delta": false,
+    "sos": false,
+    "weight_jitter": 0.5,
+    "tau_where": "deep",
+    "rul_K": null,
+    "rul_epochs": 6
+  },
+  "eval": {
+    "fast_baselines": true,
+    "baselines": true,
+    "missing": true,
+    "n_dead": 3,
+    "typed": true,
+    "shapley_orders": 2,
+    "shap_samples": 4,
+    "deletion": true,
+    "n_complete": 16,
+    "max_explain_windows": 200,
+    "kinds": [
+      "spike",
+      "offset",
+      "drift",
+      "decouple",
+      "desync"
+    ],
+    "alpha": 0.1,
+    "censoring_ablation": true,
+    "conformal": true,
+    "conformal_modes": [
+      "cqr",
+      "pit"
+    ],
+    "cal_frac": 0.35,
+    "survival_demo": true,
+    "partial_evidence": true,
+    "plots": false,
+    "examples": true,
+    "save_scores": true,
+    "scaling_dims": [
+      16,
+      32,
+      64,
+      112,
+      256
+    ]
+  },
+  "config_path": "config/ts/smoke.yaml",
+  "variant": "default",
+  "variant_axes": {}
+}

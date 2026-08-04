@@ -1,0 +1,9 @@
+[12:17:24] === run start · seed1 · seed 1 · hash 89804b0f0ed6 ===
+[12:17:24] stages ['calibration'] · device cuda · dataset cmapss:FD001
+[12:17:24] --- stage: calibration ---
+[12:17:24]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.1s)
+[12:17:24]   task: {'kind': 'rul', 'n_train': 8295, 'n_test': 5625, 'd': 300, 'window': 20, 'n_channels': 15, 'n_bins': 25, 'cap': 125.0, 'censored_frac': 0.2788426876068115, 'train_units': 100, 'test_units': 100, 'censored_units': 38, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'test_windows': 'all', 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+[12:17:24]   conformal split: 5748 fit windows / 1879 calibration windows (100 units total)
+    [surv] epoch   0  censored-NLL 26757.325
+    [surv] epoch   7  censored-NLL  209.576
+    [surv] epoch  14  censored-NLL  198.255

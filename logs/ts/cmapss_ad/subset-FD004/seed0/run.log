@@ -1,0 +1,25 @@
+[11:02:44] === run start · seed0 · seed 0 · hash 38e6580af666 ===
+[11:02:44] stages ['ad'] · device cuda · dataset cmapss:FD004
+[11:02:44] --- stage: ad ---
+[11:02:45]   data: FleetPair(cmapss:FD004: train=249 units, test=248 units, C=21, regimes=3, cap=125)  (1.4s)
+[11:02:45]   task: {'kind': 'ad', 'n_train': 18107, 'n_test': 12000, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.12999999523162842, 'kind_counts': {'normal': 10440, 'offset': 290, 'spike': 320, 'drift': 288, 'desync': 253, 'decouple': 293, 'organic': 116}, 'train_units': 249, 'test_units': 248, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD004', 'cap': 125.0, 'subset': 'FD004', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll      nan
+    [pc] epoch   6  nll      nan
+    [pc] epoch  12  nll      nan
+[11:30:30] === run start · seed0 · seed 0 · hash fc028c233806 ===
+[11:30:30] stages ['ad'] · device cuda · dataset cmapss:FD004
+[11:30:30] --- stage: ad ---
+[11:30:30]   data: FleetPair(cmapss:FD004: train=249 units, test=248 units, C=21, regimes=3, cap=125)  (0.3s)
+[11:30:30]   task: {'kind': 'ad', 'n_train': 18107, 'n_test': 12000, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.12999999523162842, 'kind_counts': {'normal': 10440, 'offset': 290, 'spike': 320, 'drift': 288, 'desync': 253, 'decouple': 293, 'organic': 116}, 'train_units': 249, 'test_units': 248, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD004', 'cap': 125.0, 'subset': 'FD004', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 1090303046.182
+    [pc] epoch   6  nll 7214.100
+    [pc] epoch  12  nll  447.365
+    [pc] epoch  18  nll  419.004
+    [pc] epoch  24  nll  387.821
+    [pc] epoch  30  nll  359.275
+    [pc] epoch  36  nll  335.415
+    [pc] epoch  42  nll  327.376
+    [pc] epoch  48  nll  308.059
+[11:31:00]   pc_train_nll: first=1090303046.1817 last=309.9147 (50 epochs)
+[11:31:00]   pc: fit 29.7s · 17,280 params · score sd 93.160 · device cuda · layered · 30,502 win/s
+[11:31:00] !!! FAILED after 30.5s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto

@@ -1,0 +1,37 @@
+==============================================================================
+ experiment: cmapss_ad   (config/ts/cmapss_ad.yaml)
+ Detection on real NASA C-MAPSS, FD001-FD004: circuit vs the full baseline
+ output:     logs/ts/cmapss_ad
+==============================================================================
+
+4 variant(s) × 3 seed(s) = 12 run(s)
+
+  subset-FD001                           dataset=cmapss:FD001     stages=ad
+  subset-FD002                           dataset=cmapss:FD002     stages=ad
+  subset-FD003                           dataset=cmapss:FD003     stages=ad
+  subset-FD004                           dataset=cmapss:FD004     stages=ad
+
+
+>>> subset-FD001 · seed 0 · logs/ts/cmapss_ad/subset-FD001/seed0
+[01:26:45] === run start · seed0 · seed 0 · hash 2d74a8c7578f ===
+[01:26:45] stages ['ad'] · device cuda · dataset cmapss:FD001
+[01:26:45] --- stage: ad ---
+[01:26:45]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.6s)
+[01:26:45]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 11892.364
+    [pc] epoch   6  nll  144.854
+    [pc] epoch  12  nll  139.598
+    [pc] epoch  18  nll  139.024
+    [pc] epoch  24  nll  138.300
+    [pc] epoch  30  nll  138.118
+    [pc] epoch  36  nll  138.032
+[01:33:22] !!! FAILED after 397.3s: KeyboardInterrupt: 
+  [FAILED] see logs/ts/cmapss_ad/subset-FD001/seed0/run.log
+
+>>> subset-FD001 · seed 1 · logs/ts/cmapss_ad/subset-FD001/seed1
+[01:33:22] === run start · seed1 · seed 1 · hash 2d74a8c7578f ===
+[01:33:22] stages ['ad'] · device cuda · dataset cmapss:FD001
+[01:33:22] --- stage: ad ---
+[01:33:22]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.2s)
+[01:33:22]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 45391.873

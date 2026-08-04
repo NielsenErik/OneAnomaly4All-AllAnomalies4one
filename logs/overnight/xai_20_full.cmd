@@ -1,0 +1,1 @@
+    /Users/eriknielsen/miniconda3/envs/expllm_env/bin/python -m poc.time_series.run_explain --seeds 0 1 2 --epochs 40 --shapley 8 --plots --examples --fig-dir logs/overnight/figs --out logs/overnight/xai_20_full.json

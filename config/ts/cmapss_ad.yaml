@@ -1,0 +1,56 @@
+# DETECTION ON REAL C-MAPSS — the credibility experiment.
+#
+# Same protocol as the synthetic run, real background process.  All four
+# subsets, because they differ in exactly the way that matters: FD001/FD003 are
+# single-condition, FD002/FD004 have six operating regimes, and a regime
+# mixture is precisely what a per-channel detector cannot represent and a
+# mixture model can.  If the circuit's parity with Mahalanobis/conv-AE holds on
+# FD001 but the gap opens on FD002/FD004, that is a result; if it does not, the
+# honest report is that it does not.
+#
+# The official test units are used as the held-out fleet (split by ENGINE, never
+# by window).  Anomalies are still injected — C-MAPSS ships no anomaly labels,
+# and injection is the only source of the per-channel ground truth the
+# localisation claim is scored against.  See data/README.md.
+#
+#   PYTHONPATH=. python -m poc.time_series.runner config/ts/cmapss_ad.yaml
+name: cmapss_ad
+description: |
+  Detection on real NASA C-MAPSS, FD001-FD004: circuit vs the full baseline
+  suite, dead-sensor query, exact typed decomposition.
+
+seeds: [0, 1, 2]
+device: auto
+evaluator: layered      # layered | recursive (same numbers; see bench_device)
+stages: [ad]
+log_root: logs/ts/cmapss_ad
+skip_if_missing_data: true
+
+dataset:
+  source: cmapss
+  subset: FD001            # overridden by the grid below
+  cap: 125                 # standard piecewise-linear RUL cap
+  window: 20               # cycles; C-MAPSS units run 128-360 cycles
+  stride: 2
+  inject_rate: 0.12
+  strength: 1.0
+  per_regime: auto         # per-regime normalisation when the subset has >1
+  official_test: true
+  max_test_windows: 12000  # keeps the baseline suite (1-NN, Mahalanobis) sane
+
+model:
+  vtree: chain
+  K: 8
+  leaf_components: 1
+  epochs: 50
+  lr: 0.05
+  batch_size: 256
+
+eval:
+  fast_baselines: false
+  missing: true
+  typed: true
+  n_dead: 3
+
+grid:
+  dataset.subset: [FD001, FD002, FD003, FD004]

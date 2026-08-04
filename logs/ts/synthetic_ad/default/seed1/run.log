@@ -1,0 +1,25 @@
+[17:02:57] === run start · seed1 · seed 1 · hash bd51ab870014 ===
+[17:02:57] stages ['ad'] · device cuda · dataset synthetic
+[17:02:57] --- stage: ad ---
+[17:02:57]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[17:02:57]   task: {'kind': 'ad', 'n_train': 1961, 'n_test': 1713, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.20431990921497345, 'kind_counts': {'normal': 1363, 'offset': 30, 'desync': 44, 'drift': 32, 'decouple': 31, 'spike': 38, 'organic': 175}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 1, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  156.276
+    [pc] epoch   5  nll   67.050
+    [pc] epoch  10  nll   55.403
+    [pc] epoch  15  nll   54.284
+    [pc] epoch  20  nll   54.049
+    [pc] epoch  25  nll   53.981
+    [pc] epoch  30  nll   53.820
+    [pc] epoch  35  nll   53.317
+[17:05:05]   pc_train_nll: first=156.2756 last=53.1061 (40 epochs)
+[17:05:05]   pc: fit 127.2s · 2,964 params · score sd 13.696 · device cuda
+[17:05:21]   typed decomposition (mean worst-channel surprise):
+[17:05:21]        normal  n= 1363  marginal    12.14  conditional    13.65  structural     4.93
+[17:05:21]      decouple  n=   31  marginal    11.31  conditional    24.39  structural    16.24
+[17:05:21]        desync  n=   44  marginal    13.17  conditional    90.01  structural    84.45
+[17:05:21]         drift  n=   32  marginal    47.57  conditional    92.20  structural    65.49
+[17:05:21]        offset  n=   30  marginal    45.26  conditional   104.12  structural    76.08
+[17:05:21]       organic  n=  175  marginal    67.42  conditional   111.46  structural    96.73
+[17:05:21]         spike  n=   38  marginal    40.05  conditional    77.18  structural    44.39
+[17:05:21] --- stage ad done in 143.5s ---
+[17:05:21] === run ok · 143.5s · peak RSS 1.43 GB ===

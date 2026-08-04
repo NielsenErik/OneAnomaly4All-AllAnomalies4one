@@ -1,0 +1,22 @@
+==============================================================================
+ experiment: cmapss_calibration   (config/ts/cmapss_calibration.yaml)
+ Split conformal (CQR-style and PIT recalibration) applied to the circuit's own
+ output:     logs/ts/cmapss_calibration
+==============================================================================
+
+4 variant(s) × 5 seed(s) = 20 run(s)
+
+  subset-FD001_alpha-0.1                 dataset=cmapss:FD001     stages=calibration
+  subset-FD001_alpha-0.2                 dataset=cmapss:FD001     stages=calibration
+  subset-FD002_alpha-0.1                 dataset=cmapss:FD002     stages=calibration
+  subset-FD002_alpha-0.2                 dataset=cmapss:FD002     stages=calibration
+
+  [data missing] subset-FD001_alpha-0.1: C-MAPSS FD001 files not found (see data/README.md)
+  [data missing] subset-FD001_alpha-0.2: C-MAPSS FD001 files not found (see data/README.md)
+  [data missing] subset-FD002_alpha-0.1: C-MAPSS FD002 files not found (see data/README.md)
+  [data missing] subset-FD002_alpha-0.2: C-MAPSS FD002 files not found (see data/README.md)
+
+skipping this config (skip_if_missing_data: true).  Run
+  python -m poc.time_series.check_data
+for download instructions.
+

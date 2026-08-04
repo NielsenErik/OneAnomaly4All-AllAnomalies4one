@@ -1,0 +1,32 @@
+/Users/eriknielsen/Documents/UNITN/PHD/MAIN_Project/OneAnomalyForAll-AllAnomalyforOne/poc/time_series/run_rul.py:128: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than tensor.new_tensor(sourceTensor).
+  Xb, yb = task.X_train[keep], task.rul_test.new_tensor(
+
+=== seed 0 ===
+  RULTask(train=(2165, 112), test=(752, 112), bins=20, cap=130, censored_train=54.4%)
+    units: 39 train (26 censored), 21 test
+
+=== seed 1 ===
+  RULTask(train=(2107, 112), test=(935, 112), bins=20, cap=130, censored_train=48.0%)
+    units: 39 train (22 censored), 21 test
+
+=== seed 2 ===
+  RULTask(train=(2372, 112), test=(474, 112), bins=20, cap=130, censored_train=36.0%)
+    units: 39 train (18 censored), 21 test
+
+
+=== RUL, mean over 3 seed(s) (nominal coverage 90%) ===
+
+                             model      rmse       mae      nasa      crps interval_score      picp      mpiw calib_err
+-----------------------------------------------------------------------------------------------------------------------
+        SurvivalPC (drop censored)    22.610    17.877 20864.143    10.508   100.927     0.520    59.983     0.166
+  SurvivalPC (exact censored lik.)    22.701    16.833 39288.217    10.981   108.460     0.490    53.351     0.133
+                  ridge regression    23.995    19.749 11506.517         —         —         —         —         —
+                     MLP regressor    29.545    23.519 48689.471         —         —         —         —         —
+   quantile reg. + conformal (CQR)    32.756    25.984 86659.827         —   147.383     0.851    97.364         —
+
+  rmse/mae/nasa: point accuracy (lower better).  crps/interval_score: distributional
+  quality (lower better).  picp: should be close to 0.90; mpiw: interval width
+  (lower = sharper, only meaningful at matched picp).  calib_err: 0 = perfect.
+
+wrote logs/overnight2/rul_deep_censor_0.5.json
+

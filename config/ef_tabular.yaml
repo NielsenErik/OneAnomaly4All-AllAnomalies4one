@@ -1,0 +1,30 @@
+# Direction 2 (encoder-free) — exact density over RAW tabular features.
+# One sub-circuit per dataset, no encoder anywhere; structure (vtree) is shared
+# across same-dimension modalities so it transfers. Held-out integration uses
+# add_modality (leaves = closed-form leaves only; finetune = a few NLL epochs).
+#
+# NOTE: encoder-free needs numeric tensors, so it is tabular-only (text=strings,
+# images=raw pixels are the encoder direction's domain). zero_shot on a held-out
+# dataset of a NEW feature dimension has no compatible sub-circuit and is skipped
+# (logged); leaves/finetune integrate it by structure transfer.
+#   local:  python -m src.experiment config/ef_tabular.yaml
+#   slurm:  bash cluster_scripts/submit_all.sh config/ef_tabular.yaml
+name: ef_tabular
+direction: encoder_free
+
+train:
+  - adbench:cardio
+test:
+  - adbench:thyroid
+
+adapt: [zero_shot, leaves, finetune]
+seeds: [0, 1, 2, 3, 4]
+
+# matched-budget structure ablation, encoder-free
+vtree_methods: [chow_liu, spectral, orc, forman, random]
+
+baselines: []        # baselines live in the encoder's latent space; N/A here
+
+n_sum_components: 3
+epochs: 40
+finetune_epochs: 10

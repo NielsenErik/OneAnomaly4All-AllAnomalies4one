@@ -1,0 +1,36 @@
+# Matched-budget vtree ablation — the kill-shot experiment (2026-06-11 eval).
+#
+# One pipeline per vtree method, identical capacity (same n_sum_components,
+# same leaves, same epochs, same seeds), so any held-out NLL / AUROC gap is
+# attributable to STRUCTURE alone.  The decisive comparison:
+#
+#   orc must beat SPECTRAL (not just chow_liu) by more than the cross-seed
+#   std, with the mixtures fit — otherwise the geometry is decoration.
+#
+# This is simultaneously the structure-vs-capacity test gating Paper C
+# (random ≈ learned ⇒ "leaves do all the work" and structure transfer has
+# nothing to transfer).
+#
+#   local:  python -m src.experiment config/vtree_ablation.yaml
+#   slurm:  bash cluster_scripts/submit_all.sh config/vtree_ablation.yaml
+name: vtree_ablation
+
+train:
+  - adbench:cardio
+  - text:sci
+test:
+  - adbench:thyroid
+  - text:rec
+
+adapt: [zero_shot, leaves]
+seeds: [0, 1, 2, 3, 4]
+
+# the ablation axis: full run per method, rows tagged with "vtree";
+# aggregation reports AUROC and held-out NLL per (dataset, method)
+vtree_methods: [chow_liu, spectral, orc, forman, random]
+
+latent_dim: 64
+n_sum_components: 3
+epochs: 100
+log_root: logs/vtree_ablation
+baselines: []        # method-vs-method comparison; baselines are vtree-free

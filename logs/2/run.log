@@ -1,0 +1,14 @@
+2026-06-11 13:49:40 [seed 2] config: {"seed": 2, "timestamp": "2026-06-11T13:49:40", "train": ["adbench:cardio"], "test": ["adbench:thyroid"], "adapt_modes": ["zero_shot", "leaves", "finetune"], "latent_dim": 32, "n_sum_components": 3, "epochs": 40, "finetune_epochs": 10, "use_sos": false, "vtree_method": "chow_liu"}
+2026-06-11 13:49:40 [seed 2] training shared PC once on 1 source dataset(s)
+2026-06-11 14:11:58 [seed 2] train_nll: first=46.7778 last=12.7871 (40 epochs)
+2026-06-11 14:12:01 [seed 2] result: {"seed": 2, "timestamp": "2026-06-11T14:12:01", "dataset": "adbench:cardio", "modality": "tabular", "adaptation": "zero_shot", "auroc": 0.9578324000878349, "n_test": 1004, "role": "source"}
+2026-06-11 14:12:04 [seed 2] result: {"seed": 2, "timestamp": "2026-06-11T14:12:04", "dataset": "adbench:thyroid", "modality": "tabular", "adaptation": "zero_shot", "auroc": 0.8439749883122954, "n_test": 1933, "role": "held_out"}
+2026-06-11 14:12:20 [seed 2] result: {"seed": 2, "timestamp": "2026-06-11T14:12:20", "dataset": "adbench:thyroid", "modality": "tabular", "adaptation": "leaves", "auroc": 0.8115591397849462, "n_test": 1933, "role": "held_out"}
+2026-06-11 14:14:24 [seed 2] result: {"seed": 2, "timestamp": "2026-06-11T14:14:24", "dataset": "adbench:thyroid", "modality": "tabular", "adaptation": "finetune", "auroc": 0.8421166432912576, "n_test": 1933, "role": "held_out"}
+2026-06-11 14:14:25 [seed 2] result: {"seed": 2, "timestamp": "2026-06-11T14:14:25", "dataset": "adbench:thyroid", "modality": "tabular", "adaptation": "iforest", "role": "baseline", "auroc": 0.8793653576437588, "n_test": 1933}
+2026-06-11 14:14:25 [seed 2] result: {"seed": 2, "timestamp": "2026-06-11T14:14:25", "dataset": "adbench:thyroid", "modality": "tabular", "adaptation": "lof", "role": "baseline", "auroc": 0.9644460028050491, "n_test": 1933}
+2026-06-11 14:14:25 [seed 2] result: {"seed": 2, "timestamp": "2026-06-11T14:14:25", "dataset": "adbench:thyroid", "modality": "tabular", "adaptation": "ocsvm", "role": "baseline", "auroc": 0.9531907433380085, "n_test": 1933}
+2026-06-11 14:14:25 [seed 2] result: {"seed": 2, "timestamp": "2026-06-11T14:14:25", "dataset": "adbench:thyroid", "modality": "tabular", "adaptation": "knn", "role": "baseline", "auroc": 0.954762739597943, "n_test": 1933}
+2026-06-11 14:14:25 [seed 2] result: {"seed": 2, "timestamp": "2026-06-11T14:14:25", "dataset": "adbench:thyroid", "modality": "tabular", "adaptation": "gmm", "role": "baseline", "auroc": 0.9812938288920056, "n_test": 1933}
+2026-06-25 14:52:19 [seed 2] config: {"seed": 2, "timestamp": "2026-06-25T14:52:19", "train": ["adbench:cardio"], "test": ["adbench:thyroid"], "adapt_modes": ["zero_shot", "leaves", "finetune"], "latent_dim": 32, "n_sum_components": 3, "epochs": 40, "finetune_epochs": 10, "use_sos": false, "vtree_method": "chow_liu"}
+2026-06-25 14:52:19 [seed 2] training shared PC once on 1 source dataset(s)
