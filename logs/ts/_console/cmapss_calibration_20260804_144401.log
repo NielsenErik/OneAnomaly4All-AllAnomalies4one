@@ -1,0 +1,27 @@
+==============================================================================
+ experiment: cmapss_calibration   (config/ts/cmapss_calibration.yaml)
+ Split conformal (CQR-style and PIT recalibration) applied to the circuit's own
+ output:     logs/ts/cmapss_calibration
+==============================================================================
+
+4 variant(s) × 5 seed(s) = 20 run(s)
+
+  subset-FD001_alpha-0.1                 dataset=cmapss:FD001     stages=calibration
+  subset-FD001_alpha-0.2                 dataset=cmapss:FD001     stages=calibration
+  subset-FD002_alpha-0.1                 dataset=cmapss:FD002     stages=calibration
+  subset-FD002_alpha-0.2                 dataset=cmapss:FD002     stages=calibration
+
+  [skip] subset-FD001_alpha-0.1 seed 0 (done in 2229.14s)
+  [skip] subset-FD001_alpha-0.1 seed 1 (done in 2308.49s)
+  [skip] subset-FD001_alpha-0.1 seed 2 (done in 2317.49s)
+
+>>> [4/20] subset-FD001_alpha-0.1 · seed 3 · logs/ts/cmapss_calibration/subset-FD001_alpha-0.1/seed3
+[14:52:58] === run start · seed3 · seed 3 · hash 89804b0f0ed6 ===
+[14:52:58] stages ['calibration'] · device cuda · dataset cmapss:FD001
+[14:52:58] --- stage: calibration ---
+[14:52:58]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.7s)
+[14:52:58]   task: {'kind': 'rul', 'n_train': 8194, 'n_test': 5625, 'd': 300, 'window': 20, 'n_channels': 15, 'n_bins': 25, 'cap': 125.0, 'censored_frac': 0.26348549127578735, 'train_units': 100, 'test_units': 100, 'censored_units': 34, 'n_regimes': 3, 'seed': 3, 'per_regime_norm': True, 'test_windows': 'all', 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+[14:52:58]   conformal split: 5869 fit windows / 1610 calibration windows (100 units total)
+    [surv] epoch   0  censored-NLL 12319.598
+    survival fit (censored): 1/60 (2%) · 0.03 it/s · elapsed 00:35 · ETA 34:57
+    survival fit (censored): 2/60 (3%) · 0.03 it/s · elapsed 01:09 · ETA 33:33

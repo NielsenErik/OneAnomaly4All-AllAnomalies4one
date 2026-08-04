@@ -25,3 +25,82 @@
 [11:29:27]   pc_train_nll: first=1408701951.3230 last=378.5415 (50 epochs)
 [11:29:27]   pc: fit 22.4s · 17,280 params · score sd 73.458 · device cuda · layered · 30,910 win/s
 [11:29:27] !!! FAILED after 23.1s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+[12:34:34] === run start · seed1 · seed 1 · hash 66cfa58bf9d8 ===
+[12:34:34] stages ['ad'] · device cuda · dataset cmapss:FD002
+[12:34:34] --- stage: ad ---
+[12:34:35]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[12:34:35]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.13460887968540192, 'kind_counts': {'normal': 10222, 'desync': 299, 'drift': 293, 'offset': 273, 'decouple': 266, 'spike': 258, 'organic': 201}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 11179.369
+    [pc] epoch   6  nll  294.696
+    [pc] epoch  12  nll  297.202
+    [pc] epoch  18  nll  289.240
+    [pc] epoch  24  nll  269.976
+    [pc] epoch  30  nll  272.032
+    [pc] epoch  36  nll  250.755
+    [pc] epoch  42  nll  236.273
+    [pc] epoch  48  nll  236.795
+[12:34:59]   pc_train_nll: first=11179.3686 last=237.5799 (50 epochs)
+[12:34:59]   pc: fit 24.6s · 17,280 params · score sd 76.531 · device cuda · layered · 28,096 win/s
+[12:35:00] !!! FAILED after 25.4s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+[14:24:15] === run start · seed1 · seed 1 · hash 66cfa58bf9d8 ===
+[14:24:15] stages ['ad'] · device cuda · dataset cmapss:FD002
+[14:24:15] --- stage: ad ---
+[14:24:15]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[14:24:15]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.13460887968540192, 'kind_counts': {'normal': 10222, 'desync': 299, 'drift': 293, 'offset': 273, 'decouple': 266, 'spike': 258, 'organic': 201}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 11179.369
+    [pc] epoch   6  nll  294.696
+    [pc] epoch  12  nll  297.202
+    [pc] epoch  18  nll  289.240
+    [pc] epoch  24  nll  269.976
+    [pc] epoch  30  nll  272.032
+    [pc] epoch  36  nll  250.755
+    [pc] epoch  42  nll  236.273
+    [pc] epoch  48  nll  236.795
+[14:24:33]   pc_train_nll: first=11179.3686 last=237.5799 (50 epochs)
+[14:24:33]   pc: fit 18.2s · 17,280 params · score sd 76.531 · device cuda · layered · 38,042 win/s
+[14:24:34] !!! FAILED after 18.9s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+[14:37:27] === run start · seed1 · seed 1 · hash 66cfa58bf9d8 ===
+[14:37:27] stages ['ad'] · device cuda · dataset cmapss:FD002
+[14:37:27] --- stage: ad ---
+[14:37:28]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[14:37:28]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.13460887968540192, 'kind_counts': {'normal': 10222, 'desync': 299, 'drift': 293, 'offset': 273, 'decouple': 266, 'spike': 258, 'organic': 201}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 11179.369
+    [pc] epoch   6  nll  294.696
+    [pc] epoch  12  nll  297.202
+    [pc] epoch  18  nll  289.240
+    [pc] epoch  24  nll  269.976
+    [pc] epoch  30  nll  272.032
+    [pc] epoch  36  nll  250.755
+    fit chain K=8: 41/50 (82%) · 1.34 it/s · elapsed 00:30 · ETA 00:06
+    [pc] epoch  42  nll  236.273
+    [pc] epoch  48  nll  236.795
+    fit chain K=8: done 50/50 in 00:37
+[14:38:06]   pc_train_nll: first=11179.3686 last=237.5799 (50 epochs)
+[14:38:06]   pc: fit 38.9s · 17,280 params · score sd 76.531 · device cuda · layered · 17,763 win/s
+[14:38:07] !!! FAILED after 40.1s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+[14:45:55] === run start · seed1 · seed 1 · hash 66cfa58bf9d8 ===
+[14:45:55] stages ['ad'] · device cuda · dataset cmapss:FD002
+[14:45:55] --- stage: ad ---
+[14:45:56]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[14:45:56]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.13460887968540192, 'kind_counts': {'normal': 10222, 'desync': 299, 'drift': 293, 'offset': 273, 'decouple': 266, 'spike': 258, 'organic': 201}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 11179.369
+    [pc] epoch   6  nll  294.696
+    [pc] epoch  12  nll  297.202
+    [pc] epoch  18  nll  289.240
+    [pc] epoch  24  nll  269.976
+    [pc] epoch  30  nll  272.032
+    [pc] epoch  36  nll  250.755
+    [pc] epoch  42  nll  236.273
+    [pc] epoch  48  nll  236.795
+[14:46:22]   pc_train_nll: first=11179.3686 last=237.5799 (50 epochs)
+[14:46:22]   pc: fit 26.5s · 17,280 params · score sd 76.531 · device cuda · layered · 26,062 win/s
+[14:46:52]   typed decomposition (mean worst-channel surprise):
+[14:46:52]        normal  n=10222  marginal    32.75  conditional    50.49  structural    22.64
+[14:46:52]      decouple  n=  266  marginal    33.74  conditional  8762.04  structural  8760.76
+[14:46:52]        desync  n=  299  marginal    32.84  conditional 14217.63  structural 14235.28
+[14:46:52]         drift  n=  293  marginal 63585.11  conditional 80999.28  structural 17526.17
+[14:46:52]        offset  n=  273  marginal 59303.02  conditional 78008.51  structural 18791.66
+[14:46:52]       organic  n=  201  marginal    88.47  conditional   107.71  structural    44.32
+[14:46:52]         spike  n=  258  marginal 13772.89  conditional 14081.44  structural   321.42
+[14:46:52] --- stage ad done in 56.6s ---
+[14:46:52] === run ok · 56.6s · peak RSS 2.242 GB ===

@@ -1,0 +1,42 @@
+==============================================================================
+ experiment: cmapss_calibration   (config/ts/cmapss_calibration.yaml)
+ Split conformal (CQR-style and PIT recalibration) applied to the circuit's own
+ output:     logs/ts/cmapss_calibration
+==============================================================================
+
+4 variant(s) × 5 seed(s) = 20 run(s)
+
+  subset-FD001_alpha-0.1                 dataset=cmapss:FD001     stages=calibration
+  subset-FD001_alpha-0.2                 dataset=cmapss:FD001     stages=calibration
+  subset-FD002_alpha-0.1                 dataset=cmapss:FD002     stages=calibration
+  subset-FD002_alpha-0.2                 dataset=cmapss:FD002     stages=calibration
+
+  [skip] subset-FD001_alpha-0.1 seed 0 (done in 2229.14s)
+  [skip] subset-FD001_alpha-0.1 seed 1 (done in 2308.49s)
+  [skip] subset-FD001_alpha-0.1 seed 2 (done in 2317.49s)
+
+>>> [4/20] subset-FD001_alpha-0.1 · seed 3 · logs/ts/cmapss_calibration/subset-FD001_alpha-0.1/seed3
+[14:26:38] === run start · seed3 · seed 3 · hash 89804b0f0ed6 ===
+[14:26:38] stages ['calibration'] · device cuda · dataset cmapss:FD001
+[14:26:38] --- stage: calibration ---
+[14:26:38]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.6s)
+[14:26:38]   task: {'kind': 'rul', 'n_train': 8194, 'n_test': 5625, 'd': 300, 'window': 20, 'n_channels': 15, 'n_bins': 25, 'cap': 125.0, 'censored_frac': 0.26348549127578735, 'train_units': 100, 'test_units': 100, 'censored_units': 34, 'n_regimes': 3, 'seed': 3, 'per_regime_norm': True, 'test_windows': 'all', 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+[14:26:38]   conformal split: 5869 fit windows / 1610 calibration windows (100 units total)
+    [surv] epoch   0  censored-NLL 12319.598
+    survival fit (censored): 1/60 (2%) · 0.03 it/s · elapsed 00:33 · ETA 32:37
+    survival fit (censored): 2/60 (3%) · 0.03 it/s · elapsed 01:06 · ETA 32:03
+    survival fit (censored): 3/60 (5%) · 0.03 it/s · elapsed 01:40 · ETA 31:52
+    survival fit (censored): 4/60 (7%) · 0.03 it/s · elapsed 02:14 · ETA 31:27
+    survival fit (censored): 5/60 (8%) · 0.03 it/s · elapsed 02:49 · ETA 30:59
+    survival fit (censored): 6/60 (10%) · 0.03 it/s · elapsed 03:23 · ETA 30:29
+    survival fit (censored): 7/60 (12%) · 0.03 it/s · elapsed 03:57 · ETA 29:58
+    [surv] epoch   7  censored-NLL  179.026
+    survival fit (censored): 8/60 (13%) · 0.03 it/s · elapsed 04:31 · ETA 29:25
+    survival fit (censored): 9/60 (15%) · 0.03 it/s · elapsed 05:05 · ETA 28:51
+    survival fit (censored): 10/60 (17%) · 0.03 it/s · elapsed 05:39 · ETA 28:18
+    survival fit (censored): 11/60 (18%) · 0.03 it/s · elapsed 06:13 · ETA 27:45
+    survival fit (censored): 12/60 (20%) · 0.03 it/s · elapsed 06:48 · ETA 27:12
+    survival fit (censored): 13/60 (22%) · 0.03 it/s · elapsed 07:22 · ETA 26:39
+    survival fit (censored): 14/60 (23%) · 0.03 it/s · elapsed 07:56 · ETA 26:06
+    [surv] epoch  14  censored-NLL  175.126
+    survival fit (censored): 15/60 (25%) · 0.03 it/s · elapsed 08:30 · ETA 25:32

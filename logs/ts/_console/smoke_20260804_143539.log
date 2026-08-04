@@ -1,0 +1,188 @@
+==============================================================================
+ experiment: smoke   (config/ts/smoke.yaml)
+ End-to-end wiring check: data -> circuit -> queries -> baselines -> conformal
+ output:     logs/ts/smoke
+==============================================================================
+
+1 variant(s) × 1 seed(s) = 1 run(s)
+
+  default                                dataset=synthetic        stages=ad,explain,rul,calibration
+
+
+>>> [1/1] default · seed 0 · logs/ts/smoke/default/seed0
+[14:35:41] === run start · seed0 · seed 0 · hash 04a3130bb048 ===
+[14:35:41] stages ['ad', 'explain', 'rul', 'calibration'] · device cuda · dataset synthetic
+[14:35:41] --- stage: ad ---
+[14:35:41]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[14:35:41]   task: {'kind': 'ad', 'n_train': 557, 'n_test': 429, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.1655011624097824, 'kind_counts': {'drift': 6, 'normal': 358, 'decouple': 10, 'offset': 7, 'organic': 36, 'spike': 7, 'desync': 5}, 'train_units': 14, 'test_units': 10, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24}
+    [pc] epoch   0  nll   64.262
+    [pc] epoch   1  nll   62.650
+    [pc] epoch   2  nll   59.989
+    [pc] epoch   3  nll   56.632
+    [pc] epoch   4  nll   53.395
+    [pc] epoch   5  nll   50.682
+[14:35:43]   pc_train_nll: first=64.2618 last=50.6824 (6 epochs)
+[14:35:43]   pc: fit 1.9s · 752 params · score sd 7.345 · device cuda · layered · 1,783 win/s
+[14:35:44]   typed decomposition (mean worst-channel surprise):
+[14:35:44]        normal  n=  358  marginal    11.68  conditional    10.65  structural     2.48
+[14:35:44]      decouple  n=   10  marginal    11.48  conditional     8.64  structural     0.72
+[14:35:44]        desync  n=    5  marginal     9.37  conditional    10.79  structural     3.73
+[14:35:44]         drift  n=    6  marginal    16.14  conditional    14.57  structural     5.01
+[14:35:44]        offset  n=    7  marginal    18.63  conditional    23.96  structural     9.95
+[14:35:44]       organic  n=   36  marginal    43.05  conditional    50.34  structural    17.69
+[14:35:44]         spike  n=    7  marginal    26.05  conditional    24.98  structural     3.22
+[14:35:44] --- stage ad done in 2.7s ---
+[14:35:44] --- stage: explain ---
+[14:35:44]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[14:35:44]   task: {'kind': 'ad', 'n_train': 557, 'n_test': 429, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.1655011624097824, 'kind_counts': {'drift': 6, 'normal': 358, 'decouple': 10, 'offset': 7, 'organic': 36, 'spike': 7, 'desync': 5}, 'train_units': 14, 'test_units': 10, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24}
+[14:35:44]   explain: capped test set to 200 windows
+    [pc] epoch   0  nll   64.262
+    [pc] epoch   1  nll   62.650
+    [pc] epoch   2  nll   59.989
+    [pc] epoch   3  nll   56.632
+    [pc] epoch   4  nll   53.395
+    [pc] epoch   5  nll   50.682
+[14:35:45]   pc_train_nll: first=64.2618 last=50.6824 (6 epochs)
+[14:35:45]   pc: fit 1.0s · 752 params · score sd 7.345 · device cuda · layered · 3,315 win/s
+[14:35:46]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 0.2s
+[14:35:46]   completeness: max residual 3.81e-06 nats, mean 9.54e-07
+[14:35:46]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[14:35:46]   worked examples (median-scoring window of each kind):
+[14:35:47]    [normal]
+[14:35:47]   anomaly score 48.0 nats
+[14:35:47]       ch0  out of range         marginal   15.37  structural   -3.78  worst at t=1
+[14:35:47]       ch6  out of range         marginal    9.91  structural   -2.32  worst at t=4
+[14:35:47]       ch2  out of range         marginal    9.00  structural   -3.65  worst at t=0
+[14:35:47]    [spike]
+[14:35:47]   anomaly score 63.9 nats   [injected: spike, channels [0]]
+[14:35:47]       ch0  out of range         marginal   13.36  structural    1.01  worst at t=1  <- CORRECT
+[14:35:47]       ch7  out of range         marginal   12.74  structural   -2.11  worst at t=1  <- miss
+[14:35:47]       ch6  out of range         marginal    6.67  structural    2.06  worst at t=4  <- miss
+[14:35:48]    [offset]
+[14:35:48]   anomaly score 89.0 nats   [injected: offset, channels [3, 6]]
+[14:35:48]       ch6  broken relationship  marginal   28.55  structural   14.32  worst at t=5  <- CORRECT
+[14:35:48]       ch3  out of range         marginal   15.99  structural   -4.04  worst at t=4  <- CORRECT
+[14:35:48]       ch7  out of range         marginal    6.64  structural    0.10  worst at t=0  <- miss
+[14:35:48]    [drift]
+[14:35:48]   anomaly score 61.7 nats   [injected: drift, channels [1, 2, 4]]
+[14:35:48]       ch4  out of range         marginal   15.67  structural   -3.24  worst at t=5  <- CORRECT
+[14:35:48]       ch1  out of range         marginal    9.21  structural    1.97  worst at t=5  <- CORRECT
+[14:35:48]       ch2  out of range         marginal    6.72  structural    1.74  worst at t=5  <- CORRECT
+[14:35:49]    [decouple]
+[14:35:49]   anomaly score 50.0 nats   [injected: decouple, channels [2, 6]]
+[14:35:49]       ch6  out of range         marginal   10.38  structural   -3.14  worst at t=3  <- CORRECT
+[14:35:49]       ch1  out of range         marginal    6.96  structural   -0.06  worst at t=4  <- miss
+[14:35:49]       ch2  out of range         marginal   11.00  structural   -4.15  worst at t=2  <- CORRECT
+[14:35:49]    [desync]
+[14:35:49]   anomaly score 47.1 nats   [injected: desync, channels [1]]
+[14:35:49]       ch0  out of range         marginal    8.44  structural   -0.45  worst at t=0  <- miss
+[14:35:49]       ch1  out of range         marginal    7.12  structural    0.58  worst at t=0  <- CORRECT
+[14:35:49]       ch2  out of range         marginal    9.53  structural   -3.93  worst at t=5  <- miss
+[14:35:49] --- stage explain done in 5.2s ---
+[14:35:49] --- stage: rul ---
+[14:35:49]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[14:35:49]   task: {'kind': 'rul', 'n_train': 719, 'n_test': 354, 'd': 48, 'window': 6, 'n_channels': 8, 'n_bins': 12, 'cap': 130.0, 'censored_frac': 0.0445062518119812, 'train_units': 14, 'test_units': 10, 'censored_units': 1, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'source': 'synthetic simulator', 'units': 24}
+    [surv] epoch   0  censored-NLL   69.964
+    [surv] epoch   1  censored-NLL   68.872
+    [surv] epoch   2  censored-NLL   67.720
+    [surv] epoch   3  censored-NLL   66.482
+    [surv] epoch   4  censored-NLL   65.647
+    [surv] epoch   5  censored-NLL   65.023
+[14:35:51]   surv_dropped_nll: first=69.9639 last=65.0232 (6 epochs)
+[14:35:51]   surv_dropped: fit 1.6s · 864 params
+    [surv] epoch   0  censored-NLL   69.724
+    [surv] epoch   1  censored-NLL   68.677
+    [surv] epoch   2  censored-NLL   67.488
+    [surv] epoch   3  censored-NLL   66.267
+    [surv] epoch   4  censored-NLL   65.360
+    [surv] epoch   5  censored-NLL   64.843
+[14:35:52]   surv_censored_nll: first=69.7239 last=64.8434 (6 epochs)
+[14:35:52]   surv_censored: fit 1.2s · 864 params
+[14:35:53]   partial evidence (3 dead): CRPS exact-marginal 20.728 vs imputed 20.911 (full 20.599)
+[14:35:53]   exact survival S(t|x), grouped by TRUE remaining life:
+[14:35:53]     RUL   0-20  n=   35  S(20)=0.876  S(40)=0.750  S(60)=0.645
+[14:35:53]     RUL  20-50  n=   53  S(20)=0.886  S(40)=0.769  S(60)=0.667
+[14:35:53]     RUL  50-90  n=   70  S(20)=0.905  S(40)=0.803  S(60)=0.709
+[14:35:53]     RUL  90-131 n=  196  S(20)=0.913  S(40)=0.818  S(60)=0.728
+[14:35:53] --- stage rul done in 3.7s ---
+[14:35:53] --- stage: calibration ---
+[14:35:53]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[14:35:53]   task: {'kind': 'rul', 'n_train': 719, 'n_test': 354, 'd': 48, 'window': 6, 'n_channels': 8, 'n_bins': 12, 'cap': 130.0, 'censored_frac': 0.0445062518119812, 'train_units': 14, 'test_units': 10, 'censored_units': 1, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'source': 'synthetic simulator', 'units': 24}
+[14:35:53]   conformal split: 463 fit windows / 256 calibration windows (14 units total)
+    [surv] epoch   0  censored-NLL   68.468
+    [surv] epoch   1  censored-NLL   67.791
+    [surv] epoch   2  censored-NLL   67.049
+    [surv] epoch   3  censored-NLL   66.216
+    [surv] epoch   4  censored-NLL   65.339
+    [surv] epoch   5  censored-NLL   64.639
+[14:35:54]   surv_conformal_nll: first=68.4679 last=64.6392 (6 epochs)
+[14:35:54]   surv_conformal: fit 0.8s · 864 params
+[14:35:54]   conformal[cqr]: PICP 0.997 (nominal 0.90), MPIW 121.1 (raw PICP 0.579, MPIW 110.2)
+[14:35:54]   conformal[pit]: PICP 0.585 (nominal 0.90), MPIW 111.9 (raw PICP 0.579, MPIW 110.2)
+[14:35:54] --- stage calibration done in 1.5s ---
+[14:35:54] === run ok · 13.1s · peak RSS 1.86 GB ===
+
+==============================================================================
+ batch finished in 0.2 min — 1 ok, 0 skipped, 0 failed
+==============================================================================
+
+=== ad (mean ± sd over seeds) ===
+
+method                                                   auroc                 ap          train_nll              fit_s             params    auroc[decouple]      auroc[desync]       auroc[drift]  seeds
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1-NN distance                                    0.9134±0.0000      0.8321±0.0000                  —      0.0384±0.0180                  —      0.5723±0.0000      0.7743±0.0000      0.9544±0.0000      1
+Mahalanobis                                      0.8952±0.0000      0.7815±0.0000                  —      0.0093±0.0029                  —      0.4913±0.0000      0.8123±0.0000      0.9902±0.0000      1
+PCA reconstruction                               0.8850±0.0000      0.7797±0.0000                  —      0.6984±0.3619                  —      0.5232±0.0000      0.6698±0.0000      0.8822±0.0000      1
+RegionGraphPC [chain, K=4]                       0.8771±0.0009      0.7890±0.0007     48.8444±0.0352      1.4077±0.8228    752.0000±0.0000      0.5128±0.0047      0.5602±0.0022      0.8039±0.0004      1
+z-score (per channel)                            0.8659±0.0000      0.7595±0.0000                  —      0.0043±0.0006                  —      0.5575±0.0000      0.4751±0.0000      0.9213±0.0000      1
+z-score (per channel) · 3 dead (imputed)         0.8565±0.0000      0.7318±0.0000                  —                  —                  —      0.6675±0.0000      0.5232±0.0000      0.7016±0.0000      1
+diagonal Gaussian                                0.8533±0.0000      0.7253±0.0000                  —      0.0038±0.0019                  —      0.6405±0.0000      0.4011±0.0000      0.7025±0.0000      1
+PC · 3 dead (mean-imputed)                       0.8417±0.0014      0.7384±0.0004                  —                  —                  —      0.5439±0.0090      0.4289±0.0015      0.6357±0.0022      1
+PC · 3 dead (exact marginal)                     0.8338±0.0016      0.7369±0.0001                  —                  —                  —      0.5075±0.0102      0.4204±0.0008      0.6181±0.0021      1
+diagonal Gaussian · 3 dead (imputed)             0.8226±0.0000      0.7061±0.0000                  —                  —                  —      0.6232±0.0000      0.3665±0.0000      0.5368±0.0000      1
+PC · structural-only score                       0.7927±0.0000      0.6078±0.0040                  —                  —                  —      0.3648±0.0019      0.6215±0.0029      0.6480±0.0028      1
+moving-average residual                          0.7497±0.0000      0.4818±0.0000                  —      0.0127±0.0039                  —      0.5145±0.0000      0.5665±0.0000      0.9744±0.0000      1
+moving-average residual · 3 dead (imputed)       0.7495±0.0000      0.4708±0.0000                  —                  —                  —      0.5388±0.0000      0.5659±0.0000      0.7477±0.0000      1
+
+=== calibration (mean ± sd over seeds) ===
+
+method                                            picp               mpiw     interval_score               crps               rmse                mae          calib_err diag_frac_clipped_hi  seeds
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SurvivalPC + split conformal (cqr)       0.9508±0.1465    119.7910±4.0258    125.2171±12.9841     22.3701±0.0116     42.8669±0.0057     37.7553±0.0163                  —      0.0000±0.0000      1
+quantile reg. + conformal (CQR)          0.9062±0.0029    145.8519±0.6850    185.6478±0.3445                  —     39.9500±0.2480                  —                  —                  —      1
+SurvivalPC + split conformal (pit)       0.5847±0.0000    112.6116±2.3032    154.2077±2.3032     22.3701±0.0116     42.8669±0.0057     37.7553±0.0163                  —      0.0000±0.0000      1
+SurvivalPC (raw exact predictive)        0.5746±0.0143    110.0410±0.6000    153.2933±3.1191     22.3701±0.0116     42.8669±0.0057     37.7553±0.0163      0.1013±0.0013                  —      1
+
+=== explain (mean ± sd over seeds) ===
+
+method                                    loc_auroc          prec_at_k       deletion_auc  max_residual_nats mean_residual_nats loc_auroc[decouple]  loc_auroc[desync]   loc_auroc[drift]  seeds
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+PC conditional (exact)                0.8470±0.0022      0.6733±0.0211      0.2263±0.0137                  —                  —      0.6883±0.0036      0.8714±0.0452      0.9412±0.0000      1
+PC Shapley (exact conditionals)       0.8303±0.0054      0.6300±0.0105      0.2137±0.0078                  —                  —      0.7114±0.0063      0.8571±0.0000      0.8840±0.0053      1
+z-score (per channel)                 0.8194±0.0000      0.6111±0.0000      0.2100±0.0028                  —                  —      0.8120±0.0000      0.0000±0.0000      0.8151±0.0000      1
+PC marginal (exact)                   0.7968±0.0038      0.6044±0.0211      0.2550±0.0195                  —                  —      0.7236±0.0000      0.2857±0.0000      0.8008±0.0080      1
+Gaussian conditional (exact)          0.7474±0.0000      0.5778±0.0000      0.3945±0.0137                  —                  —      0.7179±0.0000      1.0000±0.0000      0.7647±0.0000      1
+AE reconstruction (per channel)       0.7387±0.0000      0.5067±0.0344      0.3313±0.0189                  —                  —      0.5573±0.0059      0.8571±0.0000      0.8286±0.0043      1
+PC structural (exact)                 0.5649±0.0022      0.3444±0.0000      0.3872±0.0142                  —                  —      0.3715±0.0054      1.0000±0.0000      0.7109±0.0106      1
+AE sampling-SHAP (4/ch)               0.5164±0.0040      0.2244±0.0172      0.5713±0.0392                  —                  —      0.4382±0.0029      0.5714±0.0000      0.5916±0.0043      1
+PC chain-rule completeness                        —                  —                  —   3.815e-06±0e+00    1.025e-06±2e-07                   —                  —                  —      1
+
+=== rul (mean ± sd over seeds) ===
+
+method                                          rmse                mae               nasa               crps     interval_score               picp               mpiw          calib_err  seeds
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+SurvivalPC (exact censored lik.)      40.5524±0.1915     36.0480±0.1095  79400.7756±5857.3428     20.6411±0.1320    154.6239±0.0581      0.5847±0.0000    113.0278±0.0581      0.1048±0.0001      1
+SurvivalPC (drop censored)            40.7616±0.1440     36.4353±0.1179  67147.4586±2520.7137     20.6455±0.1119    155.8418±0.0774      0.5847±0.0000    114.2458±0.0774      0.1017±0.0020      1
+MLP regressor                         33.9060±0.0808     27.4656±0.0634   1.709e+05±2e+04                   —                  —                  —                  —                  —      1
+PC · 3 dead sensors                                —                  —                  —                  —                  —                  —                  —                  —      1
+quantile reg. + conformal (CQR)       37.3604±0.0259     29.7006±0.0341   2.856e+05±3e+03                   —    174.2659±0.2521      0.9237±0.0000    141.9969±0.5686                  —      1
+ridge regression                      25.0151±0.0000     20.5571±0.0000   6980.4418±0.0000                  —                  —                  —                  —                  —      1
+
+=== rul_partial (mean ± sd over seeds) ===
+
+method                                crps_full crps_exact_marginal       crps_imputed          rmse_full rmse_exact_marginal       rmse_imputed picp_exact_marginal       picp_imputed  seeds
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+PC · 3 dead sensors              20.5993±0.0000     20.7284±0.0000     20.9105±0.0000     40.4918±0.0000     40.7058±0.0000     40.9235±0.0000      0.5847±0.0000      0.5847±0.0000      1
+
+wrote logs/ts/smoke/summary.csv, summary.json, summary.md
+
