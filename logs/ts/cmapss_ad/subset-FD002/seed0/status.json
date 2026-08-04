@@ -1,0 +1,11 @@
+{
+  "status": "failed",
+  "seed": 0,
+  "config_hash": "5c137cf15b7d",
+  "updated": "2026-08-04T09:27:09",
+  "wall_s": 1799.54,
+  "peak_rss_gb": 1.729,
+  "peak_gpu_gb": 0.223,
+  "error": "DegenerateModelError: degenerate density: -log p(x) has sd nan over 512 inputs, i.e. the score barely depends on x. Check weight_jitter (must be > 0), leaf jitter and the vtree before trusting any number from this model.",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/runner.py\", line 161, in main\n    run_stages(v, seed, log)\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 688, in run_stages\n    results[stage] = STAGE_FNS[stage](cfg, seed, log)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 162, in stage_ad\n    pc = _fit_window_pc(cfg, task, seed, log)\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 125, in _fit_window_pc\n    sd = pc.assert_informative(task.X_train)         # loud, not silent (\u00a73)\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/circuits.py\", line 336, in assert_informative\n    raise DegenerateModelError(\npoc.time_series.circuits.DegenerateModelError: degenerate density: -log p(x) has sd nan over 512 inputs, i.e. the score barely depends on x. Check weight_jitter (must be > 0), leaf jitter and the vtree before trusting any number from this model.\n"
+}

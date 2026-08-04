@@ -1,0 +1,11 @@
+{
+  "status": "failed",
+  "seed": 1,
+  "config_hash": "5c137cf15b7d",
+  "updated": "2026-08-04T09:42:59",
+  "wall_s": 949.98,
+  "peak_rss_gb": 1.729,
+  "peak_gpu_gb": 0.085,
+  "error": "KeyboardInterrupt: ",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/runner.py\", line 161, in main\n    run_stages(v, seed, log)\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 688, in run_stages\n    results[stage] = STAGE_FNS[stage](cfg, seed, log)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 162, in stage_ad\n    pc = _fit_window_pc(cfg, task, seed, log)\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 121, in _fit_window_pc\n    pc.fit(task.X_train, epochs=int(m[\"epochs\"]), lr=float(m[\"lr\"]),\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/circuits.py\", line 311, in fit\n    opt.zero_grad(); loss.backward()\n                     ^^^^^^^^^^^^^^^\n  File \"/home/jawa17/miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/_tensor.py\", line 630, in backward\n    torch.autograd.backward(\n  File \"/home/jawa17/miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/autograd/__init__.py\", line 364, in backward\n    _engine_run_backward(\n  File \"/home/jawa17/miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/autograd/graph.py\", line 865, in _engine_run_backward\n    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyboardInterrupt\n"
+}

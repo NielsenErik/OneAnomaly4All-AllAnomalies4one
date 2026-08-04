@@ -5,6 +5,7 @@
     0
   ],
   "device": "auto",
+  "evaluator": "layered",
   "log_root": "logs/ts/smoke",
   "stages": [
     "ad",
