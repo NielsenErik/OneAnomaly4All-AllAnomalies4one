@@ -184,3 +184,28 @@ def test_image_baseline_rejects_tabular_dataset():
     with pytest.raises(ValueError, match="raw images"):
         evaluate_baselines(ds, names=["winclip"],
                            baseline_kwargs={"winclip": {"backend": FakeClipBackend()}})
+
+
+# ── device handling ─────────────────────────────────────────────────────────
+
+def test_every_baseline_accepts_the_configs_device_string():
+    """
+    Configs carry `device: auto`, and that string reaches the baselines
+    verbatim.  `torch.device("auto")` is a RuntimeError, and because the
+    baselines run AFTER the circuit fit it surfaced only once a 50-epoch fit on
+    real C-MAPSS had already completed — a crash that costs a run every time.
+    Every baseline must therefore accept auto/None/explicit alike.
+    """
+    import torch
+
+    from poc.time_series.baselines import detection_baselines, rul_baselines
+
+    X = torch.randn(48, 6 * 5)
+    y = torch.rand(48) * 100.0
+    for dev in ("auto", "cpu", None):
+        for b in detection_baselines(6, 5, seed=0, include_slow=True, device=dev):
+            s = b.fit(X).score(X)
+            assert s.shape[0] == 48, (b.name, s.shape)
+        for b in rul_baselines(seed=0, device=dev):
+            pred = b.fit(X, y).predict(X)
+            assert pred["mean"].shape[0] == 48, b.name

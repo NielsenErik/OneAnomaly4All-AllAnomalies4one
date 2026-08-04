@@ -193,7 +193,10 @@ class SklearnWrapper:
 
     def __init__(self, key: str, name: str, seed: int = 0, device=None, **kw):
         if key in self._TORCH_KEYS:
-            kw["device"] = device
+            # RESOLVE here: src/baselines.py must never receive "auto".  It has
+            # no business knowing what this project's device policy is, and
+            # torch.device("auto") is a hard RuntimeError deep inside a fit.
+            kw["device"] = _bdev(device)
         self.inner = make_baseline(key, seed=seed, **kw)
         self.name = name
 

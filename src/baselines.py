@@ -273,6 +273,29 @@ def _skewness(X: np.ndarray) -> np.ndarray:
 
 # ─── Deep baselines (torch) ─────────────────────────────────────────────────
 
+def _resolve_device(device) -> torch.device:
+    """
+    Accept None, a torch.device, or a device string — including "auto".
+
+    Callers resolve "auto" themselves, but this class is reachable from several
+    entry points and `torch.device("auto")` raises a RuntimeError halfway
+    through a fit, after minutes of work.  Be forgiving at the boundary.
+    """
+    if device is None:
+        return torch.device("cpu")
+    if isinstance(device, torch.device):
+        return device
+    if str(device) == "auto":
+        if torch.cuda.is_available():
+            return torch.device("cuda")
+        mps = getattr(torch.backends, "mps", None)
+        if mps is not None and mps.is_available():
+            return torch.device("mps")
+        return torch.device("cpu")
+    return torch.device(device)
+
+
+
 class AutoencoderBaseline(Baseline):
     """Hawkins et al. 2002 / Sakurada & Yairi 2014: MLP autoencoder trained
     on normals; anomaly score = reconstruction MSE."""
@@ -284,7 +307,7 @@ class AutoencoderBaseline(Baseline):
                  device=None):
         self.hidden, self.bottleneck = hidden, bottleneck
         self.epochs, self.lr, self.seed = epochs, lr, seed
-        self.device = torch.device(device) if device else torch.device("cpu")
+        self.device = _resolve_device(device)
 
     def fit(self, X) -> "Baseline":
         torch.manual_seed(self.seed)
@@ -323,7 +346,7 @@ class DeepSVDD(Baseline):
                  device=None):
         self.hidden, self.rep_dim = hidden, rep_dim
         self.epochs, self.lr, self.seed = epochs, lr, seed
-        self.device = torch.device(device) if device else torch.device("cpu")
+        self.device = _resolve_device(device)
 
     def fit(self, X) -> "Baseline":
         torch.manual_seed(self.seed)
