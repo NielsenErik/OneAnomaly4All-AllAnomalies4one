@@ -1,8 +1,9 @@
 {
   "seed": 3,
-  "config_hash": "bd51ab870014",
+  "config_hash": "e0065d8ae969",
   "name": "synthetic_ad",
   "device": "auto",
+  "evaluator": "layered",
   "stages": [
     "ad"
   ],
@@ -77,6 +78,8 @@
       "desync"
     ],
     "alpha": 0.1,
+    "alphas": [],
+    "test_protocols": [],
     "censoring_ablation": true,
     "conformal": true,
     "conformal_modes": [

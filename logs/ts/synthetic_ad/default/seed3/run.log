@@ -23,3 +23,28 @@
 [17:10:09]         spike  n=   33  marginal    46.34  conditional    63.31  structural    25.61
 [17:10:09] --- stage ad done in 147.0s ---
 [17:10:09] === run ok · 147.0s · peak RSS 1.499 GB ===
+[15:53:21] === run start · seed3 · seed 3 · hash e0065d8ae969 ===
+[15:53:21] stages ['ad'] · device cuda · dataset synthetic
+[15:53:21] --- stage: ad ---
+[15:53:21]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:21]   task: {'kind': 'ad', 'n_train': 2015, 'n_test': 1445, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.24013841152191162, 'kind_counts': {'normal': 1098, 'drift': 33, 'offset': 39, 'decouple': 26, 'organic': 192, 'desync': 24, 'spike': 33}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 3, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  169.468
+    [pc] epoch   5  nll   31.053
+    [pc] epoch  10  nll   16.650
+    [pc] epoch  15  nll   14.624
+    [pc] epoch  20  nll   14.102
+    [pc] epoch  25  nll   13.717
+    [pc] epoch  30  nll   13.646
+    [pc] epoch  35  nll   13.596
+[15:53:22]   pc_train_nll: first=169.4682 last=13.6285 (40 epochs)
+[15:53:22]   pc: fit 1.1s · 2,964 params · score sd 14.757 · device cuda · layered · 73,526 win/s
+[15:53:23]   typed decomposition (mean worst-channel surprise):
+[15:53:23]        normal  n= 1098  marginal    11.87  conditional    10.60  structural     1.62
+[15:53:23]      decouple  n=   26  marginal    11.81  conditional    21.95  structural    13.38
+[15:53:23]        desync  n=   24  marginal    10.84  conditional   103.38  structural    98.67
+[15:53:23]         drift  n=   33  marginal    57.89  conditional    68.53  structural    39.06
+[15:53:23]        offset  n=   39  marginal    66.60  conditional   114.49  structural    74.56
+[15:53:23]       organic  n=  192  marginal    62.17  conditional    78.88  structural    54.77
+[15:53:23]         spike  n=   33  marginal    46.34  conditional    63.31  structural    25.61
+[15:53:23] --- stage ad done in 2.1s ---
+[15:53:23] === run ok · 2.1s · peak RSS 1.745 GB ===

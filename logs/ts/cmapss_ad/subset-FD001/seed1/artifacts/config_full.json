@@ -83,6 +83,8 @@
       "desync"
     ],
     "alpha": 0.1,
+    "alphas": [],
+    "test_protocols": [],
     "censoring_ablation": true,
     "conformal": true,
     "conformal_modes": [

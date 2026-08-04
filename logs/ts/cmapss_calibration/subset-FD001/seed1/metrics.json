@@ -1,0 +1,112 @@
+{
+  "task_rul": {
+    "kind": "rul",
+    "n_train": 8295,
+    "n_test": 5625,
+    "d": 300,
+    "window": 20,
+    "n_channels": 15,
+    "n_bins": 25,
+    "cap": 125.0,
+    "censored_frac": 0.2788426876068115,
+    "train_units": 100,
+    "test_units": 100,
+    "censored_units": 38,
+    "n_regimes": 3,
+    "seed": 1,
+    "per_regime_norm": true,
+    "test_windows": "all",
+    "official_test_fleet": true,
+    "dataset": "cmapss:FD001",
+    "subset": "FD001",
+    "dropped_constant_sensors": 6,
+    "source": "NASA C-MAPSS (real)"
+  },
+  "calibration": {
+    "raw@0.1": {
+      "rmse": 19.266173507931505,
+      "mae": 14.795143757968479,
+      "nasa": 100256.88638045563,
+      "crps": 8.120041921959768,
+      "picp": 0.37493333333333334,
+      "mpiw": 50.15911111111111,
+      "interval_score": 88.82577777777777,
+      "calib_err": 0.1998933333333333,
+      "pred_sd": 20.31723976135254
+    },
+    "cqr@0.1": {
+      "rmse": 19.266173507931505,
+      "mae": 14.795143757968479,
+      "crps": 8.12004191909152,
+      "picp": 0.9532444444444444,
+      "mpiw": 55.15911111111111,
+      "interval_score": 63.315555555555555,
+      "diag_q_hat": 2.5,
+      "diag_raw_cal_coverage": 0.5859499733901011,
+      "diag_n_cal": 1879,
+      "diag_frac_clipped_lo": 0.0,
+      "diag_frac_clipped_hi": 0.0,
+      "diag_frac_full_range": 0.0
+    },
+    "pit@0.1": {
+      "rmse": 19.266173507931505,
+      "mae": 14.795143757968479,
+      "crps": 8.12004191909152,
+      "picp": 0.3831111111111111,
+      "mpiw": 54.37422222222222,
+      "interval_score": 90.96444444444444,
+      "diag_pit_mean": 0.5527955525714723,
+      "diag_pit_sd": 0.37232779465055393,
+      "diag_lo_level": 0.04541589368141786,
+      "diag_hi_level": 1.0,
+      "diag_n_cal": 1879,
+      "diag_frac_clipped_lo": 0.0,
+      "diag_frac_clipped_hi": 0.0,
+      "diag_frac_full_range": 0.0
+    },
+    "raw@0.2": {
+      "rmse": 19.266173507931505,
+      "mae": 14.795143757968479,
+      "nasa": 100256.88638045563,
+      "crps": 8.120041921959768,
+      "picp": 0.37493333333333334,
+      "mpiw": 50.15911111111111,
+      "interval_score": 69.49244444444444,
+      "calib_err": 0.1998933333333333,
+      "pred_sd": 20.31723976135254
+    },
+    "cqr@0.2": {
+      "rmse": 19.266173507931505,
+      "mae": 14.795143757968479,
+      "crps": 8.12004191909152,
+      "picp": 0.9532444444444444,
+      "mpiw": 55.15911111111111,
+      "interval_score": 59.23733333333333,
+      "diag_q_hat": 2.5,
+      "diag_raw_cal_coverage": 0.5859499733901011,
+      "diag_n_cal": 1879,
+      "diag_frac_clipped_lo": 0.0,
+      "diag_frac_clipped_hi": 0.0,
+      "diag_frac_full_range": 0.0
+    },
+    "pit@0.2": {
+      "rmse": 19.266173507931505,
+      "mae": 14.795143757968479,
+      "crps": 8.12004191909152,
+      "picp": 0.34026666666666666,
+      "mpiw": 45.08444444444444,
+      "interval_score": 70.06666666666666,
+      "diag_pit_mean": 0.5527955525714723,
+      "diag_pit_sd": 0.37232779465055393,
+      "diag_lo_level": 0.0860782435860483,
+      "diag_hi_level": 1.0,
+      "diag_n_cal": 1879,
+      "diag_frac_clipped_lo": 0.0,
+      "diag_frac_clipped_hi": 0.0,
+      "diag_frac_full_range": 0.0
+    }
+  },
+  "_timing": {
+    "calibration": 76.3
+  }
+}

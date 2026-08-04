@@ -1,6 +1,6 @@
 {
   "seed": 0,
-  "config_hash": "04a3130bb048",
+  "config_hash": "5558b5b0aeb3",
   "name": "smoke",
   "device": "auto",
   "evaluator": "layered",
@@ -81,6 +81,8 @@
       "desync"
     ],
     "alpha": 0.1,
+    "alphas": [],
+    "test_protocols": [],
     "censoring_ablation": true,
     "conformal": true,
     "conformal_modes": [

@@ -1,0 +1,99 @@
+{
+  "task_ad": {
+    "kind": "ad",
+    "n_train": 2016,
+    "n_test": 1625,
+    "d": 112,
+    "window": 8,
+    "n_channels": 14,
+    "anomaly_rate": 0.21415384113788605,
+    "kind_counts": {
+      "normal": 1277,
+      "offset": 42,
+      "decouple": 38,
+      "drift": 29,
+      "spike": 35,
+      "desync": 30,
+      "organic": 174
+    },
+    "train_units": 36,
+    "test_units": 24,
+    "n_regimes": 3,
+    "seed": 0,
+    "dataset": "synthetic",
+    "cap": 130.0,
+    "source": "synthetic simulator",
+    "units": 60
+  },
+  "explain": {
+    "per_kind": {
+      "PC conditional (exact)": {
+        "spike": 0.9877539912917271,
+        "offset": 0.9908707696013489,
+        "drift": 0.9651700680272108,
+        "decouple": 0.604671584123639,
+        "desync": 0.7624309392265194
+      },
+      "PC marginal (exact)": {
+        "spike": 0.9957819303338171,
+        "offset": 0.9312537636998676,
+        "drift": 0.9714285714285714,
+        "decouple": 0.5991394450298559,
+        "desync": 0.4707433450527373
+      },
+      "PC structural (exact)": {
+        "spike": 0.7853320029027576,
+        "offset": 0.9076478381307961,
+        "drift": 0.8151992225461613,
+        "decouple": 0.5677906568317527,
+        "desync": 0.8381466599698644
+      },
+      "PC Shapley (exact conditionals)": {
+        "spike": 0.9926977503628447,
+        "offset": 0.983692641214019,
+        "drift": 0.9564237123420797,
+        "decouple": 0.5960660344221989,
+        "desync": 0.7295328980411854
+      },
+      "Gaussian conditional (exact)": {
+        "spike": 0.9795899854862119,
+        "offset": 0.8544863302420812,
+        "drift": 0.6836151603498543,
+        "decouple": 0.7666842290129962,
+        "desync": 0.6602837769964842
+      },
+      "AE reconstruction (per channel)": {
+        "spike": 1.0,
+        "offset": 0.8877273274719981,
+        "drift": 0.9014965986394557,
+        "decouple": 0.6557341060765718,
+        "desync": 0.722626820693119
+      },
+      "AE sampling-SHAP (32/ch)": {
+        "spike": 0.6284016690856313,
+        "offset": 0.4928339154522462,
+        "drift": 0.5500097181729835,
+        "decouple": 0.47062697576396206,
+        "desync": 0.5122425916624812
+      },
+      "z-score (per channel)": {
+        "spike": 0.9989568214804064,
+        "offset": 0.8398410213175961,
+        "drift": 0.894421768707483,
+        "decouple": 0.5083860203723217,
+        "desync": 0.44337016574585636
+      }
+    },
+    "completeness": {
+      "max_residual_nats": 3.0517578125e-05,
+      "mean_residual_nats": 1.4454126358032227e-06
+    },
+    "cost_s": {
+      "pc_exact": 0.20519685745239258,
+      "sampling_shap": 0.3356971740722656
+    }
+  },
+  "_timing": {
+    "explain": 5.44
+  }
+}

@@ -9,6 +9,7 @@
     4
   ],
   "device": "auto",
+  "evaluator": "layered",
   "log_root": "logs/ts/synthetic_ad",
   "stages": [
     "ad"
@@ -84,6 +85,8 @@
       "desync"
     ],
     "alpha": 0.1,
+    "alphas": [],
+    "test_protocols": [],
     "censoring_ablation": true,
     "conformal": true,
     "conformal_modes": [

@@ -1,0 +1,94 @@
+{
+  "task_ad": {
+    "kind": "ad",
+    "n_train": 2016,
+    "n_test": 1625,
+    "d": 112,
+    "window": 8,
+    "n_channels": 14,
+    "anomaly_rate": 0.21415384113788605,
+    "kind_counts": {
+      "normal": 1277,
+      "offset": 42,
+      "decouple": 38,
+      "drift": 29,
+      "spike": 35,
+      "desync": 30,
+      "organic": 174
+    },
+    "train_units": 36,
+    "test_units": 24,
+    "n_regimes": 3,
+    "seed": 0,
+    "dataset": "synthetic",
+    "cap": 130.0,
+    "source": "synthetic simulator",
+    "units": 60
+  },
+  "ad": {
+    "circuit": {
+      "auroc": 0.935118677935895,
+      "ap": 0.9130542977086263,
+      "auroc[decouple]": 0.6085603593949636,
+      "auroc[desync]": 0.7926912033411642,
+      "auroc[drift]": 0.9939243377528151,
+      "auroc[offset]": 0.9966625647909908,
+      "auroc[organic]": 1.0,
+      "auroc[spike]": 0.9666181899541336
+    },
+    "missing": {
+      "dead_channels": [
+        0,
+        3,
+        6
+      ]
+    },
+    "typed": {
+      "normal": {
+        "marginal": 12.353732109069824,
+        "conditional": 13.2850341796875,
+        "structural": 3.8176379203796387,
+        "n": 1277
+      },
+      "decouple": {
+        "marginal": 12.084844589233398,
+        "conditional": 35.64329147338867,
+        "structural": 27.006616592407227,
+        "n": 38
+      },
+      "desync": {
+        "marginal": 12.484554290771484,
+        "conditional": 128.53709411621094,
+        "structural": 122.8795166015625,
+        "n": 30
+      },
+      "drift": {
+        "marginal": 105.62279510498047,
+        "conditional": 182.89138793945312,
+        "structural": 112.67053985595703,
+        "n": 29
+      },
+      "offset": {
+        "marginal": 85.63774871826172,
+        "conditional": 174.56077575683594,
+        "structural": 103.62688446044922,
+        "n": 42
+      },
+      "organic": {
+        "marginal": 74.43933868408203,
+        "conditional": 101.91523742675781,
+        "structural": 73.8384780883789,
+        "n": 174
+      },
+      "spike": {
+        "marginal": 85.23583984375,
+        "conditional": 153.15206909179688,
+        "structural": 75.5062026977539,
+        "n": 35
+      }
+    }
+  },
+  "_timing": {
+    "ad": 3.36
+  }
+}

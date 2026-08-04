@@ -1,0 +1,52 @@
+[15:54:12] === run start · seed4 · seed 4 · hash 8da603c59cdc ===
+[15:54:12] stages ['explain'] · device cuda · dataset synthetic
+[15:54:12] --- stage: explain ---
+[15:54:13]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:54:13]   task: {'kind': 'ad', 'n_train': 1885, 'n_test': 1614, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.21933086216449738, 'kind_counts': {'normal': 1260, 'decouple': 42, 'spike': 43, 'desync': 38, 'offset': 32, 'drift': 28, 'organic': 171}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 4, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+[15:54:13]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll  166.000
+    [pc] epoch   5  nll   48.424
+    [pc] epoch  10  nll   32.792
+    [pc] epoch  15  nll   30.564
+    [pc] epoch  20  nll   29.866
+    [pc] epoch  25  nll   29.667
+    [pc] epoch  30  nll   29.468
+    [pc] epoch  35  nll   29.447
+[15:54:14]   pc_train_nll: first=165.9998 last=29.3927 (40 epochs)
+[15:54:14]   pc: fit 1.0s · 2,964 params · score sd 17.675 · device cuda · layered · 73,598 win/s
+[15:54:15]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 1.3s
+[15:54:16]   completeness: max residual 3.05e-05 nats, mean 1.43e-06
+[15:54:16]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[15:54:16]   worked examples (median-scoring window of each kind):
+[15:54:16]    [normal]
+[15:54:16]   anomaly score 27.2 nats
+[15:54:16]      ch13  broken relationship  marginal    1.03  structural   11.50  worst at t=3
+[15:54:16]       ch1  out of range         marginal    7.64  structural   -0.48  worst at t=7
+[15:54:16]       ch7  out of range         marginal    7.08  structural   -0.27  worst at t=6
+[15:54:16]    [spike]
+[15:54:16]   anomaly score 139.1 nats   [injected: spike, channels [5]]
+[15:54:16]       ch5  broken relationship  marginal   12.35  structural   86.79  worst at t=0  <- CORRECT
+[15:54:16]      ch10  broken relationship  marginal    3.92  structural   50.81  worst at t=0  <- miss
+[15:54:16]      ch11  broken relationship  marginal   -0.90  structural   31.60  worst at t=0  <- miss
+[15:54:17]    [offset]
+[15:54:17]   anomaly score 285.5 nats   [injected: offset, channels [0, 8, 9]]
+[15:54:17]       ch8  out of range         marginal  115.27  structural   19.37  worst at t=5  <- CORRECT
+[15:54:17]       ch0  out of range         marginal   62.15  structural   13.31  worst at t=3  <- CORRECT
+[15:54:17]       ch9  broken relationship  marginal   12.13  structural   34.46  worst at t=4  <- CORRECT
+[15:54:17]    [drift]
+[15:54:17]   anomaly score 292.7 nats   [injected: drift, channels [5, 12]]
+[15:54:17]       ch5  broken relationship  marginal   22.18  structural  189.05  worst at t=6  <- CORRECT
+[15:54:17]      ch12  broken relationship  marginal   43.71  structural   37.00  worst at t=6  <- CORRECT
+[15:54:17]       ch1  broken relationship  marginal   10.54  structural    8.29  worst at t=1  <- miss
+[15:54:18]    [decouple]
+[15:54:18]   anomaly score 43.7 nats   [injected: decouple, channels [4, 8]]
+[15:54:18]       ch1  out of range         marginal    9.78  structural    0.44  worst at t=4  <- miss
+[15:54:18]      ch13  out of range         marginal   10.05  structural   -1.31  worst at t=2  <- miss
+[15:54:18]       ch0  out of range         marginal    8.48  structural   -1.42  worst at t=2  <- miss
+[15:54:18]    [desync]
+[15:54:18]   anomaly score 82.9 nats   [injected: desync, channels [7, 10]]
+[15:54:18]      ch10  broken relationship  marginal    2.37  structural   51.95  worst at t=2  <- CORRECT
+[15:54:18]       ch7  broken relationship  marginal    4.96  structural    8.54  worst at t=0  <- CORRECT
+[15:54:18]       ch1  out of range         marginal    7.75  structural    3.76  worst at t=5  <- miss
+[15:54:18] --- stage explain done in 5.5s ---
+[15:54:18] === run ok · 5.6s · peak RSS 1.698 GB ===

@@ -1,0 +1,429 @@
+==============================================================================
+ experiment: cmapss_ad   (config/ts/cmapss_ad.yaml)
+ Detection on real NASA C-MAPSS, FD001-FD004: circuit vs the full baseline
+ output:     logs/ts/cmapss_ad
+==============================================================================
+
+4 variant(s) × 3 seed(s) = 12 run(s)
+
+  subset-FD001                           dataset=cmapss:FD001     stages=ad
+  subset-FD002                           dataset=cmapss:FD002     stages=ad
+  subset-FD003                           dataset=cmapss:FD003     stages=ad
+  subset-FD004                           dataset=cmapss:FD004     stages=ad
+
+
+>>> [1/12] subset-FD001 · seed 0 · logs/ts/cmapss_ad/subset-FD001/seed0
+[15:08:15] === run start · seed0 · seed 0 · hash 3ce52bcb133b ===
+[15:08:15] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:08:15] --- stage: ad ---
+[15:08:16]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.8s)
+[15:08:16]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 11892.794
+    [pc] epoch   6  nll  144.622
+    [pc] epoch  12  nll  139.282
+    [pc] epoch  18  nll  138.702
+    [pc] epoch  24  nll  138.323
+    [pc] epoch  30  nll  137.957
+    [pc] epoch  36  nll  137.987
+    [pc] epoch  42  nll  137.780
+    [pc] epoch  48  nll  137.660
+[15:08:29]   pc_train_nll: first=11892.7944 last=137.6767 (50 epochs)
+[15:08:29]   pc: fit 13.2s · 15,360 params · score sd 20.963 · device cuda · layered · 20,113 win/s
+[15:08:36]   typed decomposition (mean worst-channel surprise):
+[15:08:36]        normal  n= 4001  marginal    23.55  conditional    23.36  structural     5.76
+[15:08:36]      decouple  n=  105  marginal    24.07  conditional    23.79  structural     5.32
+[15:08:36]        desync  n=  111  marginal    23.37  conditional    35.58  structural    21.89
+[15:08:36]         drift  n=  102  marginal   625.38  conditional   706.15  structural   105.38
+[15:08:36]        offset  n=  113  marginal   374.02  conditional   440.26  structural    89.05
+[15:08:36]       organic  n=   46  marginal   112.72  conditional   157.36  structural    79.87
+[15:08:36]         spike  n=  130  marginal    54.49  conditional    64.01  structural    15.11
+[15:08:36] --- stage ad done in 21.0s ---
+[15:08:36] === run ok · 21.1s · peak RSS 1.838 GB ===
+
+>>> [2/12] subset-FD001 · seed 1 · logs/ts/cmapss_ad/subset-FD001/seed1 · mean 0.4 min/run · ETA 4 min for the remaining 11
+[15:08:36] === run start · seed1 · seed 1 · hash 3ce52bcb133b ===
+[15:08:36] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:08:36] --- stage: ad ---
+[15:08:36]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.2s)
+[15:08:36]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 42789.982
+    [pc] epoch   6  nll  173.132
+    [pc] epoch  12  nll  161.796
+    [pc] epoch  18  nll  158.701
+    [pc] epoch  24  nll  155.356
+    [pc] epoch  30  nll  153.959
+    [pc] epoch  36  nll  153.071
+    [pc] epoch  42  nll  152.672
+    [pc] epoch  48  nll  151.952
+[15:08:47]   pc_train_nll: first=42789.9824 last=152.0902 (50 epochs)
+[15:08:47]   pc: fit 10.3s · 15,360 params · score sd 26.862 · device cuda · layered · 25,804 win/s
+[15:08:54]   typed decomposition (mean worst-channel surprise):
+[15:08:54]        normal  n= 4042  marginal    23.73  conditional    24.27  structural     6.85
+[15:08:54]      decouple  n=  102  marginal    23.73  conditional    24.32  structural     7.55
+[15:08:54]        desync  n=  102  marginal    24.05  conditional    35.44  structural    20.18
+[15:08:54]         drift  n=  102  marginal   960.32  conditional  1039.03  structural    94.88
+[15:08:54]        offset  n=  103  marginal   446.42  conditional   500.98  structural    78.14
+[15:08:54]       organic  n=   46  marginal   121.29  conditional   135.81  structural    43.35
+[15:08:54]         spike  n=  111  marginal    58.09  conditional    66.54  structural    16.04
+[15:08:54] --- stage ad done in 18.3s ---
+[15:08:54] === run ok · 18.3s · peak RSS 1.858 GB ===
+
+>>> [3/12] subset-FD001 · seed 2 · logs/ts/cmapss_ad/subset-FD001/seed2 · mean 0.3 min/run · ETA 3 min for the remaining 10
+[15:08:54] === run start · seed2 · seed 2 · hash 3ce52bcb133b ===
+[15:08:54] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:08:54] --- stage: ad ---
+[15:08:55]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.2s)
+[15:08:55]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 2, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 12299.011
+    [pc] epoch   6  nll  143.801
+    [pc] epoch  12  nll  139.786
+    [pc] epoch  18  nll  138.636
+    [pc] epoch  24  nll  137.597
+    [pc] epoch  30  nll  137.008
+    [pc] epoch  36  nll  136.715
+    [pc] epoch  42  nll  136.792
+    [pc] epoch  48  nll  136.623
+[15:09:06]   pc_train_nll: first=12299.0106 last=136.5536 (50 epochs)
+[15:09:06]   pc: fit 11.7s · 15,360 params · score sd 21.332 · device cuda · layered · 22,607 win/s
+[15:09:13]   typed decomposition (mean worst-channel surprise):
+[15:09:13]        normal  n= 4025  marginal    23.49  conditional    23.31  structural     5.68
+[15:09:13]      decouple  n=   94  marginal    23.30  conditional    22.88  structural     4.96
+[15:09:13]        desync  n=  125  marginal    23.42  conditional    38.05  structural    23.44
+[15:09:13]         drift  n=  102  marginal   652.20  conditional   718.32  structural    88.38
+[15:09:13]        offset  n=  105  marginal   451.33  conditional   525.24  structural   101.81
+[15:09:13]       organic  n=   46  marginal   116.53  conditional   149.07  structural    70.87
+[15:09:13]         spike  n=  111  marginal    54.45  conditional    64.39  structural    14.74
+[15:09:13] --- stage ad done in 18.6s ---
+[15:09:13] === run ok · 18.6s · peak RSS 1.864 GB ===
+
+>>> [4/12] subset-FD002 · seed 0 · logs/ts/cmapss_ad/subset-FD002/seed0 · mean 0.3 min/run · ETA 3 min for the remaining 9
+[15:09:13] === run start · seed0 · seed 0 · hash 89a282faf327 ===
+[15:09:13] stages ['ad'] · device cuda · dataset cmapss:FD002
+[15:09:13] --- stage: ad ---
+[15:09:13]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.4s)
+[15:09:13]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.13782593607902527, 'kind_counts': {'normal': 10184, 'spike': 324, 'offset': 290, 'drift': 282, 'desync': 258, 'organic': 201, 'decouple': 273}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 11062.454
+    [pc] epoch   6  nll  273.388
+    [pc] epoch  12  nll  283.250
+    [pc] epoch  18  nll  268.725
+    [pc] epoch  24  nll  256.265
+    [pc] epoch  30  nll  234.323
+    [pc] epoch  36  nll  237.134
+    [pc] epoch  42  nll  231.834
+    [pc] epoch  48  nll  216.394
+[15:09:39]   pc_train_nll: first=11062.4538 last=219.4927 (50 epochs)
+[15:09:39]   pc: fit 25.1s · 17,280 params · score sd 72.741 · device cuda · layered · 27,529 win/s
+[15:10:12]   typed decomposition (mean worst-channel surprise):
+[15:10:12]        normal  n=10184  marginal 15668365.00  conditional 15948762.00  structural 281478.72
+[15:10:12]      decouple  n=  273  marginal 16363211.00  conditional 16661812.00  structural 303504.81
+[15:10:12]        desync  n=  258  marginal 14165319.00  conditional 14407880.00  structural 249445.94
+[15:10:12]         drift  n=  282  marginal 15546637.00  conditional 15862228.00  structural 328775.97
+[15:10:12]        offset  n=  290  marginal 14944395.00  conditional 15228506.00  structural 305026.44
+[15:10:12]       organic  n=  201  marginal 21122874.00  conditional 21504738.00  structural 382122.44
+[15:10:12]         spike  n=  324  marginal 15799230.00  conditional 16099091.00  structural 301073.81
+[15:10:12] --- stage ad done in 59.3s ---
+[15:10:12] === run ok · 59.3s · peak RSS 2.176 GB ===
+
+>>> [5/12] subset-FD002 · seed 1 · logs/ts/cmapss_ad/subset-FD002/seed1 · mean 0.5 min/run · ETA 4 min for the remaining 8
+[15:10:12] === run start · seed1 · seed 1 · hash 89a282faf327 ===
+[15:10:12] stages ['ad'] · device cuda · dataset cmapss:FD002
+[15:10:12] --- stage: ad ---
+[15:10:13]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.4s)
+[15:10:13]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.13460887968540192, 'kind_counts': {'normal': 10222, 'desync': 299, 'drift': 293, 'offset': 273, 'decouple': 266, 'spike': 258, 'organic': 201}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 11179.369
+    [pc] epoch   6  nll  294.696
+    [pc] epoch  12  nll  297.202
+    [pc] epoch  18  nll  289.240
+    [pc] epoch  24  nll  269.976
+    [pc] epoch  30  nll  272.032
+    [pc] epoch  36  nll  250.755
+    [pc] epoch  42  nll  236.273
+    [pc] epoch  48  nll  236.795
+[15:10:38]   pc_train_nll: first=11179.3686 last=237.5799 (50 epochs)
+[15:10:38]   pc: fit 25.4s · 17,280 params · score sd 76.531 · device cuda · layered · 27,148 win/s
+[15:11:08]   typed decomposition (mean worst-channel surprise):
+[15:11:08]        normal  n=10222  marginal    32.75  conditional    50.49  structural    22.64
+[15:11:08]      decouple  n=  266  marginal    33.74  conditional  8762.04  structural  8760.76
+[15:11:08]        desync  n=  299  marginal    32.84  conditional 14217.63  structural 14235.28
+[15:11:08]         drift  n=  293  marginal 63585.11  conditional 80999.28  structural 17526.17
+[15:11:08]        offset  n=  273  marginal 59303.02  conditional 78008.51  structural 18791.66
+[15:11:08]       organic  n=  201  marginal    88.47  conditional   107.71  structural    44.32
+[15:11:08]         spike  n=  258  marginal 13772.89  conditional 14081.44  structural   321.42
+[15:11:09] --- stage ad done in 56.2s ---
+[15:11:09] === run ok · 56.2s · peak RSS 2.22 GB ===
+
+>>> [6/12] subset-FD002 · seed 2 · logs/ts/cmapss_ad/subset-FD002/seed2 · mean 0.6 min/run · ETA 4 min for the remaining 7
+[15:11:09] === run start · seed2 · seed 2 · hash 89a282faf327 ===
+[15:11:09] stages ['ad'] · device cuda · dataset cmapss:FD002
+[15:11:09] --- stage: ad ---
+[15:11:09]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.4s)
+[15:11:09]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.1360480934381485, 'kind_counts': {'normal': 10205, 'offset': 283, 'drift': 282, 'spike': 288, 'decouple': 271, 'desync': 282, 'organic': 201}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 2, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 11157.585
+    [pc] epoch   6  nll  321.767
+    [pc] epoch  12  nll  326.906
+    [pc] epoch  18  nll  315.743
+    [pc] epoch  24  nll  298.387
+    [pc] epoch  30  nll  274.124
+    [pc] epoch  36  nll  267.848
+    [pc] epoch  42  nll  259.184
+    [pc] epoch  48  nll  256.540
+[15:11:35]   pc_train_nll: first=11157.5852 last=255.0624 (50 epochs)
+[15:11:35]   pc: fit 25.8s · 17,280 params · score sd 74.280 · device cuda · layered · 26,784 win/s
+[15:12:10]   typed decomposition (mean worst-channel surprise):
+[15:12:10]        normal  n=10205  marginal 11498795957374418944.00  conditional 11498797056886046720.00  structural 1176665063424.00
+[15:12:10]      decouple  n=  271  marginal 12122867762183798784.00  conditional 12233385173449703424.00  structural 110518536547336192.00
+[15:12:10]        desync  n=  282  marginal 10525091549560176640.00  conditional 10525093748583432192.00  structural 892670246912.00
+[15:12:10]         drift  n=  282  marginal 11661425821750394880.00  conditional 11661426921262022656.00  structural 1174593208320.00
+[15:12:10]        offset  n=  283  marginal 11318839988767948800.00  conditional 11318842187791204352.00  structural 1226336239616.00
+[15:12:10]       organic  n=  201  marginal 9180726378859855872.00  conditional 9180726378859855872.00  structural 1075127123968.00
+[15:12:10]         spike  n=  288  marginal 12064885016493031424.00  conditional 12064886116004659200.00  structural 1109186838528.00
+[15:12:10] --- stage ad done in 61.1s ---
+[15:12:10] === run ok · 61.1s · peak RSS 2.22 GB ===
+
+>>> [7/12] subset-FD003 · seed 0 · logs/ts/cmapss_ad/subset-FD003/seed0 · mean 0.7 min/run · ETA 4 min for the remaining 6
+[15:12:10] === run start · seed0 · seed 0 · hash f33197f5c7fc ===
+[15:12:10] stages ['ad'] · device cuda · dataset cmapss:FD003
+[15:12:10] --- stage: ad ---
+[15:12:10]   data: FleetPair(cmapss:FD003: train=100 units, test=100 units, C=16, regimes=3, cap=125)  (0.1s)
+[15:12:10]   task: {'kind': 'ad', 'n_train': 7333, 'n_test': 6353, 'd': 320, 'window': 20, 'n_channels': 16, 'anomaly_rate': 0.12970250844955444, 'kind_counts': {'normal': 5529, 'spike': 169, 'offset': 161, 'drift': 158, 'desync': 138, 'decouple': 150, 'organic': 48}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD003', 'cap': 125.0, 'subset': 'FD003', 'dropped_constant_sensors': 5, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 1925.725
+    [pc] epoch   6  nll   69.104
+    [pc] epoch  12  nll   65.120
+    [pc] epoch  18  nll   64.270
+    [pc] epoch  24  nll   63.555
+    [pc] epoch  30  nll   63.084
+    [pc] epoch  36  nll   62.535
+    [pc] epoch  42  nll   62.023
+    [pc] epoch  48  nll   62.034
+[15:12:24]   pc_train_nll: first=1925.7255 last=62.0985 (50 epochs)
+[15:12:24]   pc: fit 14.7s · 15,680 params · score sd 52.420 · device cuda · layered · 24,933 win/s
+[15:12:45]   typed decomposition (mean worst-channel surprise):
+[15:12:45]        normal  n= 5529  marginal    23.51  conditional    25.59  structural    15.50
+[15:12:45]      decouple  n=  150  marginal    24.98  conditional    32.75  structural    21.05
+[15:12:45]        desync  n=  138  marginal    25.01  conditional    92.14  structural    85.51
+[15:12:45]         drift  n=  158  marginal    68.68  conditional   218.69  structural   180.54
+[15:12:45]        offset  n=  161  marginal   108.51  conditional   344.30  structural   254.88
+[15:12:45]       organic  n=   48  marginal   153.25  conditional   126.47  structural    41.91
+[15:12:45]         spike  n=  169  marginal    43.02  conditional    62.42  structural    33.15
+[15:12:45] --- stage ad done in 34.9s ---
+[15:12:45] === run ok · 34.9s · peak RSS 2.22 GB ===
+
+>>> [8/12] subset-FD003 · seed 1 · logs/ts/cmapss_ad/subset-FD003/seed1 · mean 0.6 min/run · ETA 3 min for the remaining 5
+[15:12:45] === run start · seed1 · seed 1 · hash f33197f5c7fc ===
+[15:12:45] stages ['ad'] · device cuda · dataset cmapss:FD003
+[15:12:45] --- stage: ad ---
+[15:12:45]   data: FleetPair(cmapss:FD003: train=100 units, test=100 units, C=16, regimes=3, cap=125)  (0.2s)
+[15:12:45]   task: {'kind': 'ad', 'n_train': 7333, 'n_test': 6353, 'd': 320, 'window': 20, 'n_channels': 16, 'anomaly_rate': 0.1246655136346817, 'kind_counts': {'normal': 5561, 'desync': 147, 'drift': 146, 'offset': 161, 'decouple': 154, 'spike': 136, 'organic': 48}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD003', 'cap': 125.0, 'subset': 'FD003', 'dropped_constant_sensors': 5, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 2861.676
+    [pc] epoch   6  nll   65.228
+    [pc] epoch  12  nll   62.056
+    [pc] epoch  18  nll   60.586
+    [pc] epoch  24  nll   59.965
+    [pc] epoch  30  nll   59.453
+    [pc] epoch  36  nll   59.185
+    [pc] epoch  42  nll   58.750
+    [pc] epoch  48  nll   58.410
+[15:12:59]   pc_train_nll: first=2861.6764 last=58.5342 (50 epochs)
+[15:12:59]   pc: fit 14.7s · 15,680 params · score sd 41.114 · device cuda · layered · 24,905 win/s
+[15:13:17]   typed decomposition (mean worst-channel surprise):
+[15:13:17]        normal  n= 5561  marginal    23.61  conditional    25.21  structural    14.55
+[15:13:17]      decouple  n=  154  marginal    24.01  conditional    31.49  structural    20.01
+[15:13:17]        desync  n=  147  marginal    25.39  conditional    85.44  structural    76.03
+[15:13:17]         drift  n=  146  marginal    62.29  conditional   240.59  structural   204.26
+[15:13:17]        offset  n=  161  marginal    96.57  conditional   292.50  structural   228.39
+[15:13:17]       organic  n=   48  marginal   170.61  conditional   144.44  structural    45.60
+[15:13:17]         spike  n=  136  marginal    38.89  conditional    58.20  structural    37.24
+[15:13:17] --- stage ad done in 32.7s ---
+[15:13:17] === run ok · 32.7s · peak RSS 2.22 GB ===
+
+>>> [9/12] subset-FD003 · seed 2 · logs/ts/cmapss_ad/subset-FD003/seed2 · mean 0.6 min/run · ETA 3 min for the remaining 4
+[15:13:17] === run start · seed2 · seed 2 · hash f33197f5c7fc ===
+[15:13:17] stages ['ad'] · device cuda · dataset cmapss:FD003
+[15:13:17] --- stage: ad ---
+[15:13:18]   data: FleetPair(cmapss:FD003: train=100 units, test=100 units, C=16, regimes=3, cap=125)  (0.2s)
+[15:13:18]   task: {'kind': 'ad', 'n_train': 7333, 'n_test': 6353, 'd': 320, 'window': 20, 'n_channels': 16, 'anomaly_rate': 0.12639698386192322, 'kind_counts': {'normal': 5550, 'offset': 137, 'drift': 155, 'spike': 162, 'decouple': 123, 'desync': 178, 'organic': 48}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 2, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD003', 'cap': 125.0, 'subset': 'FD003', 'dropped_constant_sensors': 5, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 27473.072
+    [pc] epoch   6  nll  181.789
+    [pc] epoch  12  nll  178.158
+    [pc] epoch  18  nll  176.970
+    [pc] epoch  24  nll  176.485
+    [pc] epoch  30  nll  176.185
+    [pc] epoch  36  nll  174.546
+    [pc] epoch  42  nll  172.566
+    [pc] epoch  48  nll  172.369
+[15:13:32]   pc_train_nll: first=27473.0722 last=172.2396 (50 epochs)
+[15:13:32]   pc: fit 14.6s · 15,680 params · score sd 72.365 · device cuda · layered · 25,182 win/s
+[15:13:45]   typed decomposition (mean worst-channel surprise):
+[15:13:45]        normal  n= 5550  marginal    31.16  conditional    36.34  structural    14.97
+[15:13:45]      decouple  n=  123  marginal    33.48  conditional    40.84  structural    16.40
+[15:13:45]        desync  n=  178  marginal    29.69  conditional    43.38  structural    24.66
+[15:13:45]         drift  n=  155  marginal   230.64  conditional   413.79  structural   200.89
+[15:13:45]        offset  n=  137  marginal   212.90  conditional   309.55  structural   111.74
+[15:13:45]       organic  n=   48  marginal   225.51  conditional   206.04  structural    95.94
+[15:13:45]         spike  n=  162  marginal    52.43  conditional    68.78  structural    26.83
+[15:13:46] --- stage ad done in 28.2s ---
+[15:13:46] === run ok · 28.2s · peak RSS 2.22 GB ===
+
+>>> [10/12] subset-FD004 · seed 0 · logs/ts/cmapss_ad/subset-FD004/seed0 · mean 0.6 min/run · ETA 2 min for the remaining 3
+[15:13:46] === run start · seed0 · seed 0 · hash 4f809b33d4d6 ===
+[15:13:46] stages ['ad'] · device cuda · dataset cmapss:FD004
+[15:13:46] --- stage: ad ---
+[15:13:46]   data: FleetPair(cmapss:FD004: train=249 units, test=248 units, C=21, regimes=3, cap=125)  (0.5s)
+[15:13:46]   task: {'kind': 'ad', 'n_train': 18107, 'n_test': 12000, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.12999999523162842, 'kind_counts': {'normal': 10440, 'offset': 290, 'spike': 320, 'drift': 288, 'desync': 253, 'decouple': 293, 'organic': 116}, 'train_units': 249, 'test_units': 248, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD004', 'cap': 125.0, 'subset': 'FD004', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 8615.505
+    [pc] epoch   6  nll  350.350
+    [pc] epoch  12  nll  334.458
+    [pc] epoch  18  nll  299.254
+    [pc] epoch  24  nll  269.839
+    [pc] epoch  30  nll  256.930
+    [pc] epoch  36  nll  248.828
+    [pc] epoch  42  nll  244.891
+    [pc] epoch  48  nll  240.193
+[15:14:19]   pc_train_nll: first=8615.5050 last=235.6405 (50 epochs)
+[15:14:19]   pc: fit 33.3s · 17,280 params · score sd 89.547 · device cuda · layered · 27,163 win/s
+[15:15:07]   typed decomposition (mean worst-channel surprise):
+[15:15:07]        normal  n=10440  marginal    32.76  conditional    31.59  structural     1.93
+[15:15:07]      decouple  n=  293  marginal    33.09  conditional 13771.70  structural 13766.50
+[15:15:07]        desync  n=  253  marginal    33.74  conditional 16248.37  structural 16263.83
+[15:15:07]         drift  n=  288  marginal 127950.79  conditional 150225.03  structural 22341.23
+[15:15:07]        offset  n=  290  marginal 125965.60  conditional 140108.81  structural 14206.98
+[15:15:07]       organic  n=  116  marginal    80.64  conditional    83.30  structural     9.85
+[15:15:07]         spike  n=  320  marginal 24804.25  conditional 25432.06  structural   634.00
+[15:15:07] --- stage ad done in 81.1s ---
+[15:15:07] === run ok · 81.1s · peak RSS 2.294 GB ===
+
+>>> [11/12] subset-FD004 · seed 1 · logs/ts/cmapss_ad/subset-FD004/seed1 · mean 0.7 min/run · ETA 1 min for the remaining 2
+[15:15:07] === run start · seed1 · seed 1 · hash 4f809b33d4d6 ===
+[15:15:07] stages ['ad'] · device cuda · dataset cmapss:FD004
+[15:15:07] --- stage: ad ---
+[15:15:07]   data: FleetPair(cmapss:FD004: train=249 units, test=248 units, C=21, regimes=3, cap=125)  (0.4s)
+[15:15:07]   task: {'kind': 'ad', 'n_train': 18107, 'n_test': 12000, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.1277499943971634, 'kind_counts': {'normal': 10467, 'desync': 311, 'drift': 291, 'offset': 280, 'decouple': 253, 'spike': 276, 'organic': 122}, 'train_units': 249, 'test_units': 248, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD004', 'cap': 125.0, 'subset': 'FD004', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 8784.743
+    [pc] epoch   6  nll  342.379
+    [pc] epoch  12  nll  336.724
+    [pc] epoch  18  nll  303.919
+    [pc] epoch  24  nll  283.015
+    [pc] epoch  30  nll  257.562
+    [pc] epoch  36  nll  244.550
+    [pc] epoch  42  nll  246.414
+    [pc] epoch  48  nll  236.220
+[15:15:41]   pc_train_nll: first=8784.7430 last=241.4701 (50 epochs)
+[15:15:41]   pc: fit 33.7s · 17,280 params · score sd 93.591 · device cuda · layered · 26,848 win/s
+[15:16:26]   typed decomposition (mean worst-channel surprise):
+[15:16:26]        normal  n=10467  marginal 16378611080374517760.00  conditional 16378611080374517760.00  structural 2591678976.00
+[15:16:26]      decouple  n=  253  marginal 17094318383266004992.00  conditional 17094318383266004992.00  structural 1894767232.00
+[15:16:26]        desync  n=  311  marginal 14773291118472724480.00  conditional 14773291118472724480.00  structural 1663002880.00
+[15:16:26]         drift  n=  291  marginal 16461150318760034304.00  conditional 16461150318760034304.00  structural 704041088.00
+[15:16:26]        offset  n=  280  marginal 15964215043470393344.00  conditional 15964215043470393344.00  structural 10815457280.00
+[15:16:26]       organic  n=  122  marginal 16576246096443998208.00  conditional 16576246096443998208.00  structural 664202496.00
+[15:16:26]         spike  n=  276  marginal 17246852531875741696.00  conditional 17246852531875741696.00  structural 1152486016.00
+[15:16:26] --- stage ad done in 79.4s ---
+[15:16:26] === run ok · 79.4s · peak RSS 2.295 GB ===
+
+>>> [12/12] subset-FD004 · seed 2 · logs/ts/cmapss_ad/subset-FD004/seed2 · mean 0.7 min/run · ETA 1 min for the remaining 1
+[15:16:26] === run start · seed2 · seed 2 · hash 4f809b33d4d6 ===
+[15:16:26] stages ['ad'] · device cuda · dataset cmapss:FD004
+[15:16:26] --- stage: ad ---
+[15:16:26]   data: FleetPair(cmapss:FD004: train=249 units, test=248 units, C=21, regimes=3, cap=125)  (0.4s)
+[15:16:26]   task: {'kind': 'ad', 'n_train': 18107, 'n_test': 12000, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.1313333362340927, 'kind_counts': {'offset': 292, 'normal': 10424, 'drift': 285, 'spike': 293, 'decouple': 284, 'desync': 305, 'organic': 117}, 'train_units': 249, 'test_units': 248, 'n_regimes': 3, 'seed': 2, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD004', 'cap': 125.0, 'subset': 'FD004', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 8530.117
+    [pc] epoch   6  nll  330.055
+    [pc] epoch  12  nll  309.109
+    [pc] epoch  18  nll  288.293
+    [pc] epoch  24  nll  254.060
+    [pc] epoch  30  nll  243.569
+    [pc] epoch  36  nll  236.055
+    [pc] epoch  42  nll  223.874
+    [pc] epoch  48  nll  217.949
+[15:17:00]   pc_train_nll: first=8530.1171 last=216.6466 (50 epochs)
+[15:17:00]   pc: fit 33.3s · 17,280 params · score sd 90.957 · device cuda · layered · 27,166 win/s
+[15:17:34]   typed decomposition (mean worst-channel surprise):
+[15:17:34]        normal  n=10424  marginal 13853615612535767040.00  conditional 13853615612535767040.00  structural 3699891456.00
+[15:17:34]      decouple  n=  284  marginal 12973440061826662400.00  conditional 12973440061826662400.00  structural 1546717696.00
+[15:17:34]        desync  n=  305  marginal 12553743279365029888.00  conditional 12553743279365029888.00  structural 10034097152.00
+[15:17:34]         drift  n=  285  marginal 14293256436413628416.00  conditional 14293256436413628416.00  structural 1167351552.00
+[15:17:34]        offset  n=  292  marginal 13092054276719509504.00  conditional 13092054276719509504.00  structural 1336990976.00
+[15:17:34]       organic  n=  117  marginal 12616185644218056704.00  conditional 12616185644218056704.00  structural 1212418816.00
+[15:17:34]         spike  n=  293  marginal 14152197890662989824.00  conditional 14152197890662989824.00  structural 10361437184.00
+[15:17:34] --- stage ad done in 68.0s ---
+[15:17:34] === run ok · 68.0s · peak RSS 2.295 GB ===
+
+==============================================================================
+ batch finished in 9.3 min — 12 ok, 0 skipped, 0 failed
+==============================================================================
+
+=== ad (mean ± sd over seeds) ===
+
+method                                      dataset          variant                               auroc                 ap          train_nll              fit_s             params    auroc[decouple]      auroc[desync]       auroc[drift]  seeds
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Mahalanobis                                 cmapss:FD003     subset-FD003                  0.8529±0.0034      0.6554±0.0117                  —      0.6172±0.0675                  —      0.5423±0.0242      0.7739±0.0108      0.9924±0.0020      3
+conv autoencoder                            cmapss:FD003     subset-FD003                  0.8459±0.0034      0.6918±0.0099                  —      2.7317±1.6411                  —      0.5291±0.0162      0.7597±0.0131      0.9933±0.0025      3
+GMM (8 comp.)                               cmapss:FD003     subset-FD003                  0.8381±0.0064      0.5955±0.0269                  —      8.1170±4.0365                  —      0.5341±0.0151      0.7654±0.0120      0.9822±0.0027      3
+RegionGraphPC [chain, K=8]                  cmapss:FD001     subset-FD001                  0.8378±0.0044      0.6954±0.0140    145.4097±7.8281     77.4306±166.1392  15360.0000±0.0000      0.5113±0.0320      0.6934±0.0101      0.9972±0.0024      3
+PC · 3 dead (exact marginal)                cmapss:FD001     subset-FD001                  0.8302±0.0046      0.6879±0.0163                  —                  —                  —      0.5155±0.0433      0.6842±0.0166      0.9929±0.0040      3
+1-NN distance                               cmapss:FD003     subset-FD003                  0.8301±0.0071      0.4709±0.0175                  —      0.3224±0.0370                  —      0.5342±0.0133      0.7341±0.0190      0.9639±0.0026      3
+Mahalanobis                                 cmapss:FD001     subset-FD001                  0.8246±0.0011      0.6537±0.0030                  —      0.3604±0.0069                  —      0.5171±0.0319      0.7134±0.0353      0.9974±0.0014      3
+GMM (8 comp.)                               cmapss:FD001     subset-FD001                  0.8200±0.0205      0.6294±0.0444                  —      1.2946±0.4865                  —      0.5058±0.0312      0.7061±0.0444      0.9955±0.0015      3
+conv autoencoder                            cmapss:FD001     subset-FD001                  0.8115±0.0131      0.6638±0.0119                  —      1.5010±0.3701                  —      0.5002±0.0304      0.6792±0.0280      0.9918±0.0058      3
+RegionGraphPC [chain, K=8]                  cmapss:FD003     subset-FD003                  0.8088±0.0334      0.5848±0.1031    110.9217±63.6534    137.6511±316.0926  15680.0000±0.0000      0.5251±0.0288      0.6872±0.0660      0.9816±0.0177      3
+z-score (per channel) · 3 dead (imputed)    cmapss:FD001     subset-FD001                  0.7971±0.0051      0.6663±0.0090                  —                  —                  —      0.4836±0.0195      0.5160±0.0179      0.9811±0.0070      3
+PC · structural-only score                  cmapss:FD003     subset-FD003                  0.7927±0.0322      0.5277±0.0795                  —                  —                  —      0.5147±0.0203      0.7503±0.0696      0.9680±0.0104      3
+PC · structural-only score                  cmapss:FD001     subset-FD001                  0.7926±0.0169      0.6096±0.0312                  —                  —                  —      0.4939±0.0151      0.7526±0.0033      0.9723±0.0203      3
+PC · 3 dead (exact marginal)                cmapss:FD003     subset-FD003                  0.7916±0.0357      0.5561±0.1033                  —                  —                  —      0.5245±0.0296      0.6639±0.0719      0.9715±0.0235      3
+1-NN distance                               cmapss:FD001     subset-FD001                  0.7837±0.0012      0.4460±0.0090                  —      0.1672±0.0131                  —      0.5001±0.0203      0.6202±0.0264      0.9648±0.0050      3
+Deep SVDD                                   cmapss:FD003     subset-FD003                  0.7683±0.0049      0.5062±0.0207                  —      0.2459±0.1381                  —      0.5176±0.0056      0.6535±0.0108      0.9592±0.0111      3
+z-score (per channel)                       cmapss:FD003     subset-FD003                  0.7670±0.0083      0.3269±0.0150                  —      0.0615±0.0138                  —      0.5159±0.0103      0.5533±0.0110      0.8894±0.0024      3
+PCA reconstruction                          cmapss:FD003     subset-FD003                  0.7587±0.0086      0.2982±0.0128                  —      0.2148±0.0439                  —      0.5185±0.0110      0.6328±0.0132      0.9147±0.0032      3
+z-score (per channel) · 3 dead (imputed)    cmapss:FD003     subset-FD003                  0.7519±0.0086      0.3128±0.0139                  —                  —                  —      0.5122±0.0088      0.5546±0.0186      0.8799±0.0098      3
+moving-average residual                     cmapss:FD003     subset-FD003                  0.7449±0.0068      0.4424±0.0177                  —      0.3435±0.0316                  —      0.5527±0.0091      0.5380±0.0154      0.8158±0.0122      3
+PC · 3 dead (mean-imputed)                  cmapss:FD003     subset-FD003                  0.7445±0.0190      0.3691±0.0160                  —                  —                  —      0.5240±0.0223      0.5996±0.0469      0.9200±0.0065      3
+PCA reconstruction                          cmapss:FD001     subset-FD001                  0.7424±0.0010      0.4517±0.0040                  —      0.1159±0.0139                  —      0.5026±0.0219      0.6086±0.0274      0.9540±0.0126      3
+Deep SVDD                                   cmapss:FD001     subset-FD001                  0.7270±0.0096      0.4850±0.0195                  —      0.1308±0.0203                  —      0.5044±0.0189      0.5884±0.0079      0.9324±0.0190      3
+moving-average residual · 3 dead (imputed)  cmapss:FD003     subset-FD003                  0.7183±0.0113      0.4045±0.0166                  —                  —                  —      0.5447±0.0074      0.5396±0.0317      0.7782±0.0213      3
+diagonal Gaussian                           cmapss:FD001     subset-FD001                  0.7147±0.0056      0.3861±0.0038                  —      0.0847±0.0075                  —      0.5054±0.0116      0.5303±0.0203      0.8903±0.0119      3
+diagonal Gaussian                           cmapss:FD003     subset-FD003                  0.7125±0.0148      0.2924±0.0157                  —      0.1548±0.0418                  —      0.5106±0.0114      0.5558±0.0200      0.8617±0.0112      3
+diagonal Gaussian · 3 dead (imputed)        cmapss:FD001     subset-FD001                  0.7107±0.0063      0.3769±0.0071                  —                  —                  —      0.5079±0.0077      0.5322±0.0214      0.8801±0.0093      3
+diagonal Gaussian · 3 dead (imputed)        cmapss:FD003     subset-FD003                  0.7090±0.0145      0.2875±0.0154                  —                  —                  —      0.5102±0.0084      0.5582±0.0242      0.8584±0.0145      3
+Isolation Forest                            cmapss:FD001     subset-FD001                  0.7081±0.0044      0.3799±0.0068                  —      0.2093±0.0075                  —      0.5090±0.0145      0.5673±0.0191      0.9042±0.0117      3
+moving-average residual                     cmapss:FD001     subset-FD001                  0.7015±0.0150      0.4883±0.0183                  —      0.2111±0.0032                  —      0.5210±0.0253      0.4880±0.0297      0.7885±0.0282      3
+PC · 3 dead (mean-imputed)                  cmapss:FD001     subset-FD001                  0.6905±0.0341      0.3395±0.0741                  —                  —                  —      0.4961±0.0206      0.5468±0.0193      0.8362±0.0628      3
+Isolation Forest                            cmapss:FD003     subset-FD003                  0.6898±0.0137      0.2827±0.0151                  —      0.3187±0.0743                  —      0.5118±0.0101      0.5814±0.0133      0.8596±0.0181      3
+moving-average residual · 3 dead (imputed)  cmapss:FD001     subset-FD001                  0.6885±0.0222      0.4494±0.0258                  —                  —                  —      0.5247±0.0400      0.4975±0.0410      0.7465±0.0357      3
+z-score (per channel)                       cmapss:FD001     subset-FD001                  0.6641±0.0028      0.3186±0.0165                  —      0.0328±0.0019                  —      0.4926±0.0176      0.5103±0.0171      0.7037±0.0104      3
+conv autoencoder                            cmapss:FD002     subset-FD002                  0.6603±0.2421      0.4013±0.4036                  —      4.5928±0.4398                  —      0.6541±0.2269      0.6209±0.2757      0.6707±0.2548      3
+GMM (8 comp.)                               cmapss:FD002     subset-FD002                  0.6585±0.2340      0.3963±0.3880                  —     10.6693±2.4879                  —      0.6595±0.2158      0.6207±0.2734      0.6687±0.2558      3
+Mahalanobis                                 cmapss:FD002     subset-FD002                  0.6578±0.2302      0.3906±0.3791                  —      1.9543±0.5383                  —      0.6519±0.2109      0.6218±0.2699      0.6687±0.2554      3
+GMM (8 comp.)                               cmapss:FD004     subset-FD004                  0.6542±0.2477      0.3925±0.4100                  —     22.5507±7.8851                  —      0.6747±0.2278      0.6163±0.2807      0.6815±0.2466      3
+conv autoencoder                            cmapss:FD004     subset-FD004                  0.6526±0.2452      0.3881±0.4029                  —      4.9104±1.2471                  —      0.6698±0.2222      0.6110±0.2756      0.6828±0.2452      3
+Mahalanobis                                 cmapss:FD004     subset-FD004                  0.6512±0.2404      0.3800±0.3897                  —      1.9200±0.2521                  —      0.6689±0.2163      0.6118±0.2755      0.6828±0.2452      3
+PC · structural-only score                  cmapss:FD002     subset-FD002                  0.6347±0.1965      0.3518±0.3103                  —                  —                  —      0.6422±0.1907      0.6015±0.2567      0.6872±0.2379      3
+RegionGraphPC [chain, K=8]                  cmapss:FD002     subset-FD002                  0.6301±0.1822      0.3587±0.3125    257.1866±46.0268     25.0098±5.2013  17280.0000±0.0000      0.6169±0.1387      0.5922±0.2089      0.6652±0.2319      3
+PC · 3 dead (exact marginal)                cmapss:FD002     subset-FD002                  0.6291±0.1907      0.3540±0.3239                  —                  —                  —      0.6126±0.1378      0.5874±0.2114      0.6645±0.2468      3
+Deep SVDD                                   cmapss:FD002     subset-FD002                  0.6160±0.1699      0.3129±0.2604                  —      0.3958±0.0608                  —      0.5672±0.0887      0.5618±0.1805      0.6521±0.2400      3
+Deep SVDD                                   cmapss:FD004     subset-FD004                  0.6157±0.1763      0.2971±0.2545                  —      0.4550±0.0665                  —      0.6071±0.1064      0.5691±0.2103      0.6725±0.2317      3
+RegionGraphPC [chain, K=8]                  cmapss:FD004     subset-FD004                  0.6026±0.1654      0.3261±0.2894    239.9533±37.2373     31.5653±6.5012  17280.0000±0.0000      0.5930±0.1334      0.5725±0.1898      0.6636±0.2238      3
+PC · 3 dead (exact marginal)                cmapss:FD004     subset-FD004                  0.6017±0.1751      0.3230±0.3026                  —                  —                  —      0.5855±0.1319      0.5737±0.1984      0.6622±0.2412      3
+PC · structural-only score                  cmapss:FD004     subset-FD004                  0.6012±0.2112      0.3429±0.3361                  —                  —                  —      0.6123±0.2126      0.6514±0.2046      0.5807±0.3188      3
+1-NN distance                               cmapss:FD002     subset-FD002                  0.5931±0.1357      0.2694±0.1966                  —      0.7389±0.1958                  —      0.5574±0.0677      0.5191±0.1275      0.6413±0.1986      3
+diagonal Gaussian                           cmapss:FD002     subset-FD002                  0.5845±0.1216      0.2765±0.2065                  —      0.3662±0.0118                  —      0.5136±0.0189      0.4530±0.0205      0.6551±0.2296      3
+diagonal Gaussian · 3 dead (imputed)        cmapss:FD002     subset-FD002                  0.5835±0.1200      0.2735±0.2017                  —                  —                  —      0.5135±0.0189      0.4531±0.0205      0.6522±0.2252      3
+z-score (per channel)                       cmapss:FD002     subset-FD002                  0.5823±0.1195      0.2043±0.0600                  —      0.0656±0.0112                  —      0.5087±0.0131      0.4591±0.0265      0.6655±0.1674      3
+z-score (per channel) · 3 dead (imputed)    cmapss:FD002     subset-FD002                  0.5803±0.1166      0.2030±0.0585                  —                  —                  —      0.5080±0.0120      0.4593±0.0270      0.6639±0.1652      3
+1-NN distance                               cmapss:FD004     subset-FD004                  0.5754±0.1330      0.2259±0.1527                  —      0.7808±0.2269                  —      0.5586±0.0549      0.5111±0.1414      0.6377±0.1822      3
+diagonal Gaussian                           cmapss:FD004     subset-FD004                  0.5736±0.1213      0.2115±0.1289                  —      0.4044±0.0495                  —      0.5179±0.0108      0.4681±0.0504      0.6539±0.1982      3
+diagonal Gaussian · 3 dead (imputed)        cmapss:FD004     subset-FD004                  0.5734±0.1209      0.2100±0.1265                  —                  —                  —      0.5180±0.0107      0.4688±0.0515      0.6542±0.1987      3
+z-score (per channel)                       cmapss:FD004     subset-FD004                  0.5729±0.1413      0.1939±0.0814                  —      0.0808±0.0166                  —      0.4985±0.0039      0.4653±0.0488      0.6056±0.2261      3
+z-score (per channel) · 3 dead (imputed)    cmapss:FD004     subset-FD004                  0.5711±0.1385      0.1929±0.0798                  —                  —                  —      0.4990±0.0030      0.4658±0.0495      0.6057±0.2263      3
+PCA reconstruction                          cmapss:FD002     subset-FD002                  0.5629±0.0851      0.1806±0.0536                  —      0.4365±0.0106                  —      0.5278±0.0261      0.4695±0.0295      0.6094±0.1662      3
+Isolation Forest                            cmapss:FD004     subset-FD004                  0.5579±0.0710      0.1702±0.0527                  —      0.6226±0.0978                  —      0.5059±0.0254      0.4209±0.0874      0.6588±0.0687      3
+PCA reconstruction                          cmapss:FD004     subset-FD004                  0.5441±0.0768      0.1766±0.0754                  —      0.5020±0.1017                  —      0.4915±0.0480      0.4250±0.0207      0.6283±0.1574      3
+moving-average residual                     cmapss:FD004     subset-FD004                  0.5377±0.0727      0.1656±0.0342                  —      0.8612±0.1465                  —      0.5028±0.0125      0.4717±0.0347      0.5311±0.0326      3
+moving-average residual · 3 dead (imputed)  cmapss:FD004     subset-FD004                  0.5374±0.0722      0.1649±0.0331                  —                  —                  —      0.5053±0.0153      0.4703±0.0325      0.5334±0.0361      3
+Isolation Forest                            cmapss:FD002     subset-FD002                  0.5357±0.1068      0.2067±0.1157                  —      0.6400±0.2143                  —      0.5244±0.0095      0.3423±0.1470      0.5887±0.1770      3
+moving-average residual                     cmapss:FD002     subset-FD002                  0.5328±0.0645      0.1747±0.0379                  —      0.6797±0.0552                  —      0.4979±0.0282      0.4646±0.0347      0.5240±0.0361      3
+moving-average residual · 3 dead (imputed)  cmapss:FD002     subset-FD002                  0.5310±0.0618      0.1734±0.0363                  —                  —                  —      0.4999±0.0298      0.4628±0.0321      0.5251±0.0373      3
+PC · 3 dead (mean-imputed)                  cmapss:FD002     subset-FD002                  0.5208±0.0287      0.1815±0.0577                  —                  —                  —      0.5180±0.0099      0.4818±0.0482      0.5688±0.0998      3
+PC · 3 dead (mean-imputed)                  cmapss:FD004     subset-FD004                  0.5092±0.0321      0.1706±0.0666                  —                  —                  —      0.5066±0.0191      0.4570±0.0176      0.5526±0.0714      3
+
+wrote logs/ts/cmapss_ad/summary.csv, summary.json, summary.md
+

@@ -1,0 +1,577 @@
+==============================================================================
+ experiment: synthetic_explain   (config/ts/synthetic_explain.yaml)
+ Correctness / completeness / faithfulness of exact circuit attribution vs
+ output:     logs/ts/synthetic_explain
+==============================================================================
+
+2 variant(s) × 5 seed(s) = 10 run(s)
+
+  shap_samples-32                        dataset=synthetic        stages=explain
+  shap_samples-128                       dataset=synthetic        stages=explain
+
+
+>>> [1/10] shap_samples-32 · seed 0 · logs/ts/synthetic_explain/shap_samples-32/seed0
+[15:53:27] === run start · seed0 · seed 0 · hash 40d5c9744028 ===
+[15:53:27] stages ['explain'] · device cuda · dataset synthetic
+[15:53:27] --- stage: explain ---
+[15:53:27]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:27]   task: {'kind': 'ad', 'n_train': 2016, 'n_test': 1625, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.21415384113788605, 'kind_counts': {'normal': 1277, 'offset': 42, 'decouple': 38, 'drift': 29, 'spike': 35, 'desync': 30, 'organic': 174}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+[15:53:27]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll  206.370
+    [pc] epoch   5  nll   49.049
+    [pc] epoch  10  nll   35.647
+    [pc] epoch  15  nll   32.623
+    [pc] epoch  20  nll   32.005
+    [pc] epoch  25  nll   31.804
+    [pc] epoch  30  nll   31.631
+    [pc] epoch  35  nll   31.617
+[15:53:28]   pc_train_nll: first=206.3699 last=31.5714 (40 epochs)
+[15:53:28]   pc: fit 1.7s · 2,964 params · score sd 16.178 · device cuda · layered · 47,017 win/s
+[15:53:29]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 0.3s
+[15:53:29]   completeness: max residual 3.05e-05 nats, mean 1.45e-06
+[15:53:29]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[15:53:30]   worked examples (median-scoring window of each kind):
+[15:53:30]    [normal]
+[15:53:30]   anomaly score 29.1 nats
+[15:53:30]      ch13  out of range         marginal   12.59  structural   -0.49  worst at t=3
+[15:53:30]       ch0  out of range         marginal   10.11  structural   -1.66  worst at t=2
+[15:53:30]       ch8  out of range         marginal    7.59  structural   -1.06  worst at t=7
+[15:53:30]    [spike]
+[15:53:30]   anomaly score 226.8 nats   [injected: spike, channels [10]]
+[15:53:30]      ch10  broken relationship  marginal   82.26  structural  124.63  worst at t=2  <- CORRECT
+[15:53:30]       ch9  broken relationship  marginal   -2.84  structural   61.95  worst at t=2  <- miss
+[15:53:30]       ch7  broken relationship  marginal   -2.73  structural   29.98  worst at t=2  <- miss
+[15:53:31]    [offset]
+[15:53:31]   anomaly score 278.4 nats   [injected: offset, channels [1, 2, 11]]
+[15:53:31]      ch11  out of range         marginal  145.56  structural   30.94  worst at t=5  <- CORRECT
+[15:53:31]       ch1  broken relationship  marginal    7.50  structural   43.31  worst at t=7  <- CORRECT
+[15:53:31]       ch2  broken relationship  marginal    6.99  structural   25.01  worst at t=3  <- CORRECT
+[15:53:31]    [drift]
+[15:53:31]   anomaly score 498.0 nats   [injected: drift, channels [1, 7, 8, 9, 10]]
+[15:53:31]      ch10  broken relationship  marginal   53.27  structural  161.40  worst at t=7  <- CORRECT
+[15:53:31]       ch9  out of range         marginal  113.29  structural   13.83  worst at t=7  <- CORRECT
+[15:53:31]       ch7  broken relationship  marginal   59.68  structural   37.83  worst at t=7  <- CORRECT
+[15:53:31]    [decouple]
+[15:53:31]   anomaly score 32.2 nats   [injected: decouple, channels [2, 11]]
+[15:53:31]      ch13  broken relationship  marginal    8.41  structural    6.61  worst at t=7  <- miss
+[15:53:31]       ch8  out of range         marginal    8.46  structural   -0.44  worst at t=3  <- miss
+[15:53:31]       ch1  out of range         marginal    6.24  structural   -0.82  worst at t=7  <- miss
+[15:53:32]    [desync]
+[15:53:32]   anomaly score 56.8 nats   [injected: desync, channels [2]]
+[15:53:32]       ch2  broken relationship  marginal    3.73  structural   17.59  worst at t=7  <- CORRECT
+[15:53:32]      ch13  broken relationship  marginal    8.75  structural    8.40  worst at t=2  <- miss
+[15:53:32]       ch5  out of range         marginal    9.41  structural    1.61  worst at t=6  <- miss
+[15:53:32] --- stage explain done in 5.4s ---
+[15:53:32] === run ok · 5.5s · peak RSS 1.674 GB ===
+
+>>> [2/10] shap_samples-32 · seed 1 · logs/ts/synthetic_explain/shap_samples-32/seed1 · mean 0.1 min/run · ETA 1 min for the remaining 9
+[15:53:32] === run start · seed1 · seed 1 · hash 40d5c9744028 ===
+[15:53:32] stages ['explain'] · device cuda · dataset synthetic
+[15:53:32] --- stage: explain ---
+[15:53:32]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:32]   task: {'kind': 'ad', 'n_train': 1961, 'n_test': 1713, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.20431990921497345, 'kind_counts': {'normal': 1363, 'offset': 30, 'desync': 44, 'drift': 32, 'decouple': 31, 'spike': 38, 'organic': 175}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 1, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+[15:53:32]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll  156.276
+    [pc] epoch   5  nll   67.050
+    [pc] epoch  10  nll   55.403
+    [pc] epoch  15  nll   54.284
+    [pc] epoch  20  nll   54.049
+    [pc] epoch  25  nll   53.981
+    [pc] epoch  30  nll   53.820
+    [pc] epoch  35  nll   53.317
+[15:53:33]   pc_train_nll: first=156.2756 last=53.1062 (40 epochs)
+[15:53:33]   pc: fit 1.1s · 2,964 params · score sd 13.697 · device cuda · layered · 70,914 win/s
+[15:53:34]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 0.3s
+[15:53:34]   completeness: max residual 3.05e-05 nats, mean 2.15e-06
+[15:53:34]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[15:53:34]   worked examples (median-scoring window of each kind):
+[15:53:35]    [normal]
+[15:53:35]   anomaly score 51.2 nats
+[15:53:35]       ch8  broken relationship  marginal    4.29  structural   10.12  worst at t=6
+[15:53:35]       ch2  out of range         marginal    7.71  structural    0.54  worst at t=5
+[15:53:35]      ch10  out of range         marginal    8.06  structural   -1.60  worst at t=7
+[15:53:35]    [spike]
+[15:53:35]   anomaly score 110.3 nats   [injected: spike, channels [8]]
+[15:53:35]       ch8  out of range         marginal   72.07  structural   -5.45  worst at t=1  <- CORRECT
+[15:53:35]      ch10  out of range         marginal   12.57  structural   -0.12  worst at t=1  <- miss
+[15:53:35]       ch0  out of range         marginal    9.72  structural   -4.21  worst at t=4  <- miss
+[15:53:35]    [offset]
+[15:53:35]   anomaly score 206.0 nats   [injected: offset, channels [5, 8, 10]]
+[15:53:35]       ch5  broken relationship  marginal    5.70  structural   79.20  worst at t=4  <- CORRECT
+[15:53:35]       ch8  broken relationship  marginal   23.27  structural   20.94  worst at t=3  <- CORRECT
+[15:53:35]       ch1  out of range         marginal   13.80  structural    3.47  worst at t=7  <- miss
+[15:53:36]    [drift]
+[15:53:36]   anomaly score 214.5 nats   [injected: drift, channels [1, 6, 12]]
+[15:53:36]       ch1  broken relationship  marginal   35.23  structural   31.67  worst at t=7  <- CORRECT
+[15:53:36]      ch12  broken relationship  marginal    8.40  structural   41.02  worst at t=5  <- CORRECT
+[15:53:36]       ch6  broken relationship  marginal   20.13  structural   22.21  worst at t=7  <- CORRECT
+[15:53:36]    [decouple]
+[15:53:36]   anomaly score 55.0 nats   [injected: decouple, channels [0, 9]]
+[15:53:36]       ch3  broken relationship  marginal    2.12  structural   23.41  worst at t=4  <- miss
+[15:53:36]      ch10  out of range         marginal    7.27  structural    0.48  worst at t=1  <- miss
+[15:53:36]       ch2  out of range         marginal    7.58  structural   -1.43  worst at t=5  <- miss
+[15:53:36]    [desync]
+[15:53:36]   anomaly score 115.6 nats   [injected: desync, channels [3, 9]]
+[15:53:36]       ch9  broken relationship  marginal    9.36  structural   32.65  worst at t=1  <- CORRECT
+[15:53:36]       ch3  broken relationship  marginal    3.63  structural   25.91  worst at t=4  <- CORRECT
+[15:53:36]      ch10  out of range         marginal   10.42  structural   -0.82  worst at t=4  <- miss
+[15:53:37] --- stage explain done in 4.6s ---
+[15:53:37] === run ok · 4.6s · peak RSS 1.681 GB ===
+
+>>> [3/10] shap_samples-32 · seed 2 · logs/ts/synthetic_explain/shap_samples-32/seed2 · mean 0.1 min/run · ETA 1 min for the remaining 8
+[15:53:37] === run start · seed2 · seed 2 · hash 40d5c9744028 ===
+[15:53:37] stages ['explain'] · device cuda · dataset synthetic
+[15:53:37] --- stage: explain ---
+[15:53:37]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:37]   task: {'kind': 'ad', 'n_train': 1978, 'n_test': 1439, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.24461431801319122, 'kind_counts': {'normal': 1087, 'drift': 29, 'spike': 31, 'decouple': 26, 'desync': 24, 'organic': 211, 'offset': 31}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 2, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  158.575
+    [pc] epoch   5  nll   42.513
+    [pc] epoch  10  nll   29.303
+    [pc] epoch  15  nll   26.936
+    [pc] epoch  20  nll   26.241
+    [pc] epoch  25  nll   26.128
+    [pc] epoch  30  nll   26.020
+    [pc] epoch  35  nll   25.969
+[15:53:38]   pc_train_nll: first=158.5754 last=25.9885 (40 epochs)
+[15:53:38]   pc: fit 1.0s · 2,964 params · score sd 15.399 · device cuda · layered · 77,280 win/s
+[15:53:38]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 0.3s
+[15:53:39]   completeness: max residual 3.05e-05 nats, mean 1.70e-06
+[15:53:39]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[15:53:39]   worked examples (median-scoring window of each kind):
+[15:53:39]    [normal]
+[15:53:39]   anomaly score 25.6 nats
+[15:53:39]       ch6  out of range         marginal   10.92  structural   -1.80  worst at t=0
+[15:53:39]       ch7  out of range         marginal    7.41  structural   -0.20  worst at t=6
+[15:53:39]       ch9  out of range         marginal    7.71  structural   -1.14  worst at t=2
+[15:53:39]    [spike]
+[15:53:39]   anomaly score 80.8 nats   [injected: spike, channels [4, 5]]
+[15:53:39]       ch4  out of range         marginal   34.27  structural  -11.06  worst at t=5  <- CORRECT
+[15:53:39]      ch13  out of range         marginal    7.10  structural    1.99  worst at t=7  <- miss
+[15:53:39]       ch5  out of range         marginal   19.24  structural  -12.63  worst at t=5  <- CORRECT
+[15:53:40]    [offset]
+[15:53:40]   anomaly score 204.9 nats   [injected: offset, channels [1, 6, 13]]
+[15:53:40]       ch1  out of range         marginal   81.82  structural    9.41  worst at t=2  <- CORRECT
+[15:53:40]       ch6  broken relationship  marginal    5.34  structural   53.70  worst at t=2  <- CORRECT
+[15:53:40]      ch13  out of range         marginal   13.44  structural    3.70  worst at t=6  <- CORRECT
+[15:53:40]    [drift]
+[15:53:40]   anomaly score 222.2 nats   [injected: drift, channels [0, 4, 13]]
+[15:53:40]       ch0  broken relationship  marginal   15.69  structural  112.08  worst at t=7  <- CORRECT
+[15:53:40]       ch4  broken relationship  marginal   11.46  structural   25.55  worst at t=7  <- CORRECT
+[15:53:40]      ch13  broken relationship  marginal   14.74  structural   17.21  worst at t=7  <- CORRECT
+[15:53:41]    [decouple]
+[15:53:41]   anomaly score 30.8 nats   [injected: decouple, channels [5, 8]]
+[15:53:41]       ch3  out of range         marginal   15.19  structural   -1.42  worst at t=5  <- miss
+[15:53:41]      ch13  out of range         marginal    7.09  structural    2.29  worst at t=1  <- miss
+[15:53:41]       ch8  out of range         marginal    8.87  structural   -2.32  worst at t=6  <- CORRECT
+[15:53:41]    [desync]
+[15:53:41]   anomaly score 126.0 nats   [injected: desync, channels [3]]
+[15:53:41]       ch3  broken relationship  marginal    7.20  structural   87.68  worst at t=2  <- CORRECT
+[15:53:41]      ch11  out of range         marginal   11.45  structural   -2.36  worst at t=7  <- miss
+[15:53:41]      ch13  out of range         marginal    5.89  structural    2.43  worst at t=2  <- miss
+[15:53:41] --- stage explain done in 4.5s ---
+[15:53:41] === run ok · 4.5s · peak RSS 1.683 GB ===
+
+>>> [4/10] shap_samples-32 · seed 3 · logs/ts/synthetic_explain/shap_samples-32/seed3 · mean 0.1 min/run · ETA 1 min for the remaining 7
+[15:53:41] === run start · seed3 · seed 3 · hash 40d5c9744028 ===
+[15:53:41] stages ['explain'] · device cuda · dataset synthetic
+[15:53:41] --- stage: explain ---
+[15:53:41]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:41]   task: {'kind': 'ad', 'n_train': 2015, 'n_test': 1445, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.24013841152191162, 'kind_counts': {'normal': 1098, 'drift': 33, 'offset': 39, 'decouple': 26, 'organic': 192, 'desync': 24, 'spike': 33}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 3, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  169.468
+    [pc] epoch   5  nll   31.053
+    [pc] epoch  10  nll   16.650
+    [pc] epoch  15  nll   14.624
+    [pc] epoch  20  nll   14.102
+    [pc] epoch  25  nll   13.717
+    [pc] epoch  30  nll   13.646
+    [pc] epoch  35  nll   13.596
+[15:53:42]   pc_train_nll: first=169.4682 last=13.6285 (40 epochs)
+[15:53:42]   pc: fit 1.0s · 2,964 params · score sd 14.757 · device cuda · layered · 78,423 win/s
+[15:53:43]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 0.3s
+[15:53:43]   completeness: max residual 3.05e-05 nats, mean 3.21e-06
+[15:53:43]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[15:53:43]   worked examples (median-scoring window of each kind):
+[15:53:44]    [normal]
+[15:53:44]   anomaly score 10.5 nats
+[15:53:44]       ch6  out of range         marginal    8.44  structural    1.40  worst at t=0
+[15:53:44]       ch8  out of range         marginal   11.22  structural   -1.71  worst at t=2
+[15:53:44]       ch9  out of range         marginal    7.91  structural   -4.15  worst at t=1
+[15:53:44]    [spike]
+[15:53:44]   anomaly score 64.0 nats   [injected: spike, channels [8, 11]]
+[15:53:44]      ch11  out of range         marginal   48.08  structural  -10.72  worst at t=3  <- CORRECT
+[15:53:44]       ch8  out of range         marginal   23.66  structural   -7.65  worst at t=3  <- CORRECT
+[15:53:44]      ch13  unremarkable         marginal    3.74  structural    0.78  worst at t=3  <- miss
+[15:53:44]    [offset]
+[15:53:44]   anomaly score 244.5 nats   [injected: offset, channels [3, 7]]
+[15:53:44]       ch3  broken relationship  marginal   71.25  structural   62.80  worst at t=2  <- CORRECT
+[15:53:44]       ch7  broken relationship  marginal    5.07  structural   44.41  worst at t=2  <- CORRECT
+[15:53:44]       ch5  out of range         marginal   10.04  structural    2.53  worst at t=2  <- miss
+[15:53:45]    [drift]
+[15:53:45]   anomaly score 246.8 nats   [injected: drift, channels [4, 9, 10, 12]]
+[15:53:45]      ch10  out of range         marginal   63.19  structural   -0.07  worst at t=5  <- CORRECT
+[15:53:45]       ch4  out of range         marginal   63.61  structural   -6.01  worst at t=5  <- CORRECT
+[15:53:45]      ch12  broken relationship  marginal    9.23  structural   29.96  worst at t=5  <- CORRECT
+[15:53:45]    [decouple]
+[15:53:45]   anomaly score 17.4 nats   [injected: decouple, channels [5, 6]]
+[15:53:45]      ch13  broken relationship  marginal    2.71  structural    3.58  worst at t=5  <- miss
+[15:53:45]       ch2  out of range         marginal    7.10  structural   -0.89  worst at t=1  <- miss
+[15:53:45]       ch0  out of range         marginal    7.32  structural   -2.02  worst at t=5  <- miss
+[15:53:46]    [desync]
+[15:53:46]   anomaly score 83.4 nats   [injected: desync, channels [6]]
+[15:53:46]       ch6  broken relationship  marginal    4.97  structural   64.58  worst at t=2  <- CORRECT
+[15:53:46]       ch2  out of range         marginal   23.95  structural   -0.70  worst at t=4  <- miss
+[15:53:46]       ch3  out of range         marginal    7.66  structural   -1.53  worst at t=1  <- miss
+[15:53:46] --- stage explain done in 4.5s ---
+[15:53:46] === run ok · 4.5s · peak RSS 1.686 GB ===
+
+>>> [5/10] shap_samples-32 · seed 4 · logs/ts/synthetic_explain/shap_samples-32/seed4 · mean 0.1 min/run · ETA 0 min for the remaining 6
+[15:53:46] === run start · seed4 · seed 4 · hash 40d5c9744028 ===
+[15:53:46] stages ['explain'] · device cuda · dataset synthetic
+[15:53:46] --- stage: explain ---
+[15:53:46]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:46]   task: {'kind': 'ad', 'n_train': 1885, 'n_test': 1614, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.21933086216449738, 'kind_counts': {'normal': 1260, 'decouple': 42, 'spike': 43, 'desync': 38, 'offset': 32, 'drift': 28, 'organic': 171}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 4, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+[15:53:46]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll  166.000
+    [pc] epoch   5  nll   48.424
+    [pc] epoch  10  nll   32.792
+    [pc] epoch  15  nll   30.564
+    [pc] epoch  20  nll   29.866
+    [pc] epoch  25  nll   29.667
+    [pc] epoch  30  nll   29.468
+    [pc] epoch  35  nll   29.447
+[15:53:47]   pc_train_nll: first=165.9998 last=29.3927 (40 epochs)
+[15:53:47]   pc: fit 1.1s · 2,964 params · score sd 17.675 · device cuda · layered · 68,003 win/s
+[15:53:48]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 0.3s
+[15:53:48]   completeness: max residual 3.05e-05 nats, mean 1.43e-06
+[15:53:48]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[15:53:48]   worked examples (median-scoring window of each kind):
+[15:53:48]    [normal]
+[15:53:48]   anomaly score 27.2 nats
+[15:53:48]      ch13  broken relationship  marginal    1.03  structural   11.50  worst at t=3
+[15:53:48]       ch1  out of range         marginal    7.64  structural   -0.48  worst at t=7
+[15:53:48]       ch7  out of range         marginal    7.08  structural   -0.27  worst at t=6
+[15:53:49]    [spike]
+[15:53:49]   anomaly score 139.1 nats   [injected: spike, channels [5]]
+[15:53:49]       ch5  broken relationship  marginal   12.35  structural   86.79  worst at t=0  <- CORRECT
+[15:53:49]      ch10  broken relationship  marginal    3.92  structural   50.81  worst at t=0  <- miss
+[15:53:49]      ch11  broken relationship  marginal   -0.90  structural   31.60  worst at t=0  <- miss
+[15:53:49]    [offset]
+[15:53:49]   anomaly score 285.5 nats   [injected: offset, channels [0, 8, 9]]
+[15:53:49]       ch8  out of range         marginal  115.27  structural   19.37  worst at t=5  <- CORRECT
+[15:53:49]       ch0  out of range         marginal   62.15  structural   13.31  worst at t=3  <- CORRECT
+[15:53:49]       ch9  broken relationship  marginal   12.13  structural   34.46  worst at t=4  <- CORRECT
+[15:53:49]    [drift]
+[15:53:49]   anomaly score 292.7 nats   [injected: drift, channels [5, 12]]
+[15:53:49]       ch5  broken relationship  marginal   22.18  structural  189.05  worst at t=6  <- CORRECT
+[15:53:49]      ch12  broken relationship  marginal   43.71  structural   37.00  worst at t=6  <- CORRECT
+[15:53:49]       ch1  broken relationship  marginal   10.54  structural    8.29  worst at t=1  <- miss
+[15:53:50]    [decouple]
+[15:53:50]   anomaly score 43.7 nats   [injected: decouple, channels [4, 8]]
+[15:53:50]       ch1  out of range         marginal    9.78  structural    0.44  worst at t=4  <- miss
+[15:53:50]      ch13  out of range         marginal   10.05  structural   -1.31  worst at t=2  <- miss
+[15:53:50]       ch0  out of range         marginal    8.48  structural   -1.42  worst at t=2  <- miss
+[15:53:50]    [desync]
+[15:53:50]   anomaly score 82.9 nats   [injected: desync, channels [7, 10]]
+[15:53:50]      ch10  broken relationship  marginal    2.37  structural   51.95  worst at t=2  <- CORRECT
+[15:53:50]       ch7  broken relationship  marginal    4.96  structural    8.54  worst at t=0  <- CORRECT
+[15:53:50]       ch1  out of range         marginal    7.75  structural    3.76  worst at t=5  <- miss
+[15:53:50] --- stage explain done in 4.6s ---
+[15:53:50] === run ok · 4.7s · peak RSS 1.687 GB ===
+
+>>> [6/10] shap_samples-128 · seed 0 · logs/ts/synthetic_explain/shap_samples-128/seed0 · mean 0.1 min/run · ETA 0 min for the remaining 5
+[15:53:50] === run start · seed0 · seed 0 · hash 8da603c59cdc ===
+[15:53:50] stages ['explain'] · device cuda · dataset synthetic
+[15:53:50] --- stage: explain ---
+[15:53:50]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:50]   task: {'kind': 'ad', 'n_train': 2016, 'n_test': 1625, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.21415384113788605, 'kind_counts': {'normal': 1277, 'offset': 42, 'decouple': 38, 'drift': 29, 'spike': 35, 'desync': 30, 'organic': 174}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+[15:53:50]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll  206.370
+    [pc] epoch   5  nll   49.049
+    [pc] epoch  10  nll   35.647
+    [pc] epoch  15  nll   32.623
+    [pc] epoch  20  nll   32.005
+    [pc] epoch  25  nll   31.804
+    [pc] epoch  30  nll   31.631
+    [pc] epoch  35  nll   31.617
+[15:53:51]   pc_train_nll: first=206.3699 last=31.5714 (40 epochs)
+[15:53:51]   pc: fit 1.0s · 2,964 params · score sd 16.178 · device cuda · layered · 81,319 win/s
+[15:53:53]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 1.3s
+[15:53:53]   completeness: max residual 3.05e-05 nats, mean 1.45e-06
+[15:53:53]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[15:53:54]   worked examples (median-scoring window of each kind):
+[15:53:54]    [normal]
+[15:53:54]   anomaly score 29.1 nats
+[15:53:54]      ch13  out of range         marginal   12.59  structural   -0.49  worst at t=3
+[15:53:54]       ch0  out of range         marginal   10.11  structural   -1.66  worst at t=2
+[15:53:54]       ch8  out of range         marginal    7.59  structural   -1.06  worst at t=7
+[15:53:54]    [spike]
+[15:53:54]   anomaly score 226.8 nats   [injected: spike, channels [10]]
+[15:53:54]      ch10  broken relationship  marginal   82.26  structural  124.63  worst at t=2  <- CORRECT
+[15:53:54]       ch9  broken relationship  marginal   -2.84  structural   61.95  worst at t=2  <- miss
+[15:53:54]       ch7  broken relationship  marginal   -2.73  structural   29.98  worst at t=2  <- miss
+[15:53:55]    [offset]
+[15:53:55]   anomaly score 278.4 nats   [injected: offset, channels [1, 2, 11]]
+[15:53:55]      ch11  out of range         marginal  145.56  structural   30.94  worst at t=5  <- CORRECT
+[15:53:55]       ch1  broken relationship  marginal    7.50  structural   43.31  worst at t=7  <- CORRECT
+[15:53:55]       ch2  broken relationship  marginal    6.99  structural   25.01  worst at t=3  <- CORRECT
+[15:53:55]    [drift]
+[15:53:55]   anomaly score 498.0 nats   [injected: drift, channels [1, 7, 8, 9, 10]]
+[15:53:55]      ch10  broken relationship  marginal   53.27  structural  161.40  worst at t=7  <- CORRECT
+[15:53:55]       ch9  out of range         marginal  113.29  structural   13.83  worst at t=7  <- CORRECT
+[15:53:55]       ch7  broken relationship  marginal   59.68  structural   37.83  worst at t=7  <- CORRECT
+[15:53:55]    [decouple]
+[15:53:55]   anomaly score 32.2 nats   [injected: decouple, channels [2, 11]]
+[15:53:55]      ch13  broken relationship  marginal    8.41  structural    6.61  worst at t=7  <- miss
+[15:53:55]       ch8  out of range         marginal    8.46  structural   -0.44  worst at t=3  <- miss
+[15:53:55]       ch1  out of range         marginal    6.24  structural   -0.82  worst at t=7  <- miss
+[15:53:56]    [desync]
+[15:53:56]   anomaly score 56.8 nats   [injected: desync, channels [2]]
+[15:53:56]       ch2  broken relationship  marginal    3.73  structural   17.59  worst at t=7  <- CORRECT
+[15:53:56]      ch13  broken relationship  marginal    8.75  structural    8.40  worst at t=2  <- miss
+[15:53:56]       ch5  out of range         marginal    9.41  structural    1.61  worst at t=6  <- miss
+[15:53:56] --- stage explain done in 5.5s ---
+[15:53:56] === run ok · 5.5s · peak RSS 1.687 GB ===
+
+>>> [7/10] shap_samples-128 · seed 1 · logs/ts/synthetic_explain/shap_samples-128/seed1 · mean 0.1 min/run · ETA 0 min for the remaining 4
+[15:53:56] === run start · seed1 · seed 1 · hash 8da603c59cdc ===
+[15:53:56] stages ['explain'] · device cuda · dataset synthetic
+[15:53:56] --- stage: explain ---
+[15:53:56]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:56]   task: {'kind': 'ad', 'n_train': 1961, 'n_test': 1713, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.20431990921497345, 'kind_counts': {'normal': 1363, 'offset': 30, 'desync': 44, 'drift': 32, 'decouple': 31, 'spike': 38, 'organic': 175}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 1, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+[15:53:56]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll  156.276
+    [pc] epoch   5  nll   67.050
+    [pc] epoch  10  nll   55.403
+    [pc] epoch  15  nll   54.284
+    [pc] epoch  20  nll   54.049
+    [pc] epoch  25  nll   53.981
+    [pc] epoch  30  nll   53.820
+    [pc] epoch  35  nll   53.317
+[15:53:57]   pc_train_nll: first=156.2756 last=53.1062 (40 epochs)
+[15:53:57]   pc: fit 1.0s · 2,964 params · score sd 13.697 · device cuda · layered · 79,330 win/s
+[15:53:59]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 1.3s
+[15:53:59]   completeness: max residual 3.05e-05 nats, mean 2.15e-06
+[15:53:59]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[15:53:59]   worked examples (median-scoring window of each kind):
+[15:53:59]    [normal]
+[15:53:59]   anomaly score 51.2 nats
+[15:53:59]       ch8  broken relationship  marginal    4.29  structural   10.12  worst at t=6
+[15:53:59]       ch2  out of range         marginal    7.71  structural    0.54  worst at t=5
+[15:53:59]      ch10  out of range         marginal    8.06  structural   -1.60  worst at t=7
+[15:54:00]    [spike]
+[15:54:00]   anomaly score 110.3 nats   [injected: spike, channels [8]]
+[15:54:00]       ch8  out of range         marginal   72.07  structural   -5.45  worst at t=1  <- CORRECT
+[15:54:00]      ch10  out of range         marginal   12.57  structural   -0.12  worst at t=1  <- miss
+[15:54:00]       ch0  out of range         marginal    9.72  structural   -4.21  worst at t=4  <- miss
+[15:54:00]    [offset]
+[15:54:00]   anomaly score 206.0 nats   [injected: offset, channels [5, 8, 10]]
+[15:54:00]       ch5  broken relationship  marginal    5.70  structural   79.20  worst at t=4  <- CORRECT
+[15:54:00]       ch8  broken relationship  marginal   23.27  structural   20.94  worst at t=3  <- CORRECT
+[15:54:00]       ch1  out of range         marginal   13.80  structural    3.47  worst at t=7  <- miss
+[15:54:01]    [drift]
+[15:54:01]   anomaly score 214.5 nats   [injected: drift, channels [1, 6, 12]]
+[15:54:01]       ch1  broken relationship  marginal   35.23  structural   31.67  worst at t=7  <- CORRECT
+[15:54:01]      ch12  broken relationship  marginal    8.40  structural   41.02  worst at t=5  <- CORRECT
+[15:54:01]       ch6  broken relationship  marginal   20.13  structural   22.21  worst at t=7  <- CORRECT
+[15:54:01]    [decouple]
+[15:54:01]   anomaly score 55.0 nats   [injected: decouple, channels [0, 9]]
+[15:54:01]       ch3  broken relationship  marginal    2.12  structural   23.41  worst at t=4  <- miss
+[15:54:01]      ch10  out of range         marginal    7.27  structural    0.48  worst at t=1  <- miss
+[15:54:01]       ch2  out of range         marginal    7.58  structural   -1.43  worst at t=5  <- miss
+[15:54:01]    [desync]
+[15:54:01]   anomaly score 115.6 nats   [injected: desync, channels [3, 9]]
+[15:54:01]       ch9  broken relationship  marginal    9.36  structural   32.65  worst at t=1  <- CORRECT
+[15:54:01]       ch3  broken relationship  marginal    3.63  structural   25.91  worst at t=4  <- CORRECT
+[15:54:01]      ch10  out of range         marginal   10.42  structural   -0.82  worst at t=4  <- miss
+[15:54:01] --- stage explain done in 5.5s ---
+[15:54:01] === run ok · 5.5s · peak RSS 1.696 GB ===
+
+>>> [8/10] shap_samples-128 · seed 2 · logs/ts/synthetic_explain/shap_samples-128/seed2 · mean 0.1 min/run · ETA 0 min for the remaining 3
+[15:54:01] === run start · seed2 · seed 2 · hash 8da603c59cdc ===
+[15:54:01] stages ['explain'] · device cuda · dataset synthetic
+[15:54:01] --- stage: explain ---
+[15:54:01]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:54:01]   task: {'kind': 'ad', 'n_train': 1978, 'n_test': 1439, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.24461431801319122, 'kind_counts': {'normal': 1087, 'drift': 29, 'spike': 31, 'decouple': 26, 'desync': 24, 'organic': 211, 'offset': 31}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 2, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  158.575
+    [pc] epoch   5  nll   42.513
+    [pc] epoch  10  nll   29.303
+    [pc] epoch  15  nll   26.936
+    [pc] epoch  20  nll   26.241
+    [pc] epoch  25  nll   26.128
+    [pc] epoch  30  nll   26.020
+    [pc] epoch  35  nll   25.969
+[15:54:03]   pc_train_nll: first=158.5754 last=25.9885 (40 epochs)
+[15:54:03]   pc: fit 1.1s · 2,964 params · score sd 15.399 · device cuda · layered · 72,443 win/s
+[15:54:04]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 1.3s
+[15:54:04]   completeness: max residual 3.05e-05 nats, mean 1.70e-06
+[15:54:05]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[15:54:05]   worked examples (median-scoring window of each kind):
+[15:54:05]    [normal]
+[15:54:05]   anomaly score 25.6 nats
+[15:54:05]       ch6  out of range         marginal   10.92  structural   -1.80  worst at t=0
+[15:54:05]       ch7  out of range         marginal    7.41  structural   -0.20  worst at t=6
+[15:54:05]       ch9  out of range         marginal    7.71  structural   -1.14  worst at t=2
+[15:54:05]    [spike]
+[15:54:05]   anomaly score 80.8 nats   [injected: spike, channels [4, 5]]
+[15:54:05]       ch4  out of range         marginal   34.27  structural  -11.06  worst at t=5  <- CORRECT
+[15:54:05]      ch13  out of range         marginal    7.10  structural    1.99  worst at t=7  <- miss
+[15:54:05]       ch5  out of range         marginal   19.24  structural  -12.63  worst at t=5  <- CORRECT
+[15:54:06]    [offset]
+[15:54:06]   anomaly score 204.9 nats   [injected: offset, channels [1, 6, 13]]
+[15:54:06]       ch1  out of range         marginal   81.82  structural    9.41  worst at t=2  <- CORRECT
+[15:54:06]       ch6  broken relationship  marginal    5.34  structural   53.70  worst at t=2  <- CORRECT
+[15:54:06]      ch13  out of range         marginal   13.44  structural    3.70  worst at t=6  <- CORRECT
+[15:54:06]    [drift]
+[15:54:06]   anomaly score 222.2 nats   [injected: drift, channels [0, 4, 13]]
+[15:54:06]       ch0  broken relationship  marginal   15.69  structural  112.08  worst at t=7  <- CORRECT
+[15:54:06]       ch4  broken relationship  marginal   11.46  structural   25.55  worst at t=7  <- CORRECT
+[15:54:06]      ch13  broken relationship  marginal   14.74  structural   17.21  worst at t=7  <- CORRECT
+[15:54:06]    [decouple]
+[15:54:06]   anomaly score 30.8 nats   [injected: decouple, channels [5, 8]]
+[15:54:06]       ch3  out of range         marginal   15.19  structural   -1.42  worst at t=5  <- miss
+[15:54:06]      ch13  out of range         marginal    7.09  structural    2.29  worst at t=1  <- miss
+[15:54:06]       ch8  out of range         marginal    8.87  structural   -2.32  worst at t=6  <- CORRECT
+[15:54:07]    [desync]
+[15:54:07]   anomaly score 126.0 nats   [injected: desync, channels [3]]
+[15:54:07]       ch3  broken relationship  marginal    7.20  structural   87.68  worst at t=2  <- CORRECT
+[15:54:07]      ch11  out of range         marginal   11.45  structural   -2.36  worst at t=7  <- miss
+[15:54:07]      ch13  out of range         marginal    5.89  structural    2.43  worst at t=2  <- miss
+[15:54:07] --- stage explain done in 5.6s ---
+[15:54:07] === run ok · 5.6s · peak RSS 1.696 GB ===
+
+>>> [9/10] shap_samples-128 · seed 3 · logs/ts/synthetic_explain/shap_samples-128/seed3 · mean 0.1 min/run · ETA 0 min for the remaining 2
+[15:54:07] === run start · seed3 · seed 3 · hash 8da603c59cdc ===
+[15:54:07] stages ['explain'] · device cuda · dataset synthetic
+[15:54:07] --- stage: explain ---
+[15:54:07]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:54:07]   task: {'kind': 'ad', 'n_train': 2015, 'n_test': 1445, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.24013841152191162, 'kind_counts': {'normal': 1098, 'drift': 33, 'offset': 39, 'decouple': 26, 'organic': 192, 'desync': 24, 'spike': 33}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 3, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  169.468
+    [pc] epoch   5  nll   31.053
+    [pc] epoch  10  nll   16.650
+    [pc] epoch  15  nll   14.624
+    [pc] epoch  20  nll   14.102
+    [pc] epoch  25  nll   13.717
+    [pc] epoch  30  nll   13.646
+    [pc] epoch  35  nll   13.596
+[15:54:08]   pc_train_nll: first=169.4682 last=13.6285 (40 epochs)
+[15:54:08]   pc: fit 1.0s · 2,964 params · score sd 14.757 · device cuda · layered · 81,631 win/s
+[15:54:10]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 1.3s
+[15:54:10]   completeness: max residual 3.05e-05 nats, mean 3.21e-06
+[15:54:10]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[15:54:10]   worked examples (median-scoring window of each kind):
+[15:54:10]    [normal]
+[15:54:10]   anomaly score 10.5 nats
+[15:54:10]       ch6  out of range         marginal    8.44  structural    1.40  worst at t=0
+[15:54:10]       ch8  out of range         marginal   11.22  structural   -1.71  worst at t=2
+[15:54:10]       ch9  out of range         marginal    7.91  structural   -4.15  worst at t=1
+[15:54:11]    [spike]
+[15:54:11]   anomaly score 64.0 nats   [injected: spike, channels [8, 11]]
+[15:54:11]      ch11  out of range         marginal   48.08  structural  -10.72  worst at t=3  <- CORRECT
+[15:54:11]       ch8  out of range         marginal   23.66  structural   -7.65  worst at t=3  <- CORRECT
+[15:54:11]      ch13  unremarkable         marginal    3.74  structural    0.78  worst at t=3  <- miss
+[15:54:11]    [offset]
+[15:54:11]   anomaly score 244.5 nats   [injected: offset, channels [3, 7]]
+[15:54:11]       ch3  broken relationship  marginal   71.25  structural   62.80  worst at t=2  <- CORRECT
+[15:54:11]       ch7  broken relationship  marginal    5.07  structural   44.41  worst at t=2  <- CORRECT
+[15:54:11]       ch5  out of range         marginal   10.04  structural    2.53  worst at t=2  <- miss
+[15:54:12]    [drift]
+[15:54:12]   anomaly score 246.8 nats   [injected: drift, channels [4, 9, 10, 12]]
+[15:54:12]      ch10  out of range         marginal   63.19  structural   -0.07  worst at t=5  <- CORRECT
+[15:54:12]       ch4  out of range         marginal   63.61  structural   -6.01  worst at t=5  <- CORRECT
+[15:54:12]      ch12  broken relationship  marginal    9.23  structural   29.96  worst at t=5  <- CORRECT
+[15:54:12]    [decouple]
+[15:54:12]   anomaly score 17.4 nats   [injected: decouple, channels [5, 6]]
+[15:54:12]      ch13  broken relationship  marginal    2.71  structural    3.58  worst at t=5  <- miss
+[15:54:12]       ch2  out of range         marginal    7.10  structural   -0.89  worst at t=1  <- miss
+[15:54:12]       ch0  out of range         marginal    7.32  structural   -2.02  worst at t=5  <- miss
+[15:54:12]    [desync]
+[15:54:12]   anomaly score 83.4 nats   [injected: desync, channels [6]]
+[15:54:12]       ch6  broken relationship  marginal    4.97  structural   64.58  worst at t=2  <- CORRECT
+[15:54:12]       ch2  out of range         marginal   23.95  structural   -0.70  worst at t=4  <- miss
+[15:54:12]       ch3  out of range         marginal    7.66  structural   -1.53  worst at t=1  <- miss
+[15:54:12] --- stage explain done in 5.5s ---
+[15:54:12] === run ok · 5.5s · peak RSS 1.696 GB ===
+
+>>> [10/10] shap_samples-128 · seed 4 · logs/ts/synthetic_explain/shap_samples-128/seed4 · mean 0.1 min/run · ETA 0 min for the remaining 1
+[15:54:12] === run start · seed4 · seed 4 · hash 8da603c59cdc ===
+[15:54:12] stages ['explain'] · device cuda · dataset synthetic
+[15:54:12] --- stage: explain ---
+[15:54:13]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:54:13]   task: {'kind': 'ad', 'n_train': 1885, 'n_test': 1614, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.21933086216449738, 'kind_counts': {'normal': 1260, 'decouple': 42, 'spike': 43, 'desync': 38, 'offset': 32, 'drift': 28, 'organic': 171}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 4, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+[15:54:13]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll  166.000
+    [pc] epoch   5  nll   48.424
+    [pc] epoch  10  nll   32.792
+    [pc] epoch  15  nll   30.564
+    [pc] epoch  20  nll   29.866
+    [pc] epoch  25  nll   29.667
+    [pc] epoch  30  nll   29.468
+    [pc] epoch  35  nll   29.447
+[15:54:14]   pc_train_nll: first=165.9998 last=29.3927 (40 epochs)
+[15:54:14]   pc: fit 1.0s · 2,964 params · score sd 17.675 · device cuda · layered · 73,598 win/s
+[15:54:15]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 1.3s
+[15:54:16]   completeness: max residual 3.05e-05 nats, mean 1.43e-06
+[15:54:16]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[15:54:16]   worked examples (median-scoring window of each kind):
+[15:54:16]    [normal]
+[15:54:16]   anomaly score 27.2 nats
+[15:54:16]      ch13  broken relationship  marginal    1.03  structural   11.50  worst at t=3
+[15:54:16]       ch1  out of range         marginal    7.64  structural   -0.48  worst at t=7
+[15:54:16]       ch7  out of range         marginal    7.08  structural   -0.27  worst at t=6
+[15:54:16]    [spike]
+[15:54:16]   anomaly score 139.1 nats   [injected: spike, channels [5]]
+[15:54:16]       ch5  broken relationship  marginal   12.35  structural   86.79  worst at t=0  <- CORRECT
+[15:54:16]      ch10  broken relationship  marginal    3.92  structural   50.81  worst at t=0  <- miss
+[15:54:16]      ch11  broken relationship  marginal   -0.90  structural   31.60  worst at t=0  <- miss
+[15:54:17]    [offset]
+[15:54:17]   anomaly score 285.5 nats   [injected: offset, channels [0, 8, 9]]
+[15:54:17]       ch8  out of range         marginal  115.27  structural   19.37  worst at t=5  <- CORRECT
+[15:54:17]       ch0  out of range         marginal   62.15  structural   13.31  worst at t=3  <- CORRECT
+[15:54:17]       ch9  broken relationship  marginal   12.13  structural   34.46  worst at t=4  <- CORRECT
+[15:54:17]    [drift]
+[15:54:17]   anomaly score 292.7 nats   [injected: drift, channels [5, 12]]
+[15:54:17]       ch5  broken relationship  marginal   22.18  structural  189.05  worst at t=6  <- CORRECT
+[15:54:17]      ch12  broken relationship  marginal   43.71  structural   37.00  worst at t=6  <- CORRECT
+[15:54:17]       ch1  broken relationship  marginal   10.54  structural    8.29  worst at t=1  <- miss
+[15:54:18]    [decouple]
+[15:54:18]   anomaly score 43.7 nats   [injected: decouple, channels [4, 8]]
+[15:54:18]       ch1  out of range         marginal    9.78  structural    0.44  worst at t=4  <- miss
+[15:54:18]      ch13  out of range         marginal   10.05  structural   -1.31  worst at t=2  <- miss
+[15:54:18]       ch0  out of range         marginal    8.48  structural   -1.42  worst at t=2  <- miss
+[15:54:18]    [desync]
+[15:54:18]   anomaly score 82.9 nats   [injected: desync, channels [7, 10]]
+[15:54:18]      ch10  broken relationship  marginal    2.37  structural   51.95  worst at t=2  <- CORRECT
+[15:54:18]       ch7  broken relationship  marginal    4.96  structural    8.54  worst at t=0  <- CORRECT
+[15:54:18]       ch1  out of range         marginal    7.75  structural    3.76  worst at t=5  <- miss
+[15:54:18] --- stage explain done in 5.5s ---
+[15:54:18] === run ok · 5.6s · peak RSS 1.698 GB ===
+
+==============================================================================
+ batch finished in 0.9 min — 10 ok, 0 skipped, 0 failed
+==============================================================================
+
+=== explain (mean ± sd over seeds) ===
+
+method                           variant                           loc_auroc          prec_at_k       deletion_auc  max_residual_nats mean_residual_nats loc_auroc[decouple]  loc_auroc[desync]   loc_auroc[drift]  seeds
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+PC conditional (exact)           shap_samples-32               0.9058±0.0134      0.7620±0.0451      0.4308±0.1215                  —                  —      0.6101±0.0634      0.8354±0.0837      0.9734±0.0079      5
+PC conditional (exact)           shap_samples-128              0.9058±0.0134      0.7620±0.0451      0.4308±0.1215                  —                  —      0.6101±0.0634      0.8354±0.0837      0.9734±0.0079      5
+PC Shapley (exact conditionals)  shap_samples-32               0.9040±0.0126      0.7608±0.0475      0.4506±0.1085                  —                  —      0.5994±0.0541      0.8176±0.0820      0.9770±0.0132      5
+PC Shapley (exact conditionals)  shap_samples-128              0.9040±0.0126      0.7608±0.0475      0.4506±0.1085                  —                  —      0.5994±0.0541      0.8176±0.0820      0.9770±0.0132      5
+AE reconstruction (per channel)  shap_samples-32               0.8821±0.0245      0.7124±0.0591      0.5450±0.0813                  —                  —      0.6581±0.0409      0.7929±0.0508      0.9311±0.0409      5
+AE reconstruction (per channel)  shap_samples-128              0.8821±0.0245      0.7124±0.0591      0.5450±0.0813                  —                  —      0.6581±0.0409      0.7929±0.0508      0.9311±0.0409      5
+PC marginal (exact)              shap_samples-32               0.8432±0.0122      0.5922±0.0270      0.4224±0.1353                  —                  —      0.5700±0.0457      0.5129±0.0507      0.9693±0.0191      5
+PC marginal (exact)              shap_samples-128              0.8432±0.0122      0.5922±0.0270      0.4224±0.1353                  —                  —      0.5700±0.0457      0.5129±0.0507      0.9693±0.0191      5
+Gaussian conditional (exact)     shap_samples-32               0.7793±0.0286      0.6850±0.0567      0.5909±0.0663                  —                  —      0.7682±0.0198      0.7458±0.0636      0.7954±0.0892      5
+Gaussian conditional (exact)     shap_samples-128              0.7793±0.0286      0.6850±0.0567      0.5909±0.0663                  —                  —      0.7682±0.0198      0.7458±0.0636      0.7954±0.0892      5
+z-score (per channel)            shap_samples-32               0.7760±0.0132      0.5225±0.0251      0.6411±0.0711                  —                  —      0.5338±0.0267      0.5051±0.0377      0.8643±0.0193      5
+z-score (per channel)            shap_samples-128              0.7760±0.0132      0.5225±0.0251      0.6411±0.0711                  —                  —      0.5338±0.0267      0.5051±0.0377      0.8643±0.0193      5
+PC structural (exact)            shap_samples-32               0.7699±0.0913      0.6221±0.0572      0.4998±0.1048                  —                  —      0.6410±0.1034      0.8661±0.0551      0.7607±0.1207      5
+PC structural (exact)            shap_samples-128              0.7699±0.0913      0.6221±0.0572      0.4998±0.1048                  —                  —      0.6410±0.1034      0.8661±0.0551      0.7607±0.1207      5
+AE sampling-SHAP (32/ch)         shap_samples-32               0.5127±0.0290      0.1317±0.0256      0.7692±0.0343                  —                  —      0.4701±0.0382      0.4926±0.0397      0.5004±0.0434      5
+AE sampling-SHAP (128/ch)        shap_samples-128              0.5103±0.0276      0.1293±0.0282      0.7684±0.0321                  —                  —      0.4661±0.0199      0.4878±0.0429      0.4954±0.0374      5
+PC chain-rule completeness       shap_samples-32                           —                  —                  —   3.052e-05±0e+00    1.987e-06±7e-07                   —                  —                  —      5
+PC chain-rule completeness       shap_samples-128                          —                  —                  —   3.052e-05±0e+00    1.987e-06±7e-07                   —                  —                  —      5
+
+wrote logs/ts/synthetic_explain/summary.csv, summary.json, summary.md
+

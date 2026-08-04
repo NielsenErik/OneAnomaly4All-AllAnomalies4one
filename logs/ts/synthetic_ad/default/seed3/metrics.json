@@ -45,50 +45,50 @@
     },
     "typed": {
       "normal": {
-        "marginal": 11.872306823730469,
-        "conditional": 10.603394508361816,
-        "structural": 1.6210426092147827,
+        "marginal": 11.872312545776367,
+        "conditional": 10.60339641571045,
+        "structural": 1.6210319995880127,
         "n": 1098
       },
       "decouple": {
-        "marginal": 11.8072509765625,
-        "conditional": 21.94727897644043,
-        "structural": 13.384552955627441,
+        "marginal": 11.807247161865234,
+        "conditional": 21.947261810302734,
+        "structural": 13.384523391723633,
         "n": 26
       },
       "desync": {
-        "marginal": 10.841034889221191,
-        "conditional": 103.39334869384766,
-        "structural": 98.67623138427734,
+        "marginal": 10.841055870056152,
+        "conditional": 103.38469696044922,
+        "structural": 98.66757202148438,
         "n": 24
       },
       "drift": {
-        "marginal": 57.893497467041016,
-        "conditional": 68.52758026123047,
-        "structural": 39.06336975097656,
+        "marginal": 57.89316177368164,
+        "conditional": 68.52764892578125,
+        "structural": 39.06354904174805,
         "n": 33
       },
       "offset": {
-        "marginal": 66.60481262207031,
-        "conditional": 114.49292755126953,
-        "structural": 74.55764770507812,
+        "marginal": 66.60476684570312,
+        "conditional": 114.49251556396484,
+        "structural": 74.55738067626953,
         "n": 39
       },
       "organic": {
-        "marginal": 62.17085266113281,
-        "conditional": 78.8792953491211,
-        "structural": 54.77228927612305,
+        "marginal": 62.1706428527832,
+        "conditional": 78.8791732788086,
+        "structural": 54.7723274230957,
         "n": 192
       },
       "spike": {
-        "marginal": 46.34184265136719,
-        "conditional": 63.30794143676758,
-        "structural": 25.607839584350586,
+        "marginal": 46.3416633605957,
+        "conditional": 63.308624267578125,
+        "structural": 25.608448028564453,
         "n": 33
       }
     }
   },
   "_timing": {
-    "ad": 146.98
+    "ad": 2.05
   }
 }

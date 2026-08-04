@@ -1,0 +1,21 @@
+[15:40:42] === run start · seed4 · seed 4 · hash 66c3ad1082d7 ===
+[15:40:42] stages ['calibration'] · device cuda · dataset cmapss:FD002
+[15:40:42] --- stage: calibration ---
+[15:40:42]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[15:40:42]   task: {'kind': 'rul', 'n_train': 22197, 'n_test': 14599, 'd': 420, 'window': 20, 'n_channels': 21, 'n_bins': 25, 'cap': 125.0, 'censored_frac': 0.1904311180114746, 'train_units': 260, 'test_units': 259, 'censored_units': 70, 'n_regimes': 3, 'seed': 4, 'per_regime_norm': True, 'test_windows': 'all', 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+[15:40:42]   conformal split: 15903 fit windows / 4916 calibration windows (260 units total)
+    [surv] epoch   0  censored-NLL 9922.478
+    [surv] epoch   7  censored-NLL  337.504
+    [surv] epoch  14  censored-NLL  320.112
+    [surv] epoch  21  censored-NLL  299.974
+    survival fit (censored): 27/60 (45%) · 0.87 it/s · elapsed 00:30 · ETA 00:37
+    [surv] epoch  28  censored-NLL  274.944
+    [surv] epoch  35  censored-NLL  264.520
+    [surv] epoch  42  censored-NLL  264.181
+    [surv] epoch  49  censored-NLL  262.773
+    survival fit (censored): 54/60 (90%) · 0.87 it/s · elapsed 01:01 · ETA 00:06
+    [surv] epoch  56  censored-NLL  257.190
+    survival fit (censored): done 60/60 in 01:08
+[15:41:54]   surv_conformal_nll: first=9922.4779 last=257.3926 (60 epochs)
+[15:41:54]   surv_conformal: fit 71.6s · 46,236 params
+[15:41:56] !!! FAILED after 73.8s: DegenerateModelError: degenerate predictive: E[tau|x] has sd 0.00e+00 over 14599 inputs — p(tau|x) is effectively independent of x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses easily), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.

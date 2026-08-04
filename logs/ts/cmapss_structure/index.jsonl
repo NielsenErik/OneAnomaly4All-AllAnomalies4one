@@ -1,0 +1,3 @@
+{"experiment": "cmapss_structure", "variant": "vtree-chain", "seed": 0, "run_dir": "vtree-chain/seed0", "status": "ok", "wall_s": 9.9, "config_hash": "13f8128816b0", "finished": "2026-08-04T15:57:16"}
+{"experiment": "cmapss_structure", "variant": "vtree-chain", "seed": 1, "run_dir": "vtree-chain/seed1", "status": "ok", "wall_s": 8.7, "config_hash": "13f8128816b0", "finished": "2026-08-04T15:57:25"}
+{"experiment": "cmapss_structure", "variant": "vtree-chain", "seed": 2, "run_dir": "vtree-chain/seed2", "status": "ok", "wall_s": 8.7, "config_hash": "13f8128816b0", "finished": "2026-08-04T15:57:34"}

@@ -45,50 +45,50 @@
     },
     "typed": {
       "normal": {
-        "marginal": 12.12978744506836,
-        "conditional": 12.548869132995605,
-        "structural": 3.9615283012390137,
+        "marginal": 12.129768371582031,
+        "conditional": 12.548893928527832,
+        "structural": 3.96156907081604,
         "n": 1087
       },
       "decouple": {
-        "marginal": 12.021439552307129,
-        "conditional": 21.60323715209961,
-        "structural": 13.674600601196289,
+        "marginal": 12.021368026733398,
+        "conditional": 21.602983474731445,
+        "structural": 13.674386978149414,
         "n": 26
       },
       "desync": {
-        "marginal": 13.551837921142578,
-        "conditional": 107.45623779296875,
-        "structural": 103.3530502319336,
+        "marginal": 13.551841735839844,
+        "conditional": 107.45883178710938,
+        "structural": 103.35570526123047,
         "n": 24
       },
       "drift": {
-        "marginal": 46.239566802978516,
-        "conditional": 90.35486602783203,
-        "structural": 60.77964782714844,
+        "marginal": 46.24052047729492,
+        "conditional": 90.3639907836914,
+        "structural": 60.78799819946289,
         "n": 29
       },
       "offset": {
-        "marginal": 46.409549713134766,
-        "conditional": 109.78469848632812,
-        "structural": 80.9308853149414,
+        "marginal": 46.410640716552734,
+        "conditional": 109.78579711914062,
+        "structural": 80.93154907226562,
         "n": 31
       },
       "organic": {
-        "marginal": 49.647769927978516,
-        "conditional": 77.16625213623047,
-        "structural": 52.7354850769043,
+        "marginal": 49.64756774902344,
+        "conditional": 77.16494750976562,
+        "structural": 52.735591888427734,
         "n": 211
       },
       "spike": {
-        "marginal": 28.902053833007812,
-        "conditional": 48.8685417175293,
-        "structural": 26.459701538085938,
+        "marginal": 28.90220832824707,
+        "conditional": 48.8703727722168,
+        "structural": 26.461545944213867,
         "n": 31
       }
     }
   },
   "_timing": {
-    "ad": 140.64
+    "ad": 2.01
   }
 }

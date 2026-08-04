@@ -1,0 +1,25 @@
+[15:27:22] === run start · seed1 · seed 1 · hash 3cbe88633507 ===
+[15:27:22] stages ['calibration'] · device cuda · dataset cmapss:FD001
+[15:27:22] --- stage: calibration ---
+[15:27:22]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.1s)
+[15:27:22]   task: {'kind': 'rul', 'n_train': 8295, 'n_test': 5625, 'd': 300, 'window': 20, 'n_channels': 15, 'n_bins': 25, 'cap': 125.0, 'censored_frac': 0.2788426876068115, 'train_units': 100, 'test_units': 100, 'censored_units': 38, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'test_windows': 'all', 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+[15:27:22]   conformal split: 5748 fit windows / 1879 calibration windows (100 units total)
+    [surv] epoch   0  censored-NLL 26763.807
+    [surv] epoch   7  censored-NLL  206.358
+    [surv] epoch  14  censored-NLL  198.869
+    [surv] epoch  21  censored-NLL  198.458
+    [surv] epoch  28  censored-NLL  196.232
+    survival fit (censored): 31/60 (52%) · 1.03 it/s · elapsed 00:30 · ETA 00:28
+    [surv] epoch  35  censored-NLL  195.051
+    [surv] epoch  42  censored-NLL  194.707
+    [surv] epoch  49  censored-NLL  194.341
+    [surv] epoch  56  censored-NLL  194.190
+    survival fit (censored): done 60/60 in 00:56
+[15:28:24]   surv_conformal_nll: first=26763.8068 last=193.9567 (60 epochs)
+[15:28:24]   surv_conformal: fit 62.1s · 43,356 params
+[15:28:27]   conformal[cqr] a=0.10: PICP 0.953 (nominal 0.90), MPIW 55.2 (raw PICP 0.375, MPIW 50.2)
+[15:28:30]   conformal[pit] a=0.10: PICP 0.383 (nominal 0.90), MPIW 54.4 (raw PICP 0.375, MPIW 50.2)
+[15:28:35]   conformal[cqr] a=0.20: PICP 0.953 (nominal 0.80), MPIW 55.2 (raw PICP 0.375, MPIW 50.2)
+[15:28:37]   conformal[pit] a=0.20: PICP 0.340 (nominal 0.80), MPIW 45.1 (raw PICP 0.375, MPIW 50.2)
+[15:28:38] --- stage calibration done in 76.3s ---
+[15:28:38] === run ok · 76.3s · peak RSS 1.758 GB ===

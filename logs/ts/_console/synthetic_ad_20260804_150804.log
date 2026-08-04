@@ -1,0 +1,174 @@
+==============================================================================
+ experiment: synthetic_ad   (config/ts/synthetic_ad.yaml)
+ Detection on the C-MAPSS-shaped simulator: circuit vs the full baseline
+ output:     logs/ts/synthetic_ad
+==============================================================================
+
+1 variant(s) × 5 seed(s) = 5 run(s)
+
+  default                                dataset=synthetic        stages=ad
+
+
+>>> [1/5] default · seed 0 · logs/ts/synthetic_ad/default/seed0
+[15:53:14] === run start · seed0 · seed 0 · hash e0065d8ae969 ===
+[15:53:14] stages ['ad'] · device cuda · dataset synthetic
+[15:53:14] --- stage: ad ---
+[15:53:14]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:14]   task: {'kind': 'ad', 'n_train': 2016, 'n_test': 1625, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.21415384113788605, 'kind_counts': {'normal': 1277, 'offset': 42, 'decouple': 38, 'drift': 29, 'spike': 35, 'desync': 30, 'organic': 174}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  206.370
+    [pc] epoch   5  nll   49.049
+    [pc] epoch  10  nll   35.647
+    [pc] epoch  15  nll   32.623
+    [pc] epoch  20  nll   32.005
+    [pc] epoch  25  nll   31.804
+    [pc] epoch  30  nll   31.631
+    [pc] epoch  35  nll   31.617
+[15:53:16]   pc_train_nll: first=206.3699 last=31.5714 (40 epochs)
+[15:53:16]   pc: fit 1.7s · 2,964 params · score sd 16.178 · device cuda · layered · 46,929 win/s
+[15:53:17]   typed decomposition (mean worst-channel surprise):
+[15:53:17]        normal  n= 1277  marginal    12.35  conditional    13.29  structural     3.82
+[15:53:17]      decouple  n=   38  marginal    12.08  conditional    35.64  structural    27.01
+[15:53:17]        desync  n=   30  marginal    12.48  conditional   128.54  structural   122.88
+[15:53:17]         drift  n=   29  marginal   105.62  conditional   182.89  structural   112.67
+[15:53:17]        offset  n=   42  marginal    85.64  conditional   174.56  structural   103.63
+[15:53:17]       organic  n=  174  marginal    74.44  conditional   101.92  structural    73.84
+[15:53:17]         spike  n=   35  marginal    85.24  conditional   153.15  structural    75.51
+[15:53:17] --- stage ad done in 3.4s ---
+[15:53:17] === run ok · 3.4s · peak RSS 1.737 GB ===
+
+>>> [2/5] default · seed 1 · logs/ts/synthetic_ad/default/seed1 · mean 0.1 min/run · ETA 0 min for the remaining 4
+[15:53:17] === run start · seed1 · seed 1 · hash e0065d8ae969 ===
+[15:53:17] stages ['ad'] · device cuda · dataset synthetic
+[15:53:17] --- stage: ad ---
+[15:53:17]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:17]   task: {'kind': 'ad', 'n_train': 1961, 'n_test': 1713, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.20431990921497345, 'kind_counts': {'normal': 1363, 'offset': 30, 'desync': 44, 'drift': 32, 'decouple': 31, 'spike': 38, 'organic': 175}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 1, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  156.276
+    [pc] epoch   5  nll   67.050
+    [pc] epoch  10  nll   55.403
+    [pc] epoch  15  nll   54.284
+    [pc] epoch  20  nll   54.049
+    [pc] epoch  25  nll   53.981
+    [pc] epoch  30  nll   53.820
+    [pc] epoch  35  nll   53.317
+[15:53:18]   pc_train_nll: first=156.2756 last=53.1062 (40 epochs)
+[15:53:18]   pc: fit 1.0s · 2,964 params · score sd 13.697 · device cuda · layered · 76,112 win/s
+[15:53:19]   typed decomposition (mean worst-channel surprise):
+[15:53:19]        normal  n= 1363  marginal    12.14  conditional    13.65  structural     4.93
+[15:53:19]      decouple  n=   31  marginal    11.31  conditional    24.39  structural    16.24
+[15:53:19]        desync  n=   44  marginal    13.17  conditional    90.01  structural    84.45
+[15:53:19]         drift  n=   32  marginal    47.57  conditional    92.20  structural    65.49
+[15:53:19]        offset  n=   30  marginal    45.26  conditional   104.12  structural    76.07
+[15:53:19]       organic  n=  175  marginal    67.42  conditional   111.47  structural    96.73
+[15:53:19]         spike  n=   38  marginal    40.05  conditional    77.18  structural    44.39
+[15:53:19] --- stage ad done in 2.1s ---
+[15:53:19] === run ok · 2.1s · peak RSS 1.742 GB ===
+
+>>> [3/5] default · seed 2 · logs/ts/synthetic_ad/default/seed2 · mean 0.0 min/run · ETA 0 min for the remaining 3
+[15:53:19] === run start · seed2 · seed 2 · hash e0065d8ae969 ===
+[15:53:19] stages ['ad'] · device cuda · dataset synthetic
+[15:53:19] --- stage: ad ---
+[15:53:19]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:19]   task: {'kind': 'ad', 'n_train': 1978, 'n_test': 1439, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.24461431801319122, 'kind_counts': {'normal': 1087, 'drift': 29, 'spike': 31, 'decouple': 26, 'desync': 24, 'organic': 211, 'offset': 31}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 2, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  158.575
+    [pc] epoch   5  nll   42.513
+    [pc] epoch  10  nll   29.303
+    [pc] epoch  15  nll   26.936
+    [pc] epoch  20  nll   26.241
+    [pc] epoch  25  nll   26.128
+    [pc] epoch  30  nll   26.020
+    [pc] epoch  35  nll   25.969
+[15:53:20]   pc_train_nll: first=158.5754 last=25.9885 (40 epochs)
+[15:53:20]   pc: fit 1.0s · 2,964 params · score sd 15.399 · device cuda · layered · 76,782 win/s
+[15:53:21]   typed decomposition (mean worst-channel surprise):
+[15:53:21]        normal  n= 1087  marginal    12.13  conditional    12.55  structural     3.96
+[15:53:21]      decouple  n=   26  marginal    12.02  conditional    21.60  structural    13.67
+[15:53:21]        desync  n=   24  marginal    13.55  conditional   107.46  structural   103.36
+[15:53:21]         drift  n=   29  marginal    46.24  conditional    90.36  structural    60.79
+[15:53:21]        offset  n=   31  marginal    46.41  conditional   109.79  structural    80.93
+[15:53:21]       organic  n=  211  marginal    49.65  conditional    77.16  structural    52.74
+[15:53:21]         spike  n=   31  marginal    28.90  conditional    48.87  structural    26.46
+[15:53:21] --- stage ad done in 2.0s ---
+[15:53:21] === run ok · 2.0s · peak RSS 1.744 GB ===
+
+>>> [4/5] default · seed 3 · logs/ts/synthetic_ad/default/seed3 · mean 0.0 min/run · ETA 0 min for the remaining 2
+[15:53:21] === run start · seed3 · seed 3 · hash e0065d8ae969 ===
+[15:53:21] stages ['ad'] · device cuda · dataset synthetic
+[15:53:21] --- stage: ad ---
+[15:53:21]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:21]   task: {'kind': 'ad', 'n_train': 2015, 'n_test': 1445, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.24013841152191162, 'kind_counts': {'normal': 1098, 'drift': 33, 'offset': 39, 'decouple': 26, 'organic': 192, 'desync': 24, 'spike': 33}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 3, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  169.468
+    [pc] epoch   5  nll   31.053
+    [pc] epoch  10  nll   16.650
+    [pc] epoch  15  nll   14.624
+    [pc] epoch  20  nll   14.102
+    [pc] epoch  25  nll   13.717
+    [pc] epoch  30  nll   13.646
+    [pc] epoch  35  nll   13.596
+[15:53:22]   pc_train_nll: first=169.4682 last=13.6285 (40 epochs)
+[15:53:22]   pc: fit 1.1s · 2,964 params · score sd 14.757 · device cuda · layered · 73,526 win/s
+[15:53:23]   typed decomposition (mean worst-channel surprise):
+[15:53:23]        normal  n= 1098  marginal    11.87  conditional    10.60  structural     1.62
+[15:53:23]      decouple  n=   26  marginal    11.81  conditional    21.95  structural    13.38
+[15:53:23]        desync  n=   24  marginal    10.84  conditional   103.38  structural    98.67
+[15:53:23]         drift  n=   33  marginal    57.89  conditional    68.53  structural    39.06
+[15:53:23]        offset  n=   39  marginal    66.60  conditional   114.49  structural    74.56
+[15:53:23]       organic  n=  192  marginal    62.17  conditional    78.88  structural    54.77
+[15:53:23]         spike  n=   33  marginal    46.34  conditional    63.31  structural    25.61
+[15:53:23] --- stage ad done in 2.1s ---
+[15:53:23] === run ok · 2.1s · peak RSS 1.745 GB ===
+
+>>> [5/5] default · seed 4 · logs/ts/synthetic_ad/default/seed4 · mean 0.0 min/run · ETA 0 min for the remaining 1
+[15:53:23] === run start · seed4 · seed 4 · hash e0065d8ae969 ===
+[15:53:23] stages ['ad'] · device cuda · dataset synthetic
+[15:53:23] --- stage: ad ---
+[15:53:23]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:23]   task: {'kind': 'ad', 'n_train': 1885, 'n_test': 1614, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.21933086216449738, 'kind_counts': {'normal': 1260, 'decouple': 42, 'spike': 43, 'desync': 38, 'offset': 32, 'drift': 28, 'organic': 171}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 4, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  166.000
+    [pc] epoch   5  nll   48.424
+    [pc] epoch  10  nll   32.792
+    [pc] epoch  15  nll   30.564
+    [pc] epoch  20  nll   29.866
+    [pc] epoch  25  nll   29.667
+    [pc] epoch  30  nll   29.468
+    [pc] epoch  35  nll   29.447
+[15:53:24]   pc_train_nll: first=165.9998 last=29.3927 (40 epochs)
+[15:53:24]   pc: fit 1.0s · 2,964 params · score sd 17.675 · device cuda · layered · 73,118 win/s
+[15:53:25]   typed decomposition (mean worst-channel surprise):
+[15:53:25]        normal  n= 1260  marginal    11.76  conditional    12.58  structural     3.76
+[15:53:25]      decouple  n=   42  marginal    13.00  conditional    50.39  structural    40.41
+[15:53:25]        desync  n=   38  marginal    11.50  conditional   124.22  structural   121.03
+[15:53:25]         drift  n=   28  marginal    62.31  conditional   113.38  structural    68.63
+[15:53:25]        offset  n=   32  marginal    54.79  conditional   161.67  structural   125.20
+[15:53:25]       organic  n=  171  marginal    80.54  conditional   100.19  structural    56.51
+[15:53:25]         spike  n=   43  marginal    52.53  conditional   115.29  structural    68.01
+[15:53:25] --- stage ad done in 2.1s ---
+[15:53:25] === run ok · 2.1s · peak RSS 1.746 GB ===
+
+==============================================================================
+ batch finished in 0.2 min — 5 ok, 0 skipped, 0 failed
+==============================================================================
+
+=== ad (mean ± sd over seeds) ===
+
+method                                                   auroc                 ap          train_nll              fit_s             params    auroc[decouple]      auroc[desync]       auroc[drift]  seeds
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+conv autoencoder                                 0.9553±0.0108      0.9413±0.0154                  —      1.0077±0.8626                  —      0.6647±0.0404      0.8540±0.0540      0.9978±0.0029      5
+RegionGraphPC [chain, K=6]                       0.9487±0.0113      0.9306±0.0154     30.2447±13.9386     58.2010±67.6538   2964.0000±0.0000      0.6221±0.0335      0.8629±0.0478      0.9986±0.0020      5
+1-NN distance                                    0.9446±0.0123      0.9229±0.0215                  —      0.0590±0.0444                  —      0.5941±0.0473      0.8354±0.0667      0.9918±0.0060      5
+Mahalanobis                                      0.9443±0.0108      0.9224±0.0147                  —      0.0401±0.0147                  —      0.6615±0.0338      0.7915±0.0609      0.9897±0.0103      5
+PC · structural-only score                       0.9443±0.0106      0.9193±0.0152                  —                  —                  —      0.6801±0.0255      0.8964±0.0406      0.9836±0.0144      5
+PC · 3 dead (exact marginal)                     0.9364±0.0151      0.9122±0.0205                  —                  —                  —      0.6132±0.0558      0.8176±0.0495      0.9904±0.0103      5
+Deep SVDD                                        0.9194±0.0202      0.8819±0.0318                  —      0.0876±0.0498                  —      0.5457±0.0511      0.7479±0.0763      0.9551±0.0284      5
+PC · 3 dead (mean-imputed)                       0.8975±0.0162      0.8572±0.0216                  —                  —                  —      0.5407±0.0869      0.7565±0.0664      0.9384±0.0531      5
+z-score (per channel)                            0.8669±0.0189      0.7879±0.0490                  —      0.0212±0.0093                  —      0.4662±0.0547      0.4965±0.1088      0.9359±0.0443      5
+Isolation Forest                                 0.8440±0.0147      0.7471±0.0250                  —      0.1724±0.0692                  —      0.5123±0.0533      0.6742±0.0773      0.8446±0.0391      5
+PCA reconstruction                               0.8431±0.0151      0.7500±0.0335                  —      0.0263±0.0116                  —      0.4721±0.0542      0.6511±0.0797      0.8191±0.0277      5
+z-score (per channel) · 3 dead (imputed)         0.8374±0.0268      0.7448±0.0355                  —                  —                  —      0.4705±0.0431      0.4792±0.1103      0.9219±0.0486      5
+diagonal Gaussian                                0.8323±0.0433      0.7620±0.0573                  —      0.0240±0.0113                  —      0.4937±0.0619      0.4914±0.0794      0.8845±0.0321      5
+GMM (8 comp.)                                    0.8041±0.0050      0.4540±0.0192                  —      0.2280±0.1999                  —      0.6316±0.0311      0.6982±0.0484      0.8234±0.0120      5
+diagonal Gaussian · 3 dead (imputed)             0.7963±0.0748      0.7246±0.0757                  —                  —                  —      0.4844±0.0495      0.4848±0.0878      0.8536±0.0166      5
+moving-average residual                          0.7529±0.0181      0.5284±0.0329                  —      0.1078±0.0493                  —      0.5598±0.0839      0.5516±0.0746      0.8711±0.0549      5
+moving-average residual · 3 dead (imputed)       0.7308±0.0306      0.5044±0.0278                  —                  —                  —      0.5463±0.0834      0.5341±0.0726      0.8497±0.0615      5
+
+wrote logs/ts/synthetic_ad/summary.csv, summary.json, summary.md
+

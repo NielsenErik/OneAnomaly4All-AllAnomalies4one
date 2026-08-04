@@ -1,0 +1,67 @@
+{
+  "task_rul": {
+    "kind": "rul",
+    "n_train": 8778,
+    "n_test": 5625,
+    "d": 300,
+    "window": 20,
+    "n_channels": 15,
+    "n_bins": 25,
+    "cap": 125.0,
+    "censored_frac": 0.1418318748474121,
+    "train_units": 100,
+    "test_units": 100,
+    "censored_units": 20,
+    "n_regimes": 3,
+    "seed": 1,
+    "per_regime_norm": true,
+    "test_windows": "all",
+    "official_test_fleet": true,
+    "dataset": "cmapss:FD001",
+    "subset": "FD001",
+    "dropped_constant_sensors": 6,
+    "source": "NASA C-MAPSS (real)"
+  },
+  "rul": {
+    "partial_evidence": {
+      "n_dead": 3,
+      "crps_full": 8.947263071565073,
+      "crps_exact_marginal": 8.994579400965181,
+      "crps_imputed": 19.689786360670695,
+      "rmse_full": 20.95865538569558,
+      "rmse_exact_marginal": 21.024770117067746,
+      "rmse_imputed": 39.479731491978285,
+      "picp_exact_marginal": 0.3678222222222222,
+      "picp_imputed": 0.4343111111111111
+    },
+    "survival": {
+      "0-20": {
+        "S(20)": 0.3821011185646057,
+        "S(40)": 0.07631798833608627,
+        "S(60)": 0.024904634803533554,
+        "n": 55
+      },
+      "20-50": {
+        "S(20)": 0.9019209146499634,
+        "S(40)": 0.6415446400642395,
+        "S(60)": 0.40222078561782837,
+        "n": 372
+      },
+      "50-90": {
+        "S(20)": 0.9938846826553345,
+        "S(40)": 0.9372925758361816,
+        "S(60)": 0.834430456161499,
+        "n": 836
+      },
+      "90-126": {
+        "S(20)": 0.9997900128364563,
+        "S(40)": 0.9922181963920593,
+        "S(60)": 0.950833797454834,
+        "n": 4362
+      }
+    }
+  },
+  "_timing": {
+    "rul": 66.05
+  }
+}

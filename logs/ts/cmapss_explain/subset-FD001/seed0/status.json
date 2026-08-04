@@ -1,9 +1,9 @@
 {
   "status": "ok",
   "seed": 0,
-  "config_hash": "916efea32637",
-  "updated": "2026-08-04T11:32:39",
-  "wall_s": 37.25,
-  "peak_rss_gb": 1.818,
+  "config_hash": "6a52336af508",
+  "updated": "2026-08-04T15:18:04",
+  "wall_s": 28.36,
+  "peak_rss_gb": 1.834,
   "peak_gpu_gb": 0.422
 }

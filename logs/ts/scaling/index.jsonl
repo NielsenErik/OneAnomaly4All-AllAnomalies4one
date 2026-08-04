@@ -1,0 +1,2 @@
+{"experiment": "scaling", "variant": "K-4", "seed": 0, "run_dir": "K-4/seed0", "status": "ok", "wall_s": 43.1, "config_hash": "807b86f0f273", "finished": "2026-08-04T15:56:26"}
+{"experiment": "scaling", "variant": "K-6", "seed": 0, "run_dir": "K-6/seed0", "status": "ok", "wall_s": 38.7, "config_hash": "65fc3feb1803", "finished": "2026-08-04T15:57:05"}

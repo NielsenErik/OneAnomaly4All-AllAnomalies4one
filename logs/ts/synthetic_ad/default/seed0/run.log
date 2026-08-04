@@ -8,3 +8,28 @@
     [pc] epoch  10  nll   35.647
     [pc] epoch  15  nll   32.623
 [17:02:57] !!! FAILED after 50.8s: KeyboardInterrupt: 
+[15:53:14] === run start · seed0 · seed 0 · hash e0065d8ae969 ===
+[15:53:14] stages ['ad'] · device cuda · dataset synthetic
+[15:53:14] --- stage: ad ---
+[15:53:14]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:14]   task: {'kind': 'ad', 'n_train': 2016, 'n_test': 1625, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.21415384113788605, 'kind_counts': {'normal': 1277, 'offset': 42, 'decouple': 38, 'drift': 29, 'spike': 35, 'desync': 30, 'organic': 174}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  206.370
+    [pc] epoch   5  nll   49.049
+    [pc] epoch  10  nll   35.647
+    [pc] epoch  15  nll   32.623
+    [pc] epoch  20  nll   32.005
+    [pc] epoch  25  nll   31.804
+    [pc] epoch  30  nll   31.631
+    [pc] epoch  35  nll   31.617
+[15:53:16]   pc_train_nll: first=206.3699 last=31.5714 (40 epochs)
+[15:53:16]   pc: fit 1.7s · 2,964 params · score sd 16.178 · device cuda · layered · 46,929 win/s
+[15:53:17]   typed decomposition (mean worst-channel surprise):
+[15:53:17]        normal  n= 1277  marginal    12.35  conditional    13.29  structural     3.82
+[15:53:17]      decouple  n=   38  marginal    12.08  conditional    35.64  structural    27.01
+[15:53:17]        desync  n=   30  marginal    12.48  conditional   128.54  structural   122.88
+[15:53:17]         drift  n=   29  marginal   105.62  conditional   182.89  structural   112.67
+[15:53:17]        offset  n=   42  marginal    85.64  conditional   174.56  structural   103.63
+[15:53:17]       organic  n=  174  marginal    74.44  conditional   101.92  structural    73.84
+[15:53:17]         spike  n=   35  marginal    85.24  conditional   153.15  structural    75.51
+[15:53:17] --- stage ad done in 3.4s ---
+[15:53:17] === run ok · 3.4s · peak RSS 1.737 GB ===

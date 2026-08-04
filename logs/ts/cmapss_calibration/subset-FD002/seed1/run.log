@@ -1,0 +1,28 @@
+[15:35:46] === run start · seed1 · seed 1 · hash 66c3ad1082d7 ===
+[15:35:46] stages ['calibration'] · device cuda · dataset cmapss:FD002
+[15:35:46] --- stage: calibration ---
+[15:35:46]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[15:35:46]   task: {'kind': 'rul', 'n_train': 21373, 'n_test': 14599, 'd': 420, 'window': 20, 'n_channels': 21, 'n_bins': 25, 'cap': 125.0, 'censored_frac': 0.26875030994415283, 'train_units': 260, 'test_units': 259, 'censored_units': 96, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'test_windows': 'all', 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+[15:35:46]   conformal split: 14876 fit windows / 4950 calibration windows (260 units total)
+    [surv] epoch   0  censored-NLL 10313.894
+    [surv] epoch   7  censored-NLL  350.012
+    survival fit (censored): 13/60 (22%) · 0.42 it/s · elapsed 00:31 · ETA 01:52
+    [surv] epoch  14  censored-NLL  342.981
+    [surv] epoch  21  censored-NLL  323.221
+    survival fit (censored): 25/60 (42%) · 0.40 it/s · elapsed 01:01 · ETA 01:26
+    [surv] epoch  28  censored-NLL  315.510
+    [surv] epoch  35  censored-NLL  298.683
+    survival fit (censored): 37/60 (62%) · 0.40 it/s · elapsed 01:32 · ETA 00:57
+    [surv] epoch  42  censored-NLL  293.721
+    [surv] epoch  49  censored-NLL  282.945
+    survival fit (censored): 51/60 (85%) · 0.41 it/s · elapsed 02:03 · ETA 00:21
+    [surv] epoch  56  censored-NLL  281.244
+    survival fit (censored): done 60/60 in 02:13
+[15:38:07]   surv_conformal_nll: first=10313.8938 last=283.5173 (60 epochs)
+[15:38:07]   surv_conformal: fit 140.2s · 46,236 params
+[15:38:11]   conformal[cqr] a=0.10: PICP 0.995 (nominal 0.90), MPIW 110.4 (raw PICP 0.429, MPIW 105.4)
+[15:38:13]   conformal[pit] a=0.10: PICP 0.436 (nominal 0.90), MPIW 109.7 (raw PICP 0.429, MPIW 105.4)
+[15:38:20]   conformal[cqr] a=0.20: PICP 0.995 (nominal 0.80), MPIW 110.4 (raw PICP 0.429, MPIW 105.4)
+[15:38:22]   conformal[pit] a=0.20: PICP 0.419 (nominal 0.80), MPIW 98.8 (raw PICP 0.429, MPIW 105.4)
+[15:38:24] --- stage calibration done in 158.0s ---
+[15:38:24] === run ok · 158.0s · peak RSS 1.949 GB ===

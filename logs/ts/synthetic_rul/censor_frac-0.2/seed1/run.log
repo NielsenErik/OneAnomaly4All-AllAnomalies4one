@@ -1,0 +1,35 @@
+[15:54:28] === run start · seed1 · seed 1 · hash 7896df384015 ===
+[15:54:28] stages ['rul'] · device cuda · dataset synthetic
+[15:54:28] --- stage: rul ---
+[15:54:28]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:54:28]   task: {'kind': 'rul', 'n_train': 2555, 'n_test': 1170, 'd': 112, 'window': 8, 'n_channels': 14, 'n_bins': 20, 'cap': 130.0, 'censored_frac': 0.11780822277069092, 'train_units': 36, 'test_units': 24, 'censored_units': 6, 'n_regimes': 3, 'seed': 1, 'dataset': 'synthetic', 'source': 'synthetic simulator', 'units': 60}
+    [surv] epoch   0  censored-NLL  156.063
+    [surv] epoch   7  censored-NLL  135.774
+    [surv] epoch  14  censored-NLL  130.963
+    [surv] epoch  21  censored-NLL  129.433
+    [surv] epoch  28  censored-NLL  128.810
+    [surv] epoch  35  censored-NLL  128.265
+    [surv] epoch  42  censored-NLL  128.155
+    [surv] epoch  49  censored-NLL  128.045
+    [surv] epoch  56  censored-NLL  127.946
+[15:54:31]   surv_dropped_nll: first=156.0630 last=127.8945 (60 epochs)
+[15:54:31]   surv_dropped: fit 2.8s · 16,320 params
+    [surv] epoch   0  censored-NLL  153.626
+    [surv] epoch   7  censored-NLL  134.814
+    [surv] epoch  14  censored-NLL  129.836
+    [surv] epoch  21  censored-NLL  129.059
+    [surv] epoch  28  censored-NLL  128.772
+    [surv] epoch  35  censored-NLL  128.256
+    [surv] epoch  42  censored-NLL  128.010
+    [surv] epoch  49  censored-NLL  127.959
+    [surv] epoch  56  censored-NLL  127.831
+[15:54:36]   surv_censored_nll: first=153.6258 last=127.8172 (60 epochs)
+[15:54:36]   surv_censored: fit 4.9s · 16,320 params
+[15:54:37]   partial evidence (3 dead): CRPS exact-marginal 13.977 vs imputed 14.035 (full 14.079)
+[15:54:37]   exact survival S(t|x), grouped by TRUE remaining life:
+[15:54:37]     RUL   0-20  n=  126  S(20)=0.287  S(40)=0.130  S(60)=0.067
+[15:54:37]     RUL  20-50  n=  190  S(20)=0.842  S(40)=0.602  S(60)=0.432
+[15:54:37]     RUL  50-90  n=  254  S(20)=0.979  S(40)=0.895  S(60)=0.769
+[15:54:37]     RUL  90-131 n=  600  S(20)=0.998  S(40)=0.982  S(60)=0.944
+[15:54:37] --- stage rul done in 8.9s ---
+[15:54:37] === run ok · 8.9s · peak RSS 1.576 GB ===

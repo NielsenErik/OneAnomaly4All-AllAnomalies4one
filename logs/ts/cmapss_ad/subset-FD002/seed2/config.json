@@ -1,6 +1,6 @@
 {
   "seed": 2,
-  "config_hash": "66cfa58bf9d8",
+  "config_hash": "89a282faf327",
   "name": "cmapss_ad",
   "device": "auto",
   "evaluator": "layered",
@@ -78,6 +78,8 @@
       "desync"
     ],
     "alpha": 0.1,
+    "alphas": [],
+    "test_protocols": [],
     "censoring_ablation": true,
     "conformal": true,
     "conformal_modes": [

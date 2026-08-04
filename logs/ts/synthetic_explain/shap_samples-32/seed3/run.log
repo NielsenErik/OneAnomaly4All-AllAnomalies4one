@@ -1,0 +1,51 @@
+[15:53:41] === run start · seed3 · seed 3 · hash 40d5c9744028 ===
+[15:53:41] stages ['explain'] · device cuda · dataset synthetic
+[15:53:41] --- stage: explain ---
+[15:53:41]   data: FleetPair(synthetic: train=60 units, C=14, regimes=3, cap=130)  (0.1s)
+[15:53:41]   task: {'kind': 'ad', 'n_train': 2015, 'n_test': 1445, 'd': 112, 'window': 8, 'n_channels': 14, 'anomaly_rate': 0.24013841152191162, 'kind_counts': {'normal': 1098, 'drift': 33, 'offset': 39, 'decouple': 26, 'organic': 192, 'desync': 24, 'spike': 33}, 'train_units': 36, 'test_units': 24, 'n_regimes': 3, 'seed': 3, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 60}
+    [pc] epoch   0  nll  169.468
+    [pc] epoch   5  nll   31.053
+    [pc] epoch  10  nll   16.650
+    [pc] epoch  15  nll   14.624
+    [pc] epoch  20  nll   14.102
+    [pc] epoch  25  nll   13.717
+    [pc] epoch  30  nll   13.646
+    [pc] epoch  35  nll   13.596
+[15:53:42]   pc_train_nll: first=169.4682 last=13.6285 (40 epochs)
+[15:53:42]   pc: fit 1.0s · 2,964 params · score sd 14.757 · device cuda · layered · 78,423 win/s
+[15:53:43]   attribution cost: PC exact (all views) 0.2s · AE sampling-SHAP (one view) 0.3s
+[15:53:43]   completeness: max residual 3.05e-05 nats, mean 3.21e-06
+[15:53:43]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[15:53:43]   worked examples (median-scoring window of each kind):
+[15:53:44]    [normal]
+[15:53:44]   anomaly score 10.5 nats
+[15:53:44]       ch6  out of range         marginal    8.44  structural    1.40  worst at t=0
+[15:53:44]       ch8  out of range         marginal   11.22  structural   -1.71  worst at t=2
+[15:53:44]       ch9  out of range         marginal    7.91  structural   -4.15  worst at t=1
+[15:53:44]    [spike]
+[15:53:44]   anomaly score 64.0 nats   [injected: spike, channels [8, 11]]
+[15:53:44]      ch11  out of range         marginal   48.08  structural  -10.72  worst at t=3  <- CORRECT
+[15:53:44]       ch8  out of range         marginal   23.66  structural   -7.65  worst at t=3  <- CORRECT
+[15:53:44]      ch13  unremarkable         marginal    3.74  structural    0.78  worst at t=3  <- miss
+[15:53:44]    [offset]
+[15:53:44]   anomaly score 244.5 nats   [injected: offset, channels [3, 7]]
+[15:53:44]       ch3  broken relationship  marginal   71.25  structural   62.80  worst at t=2  <- CORRECT
+[15:53:44]       ch7  broken relationship  marginal    5.07  structural   44.41  worst at t=2  <- CORRECT
+[15:53:44]       ch5  out of range         marginal   10.04  structural    2.53  worst at t=2  <- miss
+[15:53:45]    [drift]
+[15:53:45]   anomaly score 246.8 nats   [injected: drift, channels [4, 9, 10, 12]]
+[15:53:45]      ch10  out of range         marginal   63.19  structural   -0.07  worst at t=5  <- CORRECT
+[15:53:45]       ch4  out of range         marginal   63.61  structural   -6.01  worst at t=5  <- CORRECT
+[15:53:45]      ch12  broken relationship  marginal    9.23  structural   29.96  worst at t=5  <- CORRECT
+[15:53:45]    [decouple]
+[15:53:45]   anomaly score 17.4 nats   [injected: decouple, channels [5, 6]]
+[15:53:45]      ch13  broken relationship  marginal    2.71  structural    3.58  worst at t=5  <- miss
+[15:53:45]       ch2  out of range         marginal    7.10  structural   -0.89  worst at t=1  <- miss
+[15:53:45]       ch0  out of range         marginal    7.32  structural   -2.02  worst at t=5  <- miss
+[15:53:46]    [desync]
+[15:53:46]   anomaly score 83.4 nats   [injected: desync, channels [6]]
+[15:53:46]       ch6  broken relationship  marginal    4.97  structural   64.58  worst at t=2  <- CORRECT
+[15:53:46]       ch2  out of range         marginal   23.95  structural   -0.70  worst at t=4  <- miss
+[15:53:46]       ch3  out of range         marginal    7.66  structural   -1.53  worst at t=1  <- miss
+[15:53:46] --- stage explain done in 4.5s ---
+[15:53:46] === run ok · 4.5s · peak RSS 1.686 GB ===

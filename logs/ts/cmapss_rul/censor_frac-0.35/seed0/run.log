@@ -1,0 +1,37 @@
+[15:45:16] === run start · seed0 · seed 0 · hash 91291f805c32 ===
+[15:45:16] stages ['rul'] · device cuda · dataset cmapss:FD001
+[15:45:16] --- stage: rul ---
+[15:45:16]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.1s)
+[15:45:16]   task: {'kind': 'rul', 'n_train': 8391, 'n_test': 5625, 'd': 300, 'window': 20, 'n_channels': 15, 'n_bins': 25, 'cap': 125.0, 'censored_frac': 0.2173757553100586, 'train_units': 100, 'test_units': 100, 'censored_units': 30, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'test_windows': 'all', 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+    [surv] epoch   0  censored-NLL 6223.289
+    [surv] epoch   7  censored-NLL  176.226
+    [surv] epoch  14  censored-NLL  173.293
+    [surv] epoch  21  censored-NLL  172.262
+    [surv] epoch  28  censored-NLL  171.625
+    [surv] epoch  35  censored-NLL  171.464
+    [surv] epoch  42  censored-NLL  171.232
+    [surv] epoch  49  censored-NLL  171.130
+    [surv] epoch  56  censored-NLL  171.079
+[15:45:34]   surv_dropped_nll: first=6223.2891 last=171.1524 (60 epochs)
+[15:45:34]   surv_dropped: fit 18.1s · 43,356 params
+    [surv] epoch   0  censored-NLL 6312.228
+    [surv] epoch   7  censored-NLL  172.720
+    [surv] epoch  14  censored-NLL  170.288
+    [surv] epoch  21  censored-NLL  169.818
+    [surv] epoch  28  censored-NLL  169.474
+    [surv] epoch  35  censored-NLL  169.090
+    [surv] epoch  42  censored-NLL  168.850
+    [surv] epoch  49  censored-NLL  168.742
+    survival fit (censored): 51/60 (85%) · 1.68 it/s · elapsed 00:30 · ETA 00:05
+    [surv] epoch  56  censored-NLL  168.611
+    survival fit (censored): done 60/60 in 00:35
+[15:46:12]   surv_censored_nll: first=6312.2276 last=168.6106 (60 epochs)
+[15:46:12]   surv_censored: fit 37.0s · 43,356 params
+[15:46:17]   partial evidence (3 dead): CRPS exact-marginal 7.760 vs imputed 34.120 (full 7.637)
+[15:46:17]   exact survival S(t|x), grouped by TRUE remaining life:
+[15:46:17]     RUL   0-20  n=   55  S(20)=0.406  S(40)=0.112  S(60)=0.024
+[15:46:17]     RUL  20-50  n=  372  S(20)=0.930  S(40)=0.656  S(60)=0.415
+[15:46:17]     RUL  50-90  n=  836  S(20)=0.997  S(40)=0.942  S(60)=0.831
+[15:46:17]     RUL  90-126 n= 4362  S(20)=1.000  S(40)=0.993  S(60)=0.968
+[15:46:17] --- stage rul done in 61.1s ---
+[15:46:17] === run ok · 61.2s · peak RSS 1.872 GB ===

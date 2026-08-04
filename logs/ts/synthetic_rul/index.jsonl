@@ -1,0 +1,12 @@
+{"experiment": "synthetic_rul", "variant": "censor_frac-0.2", "seed": 0, "run_dir": "censor_frac-0.2/seed0", "status": "ok", "wall_s": 9.2, "config_hash": "7896df384015", "finished": "2026-08-04T15:54:28"}
+{"experiment": "synthetic_rul", "variant": "censor_frac-0.2", "seed": 1, "run_dir": "censor_frac-0.2/seed1", "status": "ok", "wall_s": 8.9, "config_hash": "7896df384015", "finished": "2026-08-04T15:54:37"}
+{"experiment": "synthetic_rul", "variant": "censor_frac-0.2", "seed": 2, "run_dir": "censor_frac-0.2/seed2", "status": "ok", "wall_s": 8.0, "config_hash": "7896df384015", "finished": "2026-08-04T15:54:45"}
+{"experiment": "synthetic_rul", "variant": "censor_frac-0.35", "seed": 0, "run_dir": "censor_frac-0.35/seed0", "status": "ok", "wall_s": 7.1, "config_hash": "55c71e6e8526", "finished": "2026-08-04T15:54:52"}
+{"experiment": "synthetic_rul", "variant": "censor_frac-0.35", "seed": 1, "run_dir": "censor_frac-0.35/seed1", "status": "ok", "wall_s": 7.3, "config_hash": "55c71e6e8526", "finished": "2026-08-04T15:55:00"}
+{"experiment": "synthetic_rul", "variant": "censor_frac-0.35", "seed": 2, "run_dir": "censor_frac-0.35/seed2", "status": "ok", "wall_s": 7.1, "config_hash": "55c71e6e8526", "finished": "2026-08-04T15:55:07"}
+{"experiment": "synthetic_rul", "variant": "censor_frac-0.5", "seed": 0, "run_dir": "censor_frac-0.5/seed0", "status": "ok", "wall_s": 6.0, "config_hash": "7485c6f97865", "finished": "2026-08-04T15:55:13"}
+{"experiment": "synthetic_rul", "variant": "censor_frac-0.5", "seed": 1, "run_dir": "censor_frac-0.5/seed1", "status": "ok", "wall_s": 6.1, "config_hash": "7485c6f97865", "finished": "2026-08-04T15:55:19"}
+{"experiment": "synthetic_rul", "variant": "censor_frac-0.5", "seed": 2, "run_dir": "censor_frac-0.5/seed2", "status": "ok", "wall_s": 7.2, "config_hash": "7485c6f97865", "finished": "2026-08-04T15:55:26"}
+{"experiment": "synthetic_rul", "variant": "censor_frac-0.7", "seed": 0, "run_dir": "censor_frac-0.7/seed0", "status": "ok", "wall_s": 5.3, "config_hash": "3db373377a00", "finished": "2026-08-04T15:55:31"}
+{"experiment": "synthetic_rul", "variant": "censor_frac-0.7", "seed": 1, "run_dir": "censor_frac-0.7/seed1", "status": "ok", "wall_s": 5.9, "config_hash": "3db373377a00", "finished": "2026-08-04T15:55:37"}
+{"experiment": "synthetic_rul", "variant": "censor_frac-0.7", "seed": 2, "run_dir": "censor_frac-0.7/seed2", "status": "ok", "wall_s": 5.2, "config_hash": "3db373377a00", "finished": "2026-08-04T15:55:42"}

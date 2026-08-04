@@ -1,0 +1,11 @@
+{
+  "status": "failed",
+  "seed": 4,
+  "config_hash": "66c3ad1082d7",
+  "updated": "2026-08-04T15:41:56",
+  "wall_s": 73.77,
+  "peak_rss_gb": 1.949,
+  "peak_gpu_gb": 0.651,
+  "error": "DegenerateModelError: degenerate predictive: E[tau|x] has sd 0.00e+00 over 14599 inputs \u2014 p(tau|x) is effectively independent of x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses easily), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/runner.py\", line 183, in main\n    run_stages(v, seed, log)\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 756, in run_stages\n    results[stage] = STAGE_FNS[stage](cfg, seed, log)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 653, in stage_calibration\n    raw = _eval_survival(pc, task, alpha)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 409, in _eval_survival\n    pred = pc.predict(task.X_test)                    # raises if degenerate (\u00a73)\n           ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/circuits.py\", line 793, in predict\n    raise DegenerateModelError(\npoc.time_series.circuits.DegenerateModelError: degenerate predictive: E[tau|x] has sd 0.00e+00 over 14599 inputs \u2014 p(tau|x) is effectively independent of x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses easily), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.\n"
+}

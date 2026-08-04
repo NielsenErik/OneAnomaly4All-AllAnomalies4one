@@ -53,3 +53,19 @@
     [surv] epoch   0  censored-NLL 12319.598
     survival fit (censored): 1/60 (2%) · 0.03 it/s · elapsed 00:35 · ETA 34:57
     survival fit (censored): 2/60 (3%) · 0.03 it/s · elapsed 01:09 · ETA 33:33
+    survival fit (censored): 3/60 (5%) · 0.03 it/s · elapsed 01:42 · ETA 32:29
+    survival fit (censored): 4/60 (7%) · 0.03 it/s · elapsed 02:15 · ETA 31:40
+    survival fit (censored): 5/60 (8%) · 0.03 it/s · elapsed 02:49 · ETA 31:01
+    survival fit (censored): 6/60 (10%) · 0.03 it/s · elapsed 03:23 · ETA 30:35
+    survival fit (censored): 7/60 (12%) · 0.03 it/s · elapsed 03:58 · ETA 30:05
+    [surv] epoch   7  censored-NLL  179.026
+    survival fit (censored): 8/60 (13%) · 0.03 it/s · elapsed 04:33 · ETA 29:36
+    survival fit (censored): 9/60 (15%) · 0.03 it/s · elapsed 05:07 · ETA 29:03
+    survival fit (censored): 10/60 (17%) · 0.03 it/s · elapsed 05:42 · ETA 28:31
+    survival fit (censored): 11/60 (18%) · 0.03 it/s · elapsed 06:17 · ETA 28:00
+    survival fit (censored): 12/60 (20%) · 0.03 it/s · elapsed 06:51 · ETA 27:27
+    survival fit (censored): 13/60 (22%) · 0.03 it/s · elapsed 07:26 · ETA 26:54
+    survival fit (censored): 14/60 (23%) · 0.03 it/s · elapsed 08:01 · ETA 26:21
+    [surv] epoch  14  censored-NLL  175.126
+    survival fit (censored): 15/60 (25%) · 0.03 it/s · elapsed 08:35 · ETA 25:47
+    survival fit (censored): 16/60 (27%) · 0.03 it/s · elapsed 09:10 · ETA 25:14

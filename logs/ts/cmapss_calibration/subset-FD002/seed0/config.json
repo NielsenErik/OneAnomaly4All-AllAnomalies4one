@@ -1,0 +1,108 @@
+{
+  "seed": 0,
+  "config_hash": "66c3ad1082d7",
+  "name": "cmapss_calibration",
+  "device": "auto",
+  "evaluator": "layered",
+  "stages": [
+    "calibration"
+  ],
+  "skip_if_missing_data": true,
+  "dataset": {
+    "source": "cmapss",
+    "window": 20,
+    "stride": 2,
+    "cap": 125,
+    "healthy_frac": 0.35,
+    "organic_frac": 0.85,
+    "inject_rate": 0.12,
+    "strength": 1.0,
+    "train_units": 0.6,
+    "per_regime": "auto",
+    "max_test_windows": null,
+    "units": 60,
+    "channels": 14,
+    "regimes": 3,
+    "groups": 3,
+    "dead_channels": 2,
+    "noise": 0.1,
+    "group_noise": 0.25,
+    "phi_ar": 0.85,
+    "subset": "FD002",
+    "official_test": true,
+    "dataset": "DS02",
+    "aggregate": "cycle",
+    "subsample": 10,
+    "channels_groups": [
+      "X_s"
+    ],
+    "max_units": null,
+    "max_rows": null,
+    "cache": true,
+    "data_dir": null,
+    "censor_frac": 0.35,
+    "bins": 25,
+    "rul_stride": 2,
+    "rul_test_windows": "all"
+  },
+  "model": {
+    "vtree": "chain",
+    "K": 8,
+    "leaf_components": 1,
+    "epochs": 50,
+    "lr": 0.05,
+    "batch_size": 256,
+    "delta": false,
+    "sos": false,
+    "weight_jitter": 0.5,
+    "tau_where": "deep",
+    "rul_K": 12,
+    "rul_epochs": 60
+  },
+  "eval": {
+    "fast_baselines": false,
+    "baselines": true,
+    "missing": true,
+    "n_dead": 3,
+    "typed": true,
+    "shapley_orders": 8,
+    "shap_samples": 32,
+    "deletion": true,
+    "n_complete": 64,
+    "max_explain_windows": 1500,
+    "kinds": [
+      "spike",
+      "offset",
+      "drift",
+      "decouple",
+      "desync"
+    ],
+    "alpha": 0.1,
+    "alphas": [
+      0.1,
+      0.2
+    ],
+    "test_protocols": [],
+    "censoring_ablation": true,
+    "conformal": true,
+    "conformal_modes": [
+      "cqr",
+      "pit"
+    ],
+    "cal_frac": 0.3,
+    "survival_demo": true,
+    "partial_evidence": true,
+    "save_scores": true,
+    "scaling_dims": [
+      16,
+      32,
+      64,
+      112,
+      256
+    ]
+  },
+  "variant": "subset-FD002",
+  "variant_axes": {
+    "dataset.subset": "FD002"
+  }
+}

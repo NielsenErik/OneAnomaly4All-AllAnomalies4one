@@ -1,0 +1,12 @@
+[15:55:43] === run start · seed0 · seed 0 · hash 807b86f0f273 ===
+[15:55:43] stages ['scaling'] · device cuda · dataset synthetic
+[15:55:43] --- stage: scaling ---
+[15:55:44]   d=    8  DAG leaves       32  DAG params       464  tree leaves 512
+[15:55:44]   d=   16  DAG leaves       64  DAG params     1,040  tree leaves 4096
+[15:55:49]   d=   32  DAG leaves      128  DAG params     2,192  tree leaves 32768
+[15:56:25]   d=   64  DAG leaves      256  DAG params     4,496  tree leaves 262144
+[15:56:25]   d=  112  DAG leaves      448  DAG params     7,952  tree leaves ~1.8e+06 (skipped)
+[15:56:25]   d=  256  DAG leaves    1,024  DAG params    18,320  tree leaves ~1.7e+07 (skipped)
+[15:56:26]   d= 1024  DAG leaves    4,096  DAG params    73,616  tree leaves ~1.1e+09 (skipped)
+[15:56:26] --- stage scaling done in 43.0s ---
+[15:56:26] === run ok · 43.1s · peak RSS 5.929 GB ===
