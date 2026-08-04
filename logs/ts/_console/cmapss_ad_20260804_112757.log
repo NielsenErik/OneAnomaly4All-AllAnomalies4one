@@ -1,0 +1,301 @@
+==============================================================================
+ experiment: cmapss_ad   (config/ts/cmapss_ad.yaml)
+ Detection on real NASA C-MAPSS, FD001-FD004: circuit vs the full baseline
+ output:     logs/ts/cmapss_ad
+==============================================================================
+
+4 variant(s) × 3 seed(s) = 12 run(s)
+
+  subset-FD001                           dataset=cmapss:FD001     stages=ad
+  subset-FD002                           dataset=cmapss:FD002     stages=ad
+  subset-FD003                           dataset=cmapss:FD003     stages=ad
+  subset-FD004                           dataset=cmapss:FD004     stages=ad
+
+
+>>> subset-FD001 · seed 0 · logs/ts/cmapss_ad/subset-FD001/seed0
+[11:28:12] === run start · seed0 · seed 0 · hash bb7342c5db78 ===
+[11:28:12] stages ['ad'] · device cuda · dataset cmapss:FD001
+[11:28:12] --- stage: ad ---
+[11:28:13]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.7s)
+[11:28:13]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 11892.522
+    [pc] epoch   6  nll  144.731
+    [pc] epoch  12  nll  139.274
+    [pc] epoch  18  nll  138.703
+    [pc] epoch  24  nll  138.164
+    [pc] epoch  30  nll  138.048
+    [pc] epoch  36  nll  137.911
+    [pc] epoch  42  nll  137.691
+    [pc] epoch  48  nll  137.579
+[11:28:22]   pc_train_nll: first=11892.5223 last=137.5828 (50 epochs)
+[11:28:22]   pc: fit 9.9s · 15,360 params · score sd 20.936 · device cuda · layered · 26,768 win/s
+[11:28:23] !!! FAILED after 10.7s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+  [FAILED] see logs/ts/cmapss_ad/subset-FD001/seed0/run.log
+
+>>> subset-FD001 · seed 1 · logs/ts/cmapss_ad/subset-FD001/seed1
+[11:28:23] === run start · seed1 · seed 1 · hash bb7342c5db78 ===
+[11:28:23] stages ['ad'] · device cuda · dataset cmapss:FD001
+[11:28:23] --- stage: ad ---
+[11:28:23]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.1s)
+[11:28:23]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 45391.056
+    [pc] epoch   6  nll  171.049
+    [pc] epoch  12  nll  164.731
+    [pc] epoch  18  nll  159.256
+    [pc] epoch  24  nll  156.063
+    [pc] epoch  30  nll  156.827
+    [pc] epoch  36  nll  156.049
+    [pc] epoch  42  nll  155.004
+    [pc] epoch  48  nll  154.490
+[11:28:32]   pc_train_nll: first=45391.0560 last=154.3854 (50 epochs)
+[11:28:32]   pc: fit 9.0s · 15,360 params · score sd 26.599 · device cuda · layered · 29,490 win/s
+[11:28:32] !!! FAILED after 9.2s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+  [FAILED] see logs/ts/cmapss_ad/subset-FD001/seed1/run.log
+
+>>> subset-FD001 · seed 2 · logs/ts/cmapss_ad/subset-FD001/seed2
+[11:28:32] === run start · seed2 · seed 2 · hash bb7342c5db78 ===
+[11:28:32] stages ['ad'] · device cuda · dataset cmapss:FD001
+[11:28:32] --- stage: ad ---
+[11:28:32]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.1s)
+[11:28:32]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 2, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 12297.344
+    [pc] epoch   6  nll  143.759
+    [pc] epoch  12  nll  139.820
+    [pc] epoch  18  nll  138.689
+    [pc] epoch  24  nll  138.055
+    [pc] epoch  30  nll  137.259
+    [pc] epoch  36  nll  136.748
+    [pc] epoch  42  nll  136.796
+    [pc] epoch  48  nll  136.625
+[11:28:41]   pc_train_nll: first=12297.3440 last=136.5646 (50 epochs)
+[11:28:41]   pc: fit 9.3s · 15,360 params · score sd 21.293 · device cuda · layered · 28,423 win/s
+[11:28:41] !!! FAILED after 9.6s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+  [FAILED] see logs/ts/cmapss_ad/subset-FD001/seed2/run.log
+
+>>> subset-FD002 · seed 0 · logs/ts/cmapss_ad/subset-FD002/seed0
+[11:28:41] === run start · seed0 · seed 0 · hash 66cfa58bf9d8 ===
+[11:28:41] stages ['ad'] · device cuda · dataset cmapss:FD002
+[11:28:41] --- stage: ad ---
+[11:28:42]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[11:28:42]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.13782593607902527, 'kind_counts': {'normal': 10184, 'spike': 324, 'offset': 290, 'drift': 282, 'desync': 258, 'organic': 201, 'decouple': 273}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 1396597249.886
+    [pc] epoch   6  nll 16232.195
+    [pc] epoch  12  nll 1186.176
+    [pc] epoch  18  nll  446.714
+    [pc] epoch  24  nll  432.006
+    [pc] epoch  30  nll  415.119
+    [pc] epoch  36  nll  392.793
+    [pc] epoch  42  nll  378.364
+    [pc] epoch  48  nll  365.039
+[11:29:04]   pc_train_nll: first=1396597249.8864 last=359.6592 (50 epochs)
+[11:29:04]   pc: fit 21.9s · 17,280 params · score sd 78.612 · device cuda · layered · 31,480 win/s
+[11:29:04] !!! FAILED after 22.6s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+  [FAILED] see logs/ts/cmapss_ad/subset-FD002/seed0/run.log
+
+>>> subset-FD002 · seed 1 · logs/ts/cmapss_ad/subset-FD002/seed1
+[11:29:04] === run start · seed1 · seed 1 · hash 66cfa58bf9d8 ===
+[11:29:04] stages ['ad'] · device cuda · dataset cmapss:FD002
+[11:29:04] --- stage: ad ---
+[11:29:04]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[11:29:04]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.13460887968540192, 'kind_counts': {'normal': 10222, 'desync': 299, 'drift': 293, 'offset': 273, 'decouple': 266, 'spike': 258, 'organic': 201}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 1408701951.323
+    [pc] epoch   6  nll 18302.229
+    [pc] epoch  12  nll 1268.814
+    [pc] epoch  18  nll  450.827
+    [pc] epoch  24  nll  433.614
+    [pc] epoch  30  nll  419.131
+    [pc] epoch  36  nll  401.794
+    [pc] epoch  42  nll  386.792
+    [pc] epoch  48  nll  387.520
+[11:29:27]   pc_train_nll: first=1408701951.3230 last=378.5415 (50 epochs)
+[11:29:27]   pc: fit 22.4s · 17,280 params · score sd 73.458 · device cuda · layered · 30,910 win/s
+[11:29:27] !!! FAILED after 23.1s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+  [FAILED] see logs/ts/cmapss_ad/subset-FD002/seed1/run.log
+
+>>> subset-FD002 · seed 2 · logs/ts/cmapss_ad/subset-FD002/seed2
+[11:29:27] === run start · seed2 · seed 2 · hash 66cfa58bf9d8 ===
+[11:29:27] stages ['ad'] · device cuda · dataset cmapss:FD002
+[11:29:27] --- stage: ad ---
+[11:29:27]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[11:29:27]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.1360480934381485, 'kind_counts': {'normal': 10205, 'offset': 283, 'drift': 282, 'spike': 288, 'decouple': 271, 'desync': 282, 'organic': 201}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 2, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 1403966308.099
+    [pc] epoch   6  nll 21320.432
+    [pc] epoch  12  nll  841.623
+    [pc] epoch  18  nll  443.714
+    [pc] epoch  24  nll  423.619
+    [pc] epoch  30  nll  412.532
+    [pc] epoch  36  nll  382.178
+    [pc] epoch  42  nll  374.636
+    [pc] epoch  48  nll  360.758
+[11:29:51]   pc_train_nll: first=1403966308.0995 last=361.4691 (50 epochs)
+[11:29:51]   pc: fit 23.1s · 17,280 params · score sd 81.953 · device cuda · layered · 29,921 win/s
+[11:29:51] !!! FAILED after 23.8s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+  [FAILED] see logs/ts/cmapss_ad/subset-FD002/seed2/run.log
+
+>>> subset-FD003 · seed 0 · logs/ts/cmapss_ad/subset-FD003/seed0
+[11:29:51] === run start · seed0 · seed 0 · hash 00521606a4f1 ===
+[11:29:51] stages ['ad'] · device cuda · dataset cmapss:FD003
+[11:29:51] --- stage: ad ---
+[11:29:51]   data: FleetPair(cmapss:FD003: train=100 units, test=100 units, C=16, regimes=3, cap=125)  (0.2s)
+[11:29:51]   task: {'kind': 'ad', 'n_train': 7333, 'n_test': 6353, 'd': 320, 'window': 20, 'n_channels': 16, 'anomaly_rate': 0.12970250844955444, 'kind_counts': {'normal': 5529, 'spike': 169, 'offset': 161, 'drift': 158, 'desync': 138, 'decouple': 150, 'organic': 48}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD003', 'cap': 125.0, 'subset': 'FD003', 'dropped_constant_sensors': 5, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 1925.386
+    [pc] epoch   6  nll   68.517
+    [pc] epoch  12  nll   64.876
+    [pc] epoch  18  nll   63.880
+    [pc] epoch  24  nll   62.985
+    [pc] epoch  30  nll   62.478
+    [pc] epoch  36  nll   61.873
+    [pc] epoch  42  nll   61.414
+    [pc] epoch  48  nll   61.277
+[11:30:03]   pc_train_nll: first=1925.3858 last=61.3643 (50 epochs)
+[11:30:03]   pc: fit 12.4s · 15,680 params · score sd 51.444 · device cuda · layered · 29,600 win/s
+[11:30:04] !!! FAILED after 12.7s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+  [FAILED] see logs/ts/cmapss_ad/subset-FD003/seed0/run.log
+
+>>> subset-FD003 · seed 1 · logs/ts/cmapss_ad/subset-FD003/seed1
+[11:30:04] === run start · seed1 · seed 1 · hash 00521606a4f1 ===
+[11:30:04] stages ['ad'] · device cuda · dataset cmapss:FD003
+[11:30:04] --- stage: ad ---
+[11:30:04]   data: FleetPair(cmapss:FD003: train=100 units, test=100 units, C=16, regimes=3, cap=125)  (0.2s)
+[11:30:04]   task: {'kind': 'ad', 'n_train': 7333, 'n_test': 6353, 'd': 320, 'window': 20, 'n_channels': 16, 'anomaly_rate': 0.1246655136346817, 'kind_counts': {'normal': 5561, 'desync': 147, 'drift': 146, 'offset': 161, 'decouple': 154, 'spike': 136, 'organic': 48}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD003', 'cap': 125.0, 'subset': 'FD003', 'dropped_constant_sensors': 5, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 2861.574
+    [pc] epoch   6  nll   65.502
+    [pc] epoch  12  nll   62.199
+    [pc] epoch  18  nll   60.917
+    [pc] epoch  24  nll   60.174
+    [pc] epoch  30  nll   59.617
+    [pc] epoch  36  nll   59.346
+    [pc] epoch  42  nll   58.769
+    [pc] epoch  48  nll   58.446
+[11:30:17]   pc_train_nll: first=2861.5736 last=58.5344 (50 epochs)
+[11:30:17]   pc: fit 12.9s · 15,680 params · score sd 41.075 · device cuda · layered · 28,319 win/s
+[11:30:17] !!! FAILED after 13.3s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+  [FAILED] see logs/ts/cmapss_ad/subset-FD003/seed1/run.log
+
+>>> subset-FD003 · seed 2 · logs/ts/cmapss_ad/subset-FD003/seed2
+[11:30:17] === run start · seed2 · seed 2 · hash 00521606a4f1 ===
+[11:30:17] stages ['ad'] · device cuda · dataset cmapss:FD003
+[11:30:17] --- stage: ad ---
+[11:30:17]   data: FleetPair(cmapss:FD003: train=100 units, test=100 units, C=16, regimes=3, cap=125)  (0.1s)
+[11:30:17]   task: {'kind': 'ad', 'n_train': 7333, 'n_test': 6353, 'd': 320, 'window': 20, 'n_channels': 16, 'anomaly_rate': 0.12639698386192322, 'kind_counts': {'normal': 5550, 'offset': 137, 'drift': 155, 'spike': 162, 'decouple': 123, 'desync': 178, 'organic': 48}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 2, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD003', 'cap': 125.0, 'subset': 'FD003', 'dropped_constant_sensors': 5, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 55733.644
+    [pc] epoch   6  nll  207.756
+    [pc] epoch  12  nll  202.194
+    [pc] epoch  18  nll  200.705
+    [pc] epoch  24  nll  200.204
+    [pc] epoch  30  nll  200.257
+    [pc] epoch  36  nll  198.208
+    [pc] epoch  42  nll  194.913
+    [pc] epoch  48  nll  194.066
+[11:30:30]   pc_train_nll: first=55733.6440 last=193.9156 (50 epochs)
+[11:30:30]   pc: fit 12.5s · 15,680 params · score sd 71.951 · device cuda · layered · 29,282 win/s
+[11:30:30] !!! FAILED after 12.9s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+  [FAILED] see logs/ts/cmapss_ad/subset-FD003/seed2/run.log
+
+>>> subset-FD004 · seed 0 · logs/ts/cmapss_ad/subset-FD004/seed0
+[11:30:30] === run start · seed0 · seed 0 · hash fc028c233806 ===
+[11:30:30] stages ['ad'] · device cuda · dataset cmapss:FD004
+[11:30:30] --- stage: ad ---
+[11:30:30]   data: FleetPair(cmapss:FD004: train=249 units, test=248 units, C=21, regimes=3, cap=125)  (0.3s)
+[11:30:30]   task: {'kind': 'ad', 'n_train': 18107, 'n_test': 12000, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.12999999523162842, 'kind_counts': {'normal': 10440, 'offset': 290, 'spike': 320, 'drift': 288, 'desync': 253, 'decouple': 293, 'organic': 116}, 'train_units': 249, 'test_units': 248, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD004', 'cap': 125.0, 'subset': 'FD004', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 1090303046.182
+    [pc] epoch   6  nll 7214.100
+    [pc] epoch  12  nll  447.365
+    [pc] epoch  18  nll  419.004
+    [pc] epoch  24  nll  387.821
+    [pc] epoch  30  nll  359.275
+    [pc] epoch  36  nll  335.415
+    [pc] epoch  42  nll  327.376
+    [pc] epoch  48  nll  308.059
+[11:31:00]   pc_train_nll: first=1090303046.1817 last=309.9147 (50 epochs)
+[11:31:00]   pc: fit 29.7s · 17,280 params · score sd 93.160 · device cuda · layered · 30,502 win/s
+[11:31:00] !!! FAILED after 30.5s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+  [FAILED] see logs/ts/cmapss_ad/subset-FD004/seed0/run.log
+
+>>> subset-FD004 · seed 1 · logs/ts/cmapss_ad/subset-FD004/seed1
+[11:31:00] === run start · seed1 · seed 1 · hash fc028c233806 ===
+[11:31:00] stages ['ad'] · device cuda · dataset cmapss:FD004
+[11:31:00] --- stage: ad ---
+[11:31:01]   data: FleetPair(cmapss:FD004: train=249 units, test=248 units, C=21, regimes=3, cap=125)  (0.3s)
+[11:31:01]   task: {'kind': 'ad', 'n_train': 18107, 'n_test': 12000, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.1277499943971634, 'kind_counts': {'normal': 10467, 'desync': 311, 'drift': 291, 'offset': 280, 'decouple': 253, 'spike': 276, 'organic': 122}, 'train_units': 249, 'test_units': 248, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD004', 'cap': 125.0, 'subset': 'FD004', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 1109868801.524
+    [pc] epoch   6  nll 11073.567
+    [pc] epoch  12  nll  455.228
+    [pc] epoch  18  nll  403.458
+    [pc] epoch  24  nll  389.616
+    [pc] epoch  30  nll  346.815
+    [pc] epoch  36  nll  329.493
+    [pc] epoch  42  nll  316.437
+    [pc] epoch  48  nll  310.010
+[11:31:30]   pc_train_nll: first=1109868801.5239 last=308.5156 (50 epochs)
+[11:31:30]   pc: fit 29.5s · 17,280 params · score sd 93.813 · device cuda · layered · 30,696 win/s
+[11:31:30] !!! FAILED after 30.2s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+  [FAILED] see logs/ts/cmapss_ad/subset-FD004/seed1/run.log
+
+>>> subset-FD004 · seed 2 · logs/ts/cmapss_ad/subset-FD004/seed2
+[11:31:31] === run start · seed2 · seed 2 · hash fc028c233806 ===
+[11:31:31] stages ['ad'] · device cuda · dataset cmapss:FD004
+[11:31:31] --- stage: ad ---
+[11:31:31]   data: FleetPair(cmapss:FD004: train=249 units, test=248 units, C=21, regimes=3, cap=125)  (0.3s)
+[11:31:31]   task: {'kind': 'ad', 'n_train': 18107, 'n_test': 12000, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.1313333362340927, 'kind_counts': {'offset': 292, 'normal': 10424, 'drift': 285, 'spike': 293, 'decouple': 284, 'desync': 305, 'organic': 117}, 'train_units': 249, 'test_units': 248, 'n_regimes': 3, 'seed': 2, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD004', 'cap': 125.0, 'subset': 'FD004', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 1079408524.693
+    [pc] epoch   6  nll 9090.152
+    [pc] epoch  12  nll  469.381
+    [pc] epoch  18  nll  433.561
+    [pc] epoch  24  nll  417.183
+    [pc] epoch  30  nll  390.621
+    [pc] epoch  36  nll  367.241
+    [pc] epoch  42  nll  362.351
+    [pc] epoch  48  nll  353.189
+[11:32:00]   pc_train_nll: first=1079408524.6927 last=353.0078 (50 epochs)
+[11:32:00]   pc: fit 29.4s · 17,280 params · score sd 85.269 · device cuda · layered · 30,756 win/s
+[11:32:01] !!! FAILED after 30.1s: RuntimeError: Expected one of cpu, cuda, ipu, xpu, mkldnn, opengl, opencl, ideep, hip, ve, fpga, maia, xla, lazy, vulkan, mps, meta, hpu, mtia, privateuseone device type at start of device string: auto
+  [FAILED] see logs/ts/cmapss_ad/subset-FD004/seed2/run.log
+
+==============================================================================
+ batch finished in 3.8 min — 0 ok, 0 skipped, 12 failed
+==============================================================================
+
+=== ad (mean ± sd over seeds) ===
+
+method                                      dataset          variant                               auroc                 ap          train_nll              fit_s             params    auroc[decouple]      auroc[desync]       auroc[drift]  seeds
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Mahalanobis                                 cmapss:FD003     subset-FD003                  0.8529±0.0039      0.6554±0.0135                  —      0.6701±0.1002                  —      0.5423±0.0279      0.7739±0.0125      0.9924±0.0023      3
+conv autoencoder                            cmapss:FD003     subset-FD003                  0.8464±0.0039      0.6941±0.0078                  —      4.5371±1.8439                  —      0.5293±0.0181      0.7612±0.0102      0.9935±0.0024      3
+GMM (8 comp.)                               cmapss:FD003     subset-FD003                  0.8381±0.0074      0.5955±0.0310                  —      8.6816±5.4740                  —      0.5341±0.0174      0.7654±0.0139      0.9822±0.0032      3
+RegionGraphPC [chain, K=8]                  cmapss:FD001     subset-FD001                  0.8378±0.0048      0.6955±0.0149    145.3396±8.3935    241.9201±254.7457  15360.0000±0.0000      0.5114±0.0347      0.6931±0.0100      0.9973±0.0025      3
+1-NN distance                               cmapss:FD003     subset-FD003                  0.8301±0.0083      0.4709±0.0202                  —      0.3543±0.0520                  —      0.5342±0.0154      0.7341±0.0219      0.9639±0.0030      3
+PC · 3 dead (exact marginal)                cmapss:FD001     subset-FD001                  0.8300±0.0058      0.6880±0.0185                  —                  —                  —      0.5162±0.0506      0.6834±0.0177      0.9930±0.0045      3
+Mahalanobis                                 cmapss:FD001     subset-FD001                  0.8246±0.0012      0.6537±0.0035                  —      0.3659±0.0090                  —      0.5171±0.0369      0.7134±0.0407      0.9974±0.0016      3
+GMM (8 comp.)                               cmapss:FD001     subset-FD001                  0.8200±0.0236      0.6294±0.0513                  —      1.1346±0.5401                  —      0.5058±0.0360      0.7061±0.0513      0.9955±0.0018      3
+conv autoencoder                            cmapss:FD001     subset-FD001                  0.8089±0.0167      0.6630±0.0179                  —      1.8826±0.2643                  —      0.4919±0.0350      0.6767±0.0239      0.9924±0.0056      3
+RegionGraphPC [chain, K=8]                  cmapss:FD003     subset-FD003                  0.8044±0.0420      0.5768±0.1220    117.2792±77.8962    444.3868±491.4692  15680.0000±0.0000      0.5293±0.0241      0.6781±0.0810      0.9778±0.0244      3
+z-score (per channel) · 3 dead (imputed)    cmapss:FD001     subset-FD001                  0.7971±0.0059      0.6663±0.0104                  —                  —                  —      0.4836±0.0225      0.5160±0.0207      0.9811±0.0080      3
+PC · structural-only score                  cmapss:FD003     subset-FD003                  0.7914±0.0384      0.5211±0.1017                  —                  —                  —      0.5130±0.0250      0.7392±0.0956      0.9687±0.0107      3
+PC · structural-only score                  cmapss:FD001     subset-FD001                  0.7905±0.0240      0.6085±0.0390                  —                  —                  —      0.4921±0.0124      0.7535±0.0041      0.9695±0.0275      3
+PC · 3 dead (exact marginal)                cmapss:FD003     subset-FD003                  0.7874±0.0476      0.5491±0.1311                  —                  —                  —      0.5282±0.0263      0.6568±0.0930      0.9671±0.0342      3
+1-NN distance                               cmapss:FD001     subset-FD001                  0.7837±0.0014      0.4460±0.0104                  —      0.1629±0.0179                  —      0.5001±0.0235      0.6202±0.0304      0.9648±0.0058      3
+Deep SVDD                                   cmapss:FD003     subset-FD003                  0.7683±0.0057      0.5062±0.0240                  —      0.3854±0.1667                  —      0.5176±0.0064      0.6535±0.0125      0.9592±0.0128      3
+z-score (per channel)                       cmapss:FD003     subset-FD003                  0.7670±0.0096      0.3269±0.0173                  —      0.0751±0.0184                  —      0.5159±0.0119      0.5533±0.0127      0.8894±0.0027      3
+PCA reconstruction                          cmapss:FD003     subset-FD003                  0.7587±0.0099      0.2982±0.0147                  —      0.2374±0.0718                  —      0.5185±0.0127      0.6328±0.0153      0.9147±0.0037      3
+z-score (per channel) · 3 dead (imputed)    cmapss:FD003     subset-FD003                  0.7519±0.0100      0.3128±0.0160                  —                  —                  —      0.5122±0.0102      0.5546±0.0214      0.8799±0.0113      3
+moving-average residual                     cmapss:FD003     subset-FD003                  0.7449±0.0079      0.4424±0.0205                  —      0.3725±0.0435                  —      0.5527±0.0105      0.5380±0.0178      0.8158±0.0141      3
+PCA reconstruction                          cmapss:FD001     subset-FD001                  0.7424±0.0011      0.4517±0.0046                  —      0.1137±0.0088                  —      0.5026±0.0252      0.6086±0.0316      0.9540±0.0146      3
+PC · 3 dead (mean-imputed)                  cmapss:FD003     subset-FD003                  0.7424±0.0248      0.3658±0.0140                  —                  —                  —      0.5247±0.0236      0.5975±0.0561      0.9165±0.0081      3
+Deep SVDD                                   cmapss:FD001     subset-FD001                  0.7270±0.0111      0.4850±0.0225                  —      0.1551±0.0094                  —      0.5044±0.0218      0.5884±0.0092      0.9324±0.0220      3
+moving-average residual · 3 dead (imputed)  cmapss:FD003     subset-FD003                  0.7183±0.0130      0.4045±0.0191                  —                  —                  —      0.5447±0.0086      0.5396±0.0366      0.7782±0.0246      3
+diagonal Gaussian                           cmapss:FD001     subset-FD001                  0.7147±0.0064      0.3861±0.0044                  —      0.0925±0.0094                  —      0.5054±0.0134      0.5303±0.0235      0.8903±0.0138      3
+diagonal Gaussian                           cmapss:FD003     subset-FD003                  0.7125±0.0171      0.2924±0.0181                  —      0.1958±0.0565                  —      0.5106±0.0132      0.5558±0.0231      0.8617±0.0129      3
+diagonal Gaussian · 3 dead (imputed)        cmapss:FD001     subset-FD001                  0.7107±0.0073      0.3769±0.0082                  —                  —                  —      0.5079±0.0089      0.5322±0.0247      0.8801±0.0107      3
+diagonal Gaussian · 3 dead (imputed)        cmapss:FD003     subset-FD003                  0.7090±0.0167      0.2875±0.0178                  —                  —                  —      0.5102±0.0097      0.5582±0.0280      0.8584±0.0168      3
+Isolation Forest                            cmapss:FD001     subset-FD001                  0.7081±0.0051      0.3799±0.0079                  —      0.2165±0.0096                  —      0.5090±0.0168      0.5673±0.0220      0.9042±0.0135      3
+moving-average residual                     cmapss:FD001     subset-FD001                  0.7015±0.0174      0.4883±0.0211                  —      0.2135±0.0041                  —      0.5210±0.0292      0.4880±0.0343      0.7885±0.0326      3
+Isolation Forest                            cmapss:FD003     subset-FD003                  0.6898±0.0158      0.2827±0.0174                  —      0.3615±0.0877                  —      0.5118±0.0117      0.5814±0.0153      0.8596±0.0210      3
+moving-average residual · 3 dead (imputed)  cmapss:FD001     subset-FD001                  0.6885±0.0256      0.4494±0.0298                  —                  —                  —      0.5247±0.0462      0.4975±0.0473      0.7465±0.0412      3
+PC · 3 dead (mean-imputed)                  cmapss:FD001     subset-FD001                  0.6830±0.0251      0.3211±0.0493                  —                  —                  —      0.4899±0.0287      0.5418±0.0216      0.8241±0.0512      3
+z-score (per channel)                       cmapss:FD001     subset-FD001                  0.6641±0.0032      0.3186±0.0190                  —      0.0335±0.0034                  —      0.4926±0.0203      0.5103±0.0198      0.7037±0.0120      3
+RegionGraphPC [chain, K=8]                  cmapss:FD002     subset-FD002                  0.6059±0.1792      0.3209±0.3058    353.2828±8.4796     22.4618±0.5798  17280.0000±0.0000      0.5812±0.1023      0.5525±0.1805      0.6538±0.2536      3
+RegionGraphPC [chain, K=8]                  cmapss:FD004     subset-FD004                  0.5860±0.1620      0.2970±0.2898    307.8818±28.9948     29.5374±0.1279  17280.0000±0.0000      0.5709±0.0965      0.5295±0.1659      0.6636±0.2352      3
+
+wrote logs/ts/cmapss_ad/summary.csv, summary.json, summary.md
+

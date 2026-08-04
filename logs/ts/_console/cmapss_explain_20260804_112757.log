@@ -1,0 +1,546 @@
+==============================================================================
+ experiment: cmapss_explain   (config/ts/cmapss_explain.yaml)
+ Exact attribution vs Gaussian conditional / AE reconstruction / sampling-SHAP
+ output:     logs/ts/cmapss_explain
+==============================================================================
+
+3 variant(s) × 3 seed(s) = 9 run(s)
+
+  subset-FD001                           dataset=cmapss:FD001     stages=explain
+  subset-FD002                           dataset=cmapss:FD002     stages=explain
+  subset-FD004                           dataset=cmapss:FD004     stages=explain
+
+
+>>> subset-FD001 · seed 0 · logs/ts/cmapss_explain/subset-FD001/seed0
+[11:32:02] === run start · seed0 · seed 0 · hash 916efea32637 ===
+[11:32:02] stages ['explain'] · device cuda · dataset cmapss:FD001
+[11:32:02] --- stage: explain ---
+[11:32:02]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.7s)
+[11:32:02]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1638454794883728, 'kind_counts': {'normal': 3853, 'spike': 142, 'offset': 159, 'drift': 128, 'desync': 158, 'decouple': 122, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+[11:32:02]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll 11892.522
+    [pc] epoch   6  nll  144.731
+    [pc] epoch  12  nll  139.274
+    [pc] epoch  18  nll  138.703
+    [pc] epoch  24  nll  138.164
+    [pc] epoch  30  nll  138.048
+    [pc] epoch  36  nll  137.911
+    [pc] epoch  42  nll  137.691
+    [pc] epoch  48  nll  137.579
+[11:32:13]   pc_train_nll: first=11892.5223 last=137.5828 (50 epochs)
+[11:32:13]   pc: fit 10.7s · 15,360 params · score sd 20.936 · device cuda · layered · 24,624 win/s
+[11:32:19]   attribution cost: PC exact (all views) 1.7s · AE sampling-SHAP (one view) 3.2s
+[11:32:22]   completeness: max residual 2.44e-04 nats, mean 1.17e-05
+[11:32:22]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[11:32:22]   worked examples (median-scoring window of each kind):
+[11:32:25]    [normal]
+[11:32:25]   anomaly score 140.5 nats
+[11:32:25]       ch1  out of range         marginal   24.31  structural   -0.54  worst at t=5
+[11:32:25]      ch12  out of range         marginal   17.91  structural   -0.45  worst at t=19
+[11:32:25]       ch8  out of range         marginal   15.70  structural    1.68  worst at t=9
+[11:32:28]    [spike]
+[11:32:28]   anomaly score 204.2 nats   [injected: spike, channels [2, 14]]
+[11:32:28]      ch14  out of range         marginal   40.78  structural    0.58  worst at t=16  <- CORRECT
+[11:32:28]       ch2  out of range         marginal   32.76  structural    7.85  worst at t=16  <- CORRECT
+[11:32:28]       ch1  out of range         marginal   21.14  structural   -0.40  worst at t=13  <- miss
+[11:32:30]    [offset]
+[11:32:30]   anomaly score 381.4 nats   [injected: offset, channels [2, 4, 5, 11]]
+[11:32:30]       ch5  out of range         marginal   93.76  structural   -0.60  worst at t=16  <- CORRECT
+[11:32:30]       ch4  broken relationship  marginal   24.13  structural   62.64  worst at t=13  <- CORRECT
+[11:32:30]       ch2  out of range         marginal   59.27  structural   -2.17  worst at t=19  <- CORRECT
+[11:32:33]    [drift]
+[11:32:33]   anomaly score 446.1 nats   [injected: drift, channels [1, 8, 10, 11, 13, 14]]
+[11:32:33]      ch10  broken relationship  marginal   34.77  structural   82.15  worst at t=16  <- CORRECT
+[11:32:33]      ch11  broken relationship  marginal   46.22  structural   38.87  worst at t=19  <- CORRECT
+[11:32:33]       ch1  out of range         marginal   43.51  structural   18.89  worst at t=18  <- CORRECT
+[11:32:36]    [decouple]
+[11:32:36]   anomaly score 134.7 nats   [injected: decouple, channels [12, 14]]
+[11:32:36]      ch13  out of range         marginal   20.03  structural   -0.22  worst at t=10  <- miss
+[11:32:36]       ch1  out of range         marginal   19.00  structural   -0.06  worst at t=18  <- miss
+[11:32:36]      ch12  out of range         marginal   18.23  structural   -0.54  worst at t=16  <- CORRECT
+[11:32:39]    [desync]
+[11:32:39]   anomaly score 159.5 nats   [injected: desync, channels [9]]
+[11:32:39]       ch9  broken relationship  marginal    5.72  structural   31.86  worst at t=15  <- CORRECT
+[11:32:39]      ch13  out of range         marginal   18.97  structural    1.04  worst at t=13  <- miss
+[11:32:39]      ch11  out of range         marginal   15.62  structural    4.31  worst at t=1  <- miss
+[11:32:39] --- stage explain done in 37.2s ---
+[11:32:39] === run ok · 37.2s · peak RSS 1.818 GB ===
+
+>>> subset-FD001 · seed 1 · logs/ts/cmapss_explain/subset-FD001/seed1
+[11:32:39] === run start · seed1 · seed 1 · hash 916efea32637 ===
+[11:32:39] stages ['explain'] · device cuda · dataset cmapss:FD001
+[11:32:39] --- stage: explain ---
+[11:32:39]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.1s)
+[11:32:39]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1564670205116272, 'kind_counts': {'normal': 3887, 'desync': 133, 'offset': 135, 'drift': 137, 'decouple': 142, 'spike': 128, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+[11:32:39]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll 45391.056
+    [pc] epoch   6  nll  171.049
+    [pc] epoch  12  nll  164.731
+    [pc] epoch  18  nll  159.256
+    [pc] epoch  24  nll  156.063
+    [pc] epoch  30  nll  156.827
+    [pc] epoch  36  nll  156.049
+    [pc] epoch  42  nll  155.004
+    [pc] epoch  48  nll  154.490
+[11:32:49]   pc_train_nll: first=45391.0560 last=154.3854 (50 epochs)
+[11:32:49]   pc: fit 9.6s · 15,360 params · score sd 26.599 · device cuda · layered · 27,668 win/s
+[11:32:55]   attribution cost: PC exact (all views) 1.8s · AE sampling-SHAP (one view) 3.1s
+[11:32:57]   completeness: max residual 6.10e-05 nats, mean 4.41e-06
+[11:32:57]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[11:32:58]   worked examples (median-scoring window of each kind):
+[11:33:00]    [normal]
+[11:33:00]   anomaly score 151.0 nats
+[11:33:00]       ch1  out of range         marginal   22.90  structural   -1.57  worst at t=4
+[11:33:00]      ch14  out of range         marginal   20.82  structural   -0.74  worst at t=4
+[11:33:00]       ch0  out of range         marginal   20.18  structural   -1.45  worst at t=9
+[11:33:03]    [spike]
+[11:33:03]   anomaly score 196.3 nats   [injected: spike, channels [13]]
+[11:33:03]      ch13  broken relationship  marginal   46.07  structural   28.53  worst at t=4  <- CORRECT
+[11:33:03]      ch12  out of range         marginal   22.60  structural   -0.90  worst at t=18  <- miss
+[11:33:03]      ch14  out of range         marginal   23.23  structural   -1.83  worst at t=12  <- miss
+[11:33:06]    [offset]
+[11:33:06]   anomaly score 403.5 nats   [injected: offset, channels [2, 8, 13]]
+[11:33:06]       ch8  broken relationship  marginal   28.36  structural  106.95  worst at t=6  <- CORRECT
+[11:33:06]       ch2  broken relationship  marginal   55.82  structural   41.62  worst at t=6  <- CORRECT
+[11:33:06]      ch13  broken relationship  marginal   34.32  structural   41.78  worst at t=5  <- CORRECT
+[11:33:08]    [drift]
+[11:33:08]   anomaly score 429.8 nats   [injected: drift, channels [1, 7, 8, 10, 11, 12]]
+[11:33:08]       ch8  out of range         marginal   78.02  structural   14.84  worst at t=18  <- CORRECT
+[11:33:08]       ch7  broken relationship  marginal   28.47  structural   59.75  worst at t=16  <- CORRECT
+[11:33:08]      ch11  broken relationship  marginal   27.54  structural   29.25  worst at t=14  <- CORRECT
+[11:33:11]    [decouple]
+[11:33:11]   anomaly score 143.9 nats   [injected: decouple, channels [0, 8]]
+[11:33:11]       ch0  out of range         marginal   17.11  structural    2.61  worst at t=12  <- CORRECT
+[11:33:11]       ch1  out of range         marginal   19.32  structural    0.27  worst at t=3  <- miss
+[11:33:11]      ch11  out of range         marginal   16.83  structural    2.49  worst at t=14  <- miss
+[11:33:14]    [desync]
+[11:33:14]   anomaly score 163.3 nats   [injected: desync, channels [0]]
+[11:33:14]       ch0  broken relationship  marginal   16.17  structural    8.56  worst at t=0  <- CORRECT
+[11:33:14]       ch1  out of range         marginal   21.56  structural    0.20  worst at t=8  <- miss
+[11:33:14]      ch12  out of range         marginal   18.84  structural   -1.01  worst at t=14  <- miss
+[11:33:14] --- stage explain done in 35.0s ---
+[11:33:14] === run ok · 35.0s · peak RSS 1.853 GB ===
+
+>>> subset-FD001 · seed 2 · logs/ts/cmapss_explain/subset-FD001/seed2
+[11:33:14] === run start · seed2 · seed 2 · hash 916efea32637 ===
+[11:33:14] stages ['explain'] · device cuda · dataset cmapss:FD001
+[11:33:14] --- stage: explain ---
+[11:33:14]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.2s)
+[11:33:14]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1618923544883728, 'kind_counts': {'normal': 3862, 'offset': 131, 'drift': 130, 'spike': 149, 'decouple': 123, 'desync': 167, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 2, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+[11:33:14]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll 12297.344
+    [pc] epoch   6  nll  143.759
+    [pc] epoch  12  nll  139.820
+    [pc] epoch  18  nll  138.689
+    [pc] epoch  24  nll  138.055
+    [pc] epoch  30  nll  137.259
+    [pc] epoch  36  nll  136.748
+    [pc] epoch  42  nll  136.796
+    [pc] epoch  48  nll  136.625
+[11:33:23]   pc_train_nll: first=12297.3440 last=136.5646 (50 epochs)
+[11:33:24]   pc: fit 9.4s · 15,360 params · score sd 21.293 · device cuda · layered · 28,141 win/s
+[11:33:29]   attribution cost: PC exact (all views) 1.7s · AE sampling-SHAP (one view) 3.0s
+[11:33:31]   completeness: max residual 3.05e-05 nats, mean 3.58e-06
+[11:33:32]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[11:33:32]   worked examples (median-scoring window of each kind):
+[11:33:34]    [normal]
+[11:33:34]   anomaly score 140.9 nats
+[11:33:34]      ch14  out of range         marginal   24.94  structural    0.31  worst at t=17
+[11:33:34]      ch13  out of range         marginal   22.67  structural    0.65  worst at t=10
+[11:33:34]       ch1  out of range         marginal   21.59  structural   -0.83  worst at t=16
+[11:33:37]    [spike]
+[11:33:37]   anomaly score 196.3 nats   [injected: spike, channels [3, 13]]
+[11:33:37]      ch13  out of range         marginal   48.09  structural    7.97  worst at t=2  <- CORRECT
+[11:33:37]      ch12  out of range         marginal   28.97  structural   -2.00  worst at t=17  <- miss
+[11:33:37]       ch0  out of range         marginal   22.47  structural   -0.35  worst at t=15  <- miss
+[11:33:40]    [offset]
+[11:33:40]   anomaly score 500.4 nats   [injected: offset, channels [2, 9, 13, 14]]
+[11:33:40]       ch9  broken relationship  marginal   34.05  structural  142.79  worst at t=15  <- CORRECT
+[11:33:40]       ch2  broken relationship  marginal   24.59  structural   89.68  worst at t=17  <- CORRECT
+[11:33:40]      ch14  out of range         marginal   71.64  structural    7.35  worst at t=18  <- CORRECT
+[11:33:42]    [drift]
+[11:33:42]   anomaly score 503.1 nats   [injected: drift, channels [5, 6, 7, 12]]
+[11:33:42]       ch6  broken relationship  marginal   77.53  structural   95.28  worst at t=18  <- CORRECT
+[11:33:42]       ch5  out of range         marginal  107.61  structural   28.23  worst at t=19  <- CORRECT
+[11:33:42]      ch12  out of range         marginal   61.40  structural   -2.99  worst at t=18  <- CORRECT
+[11:33:45]    [decouple]
+[11:33:45]   anomaly score 136.9 nats   [injected: decouple, channels [7]]
+[11:33:45]       ch0  out of range         marginal   24.33  structural   -1.81  worst at t=13  <- miss
+[11:33:45]      ch12  out of range         marginal   19.21  structural    1.07  worst at t=13  <- miss
+[11:33:45]      ch13  out of range         marginal   15.64  structural    0.29  worst at t=2  <- miss
+[11:33:48]    [desync]
+[11:33:48]   anomaly score 154.5 nats   [injected: desync, channels [13]]
+[11:33:48]       ch8  out of range         marginal   21.77  structural   -1.50  worst at t=16  <- miss
+[11:33:48]      ch13  out of range         marginal   18.47  structural    1.45  worst at t=3  <- CORRECT
+[11:33:48]       ch4  out of range         marginal   14.49  structural    4.75  worst at t=18  <- miss
+[11:33:48] --- stage explain done in 33.8s ---
+[11:33:48] === run ok · 33.8s · peak RSS 1.858 GB ===
+
+>>> subset-FD002 · seed 0 · logs/ts/cmapss_explain/subset-FD002/seed0
+[11:33:48] === run start · seed0 · seed 0 · hash c25c36e0b5c3 ===
+[11:33:48] stages ['explain'] · device cuda · dataset cmapss:FD002
+[11:33:48] --- stage: explain ---
+[11:33:48]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[11:33:48]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.16703352332115173, 'kind_counts': {'normal': 9839, 'spike': 362, 'offset': 365, 'drift': 336, 'desync': 351, 'decouple': 358, 'organic': 201}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+[11:33:48]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll 1396597249.886
+    [pc] epoch   6  nll 16232.195
+    [pc] epoch  12  nll 1186.176
+    [pc] epoch  18  nll  446.714
+    [pc] epoch  24  nll  432.006
+    [pc] epoch  30  nll  415.119
+    [pc] epoch  36  nll  392.793
+    [pc] epoch  42  nll  378.364
+    [pc] epoch  48  nll  365.039
+[11:34:11]   pc_train_nll: first=1396597249.8864 last=359.6592 (50 epochs)
+[11:34:11]   pc: fit 22.5s · 17,280 params · score sd 78.612 · device cuda · layered · 30,738 win/s
+[11:34:23]   attribution cost: PC exact (all views) 2.6s · AE sampling-SHAP (one view) 5.1s
+[11:34:25]   completeness: max residual 2.00e+00 nats, mean 5.55e-01
+[11:34:26]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[11:34:26]   worked examples (median-scoring window of each kind):
+[11:34:30]    [normal]
+[11:34:30]   anomaly score 17495246.0 nats
+[11:34:30]      ch15  out of range         marginal 17389290.00  structural  -14.00  worst at t=5
+[11:34:30]       ch9  out of range         marginal 81332.73  structural   -4.73  worst at t=6
+[11:34:30]       ch3  out of range         marginal 3055.39  structural  506.61  worst at t=11
+[11:34:33]    [spike]
+[11:34:33]   anomaly score 17010166.0 nats   [injected: spike, channels [0]]
+[11:34:33]      ch15  out of range         marginal 16878816.00  structural   -4.00  worst at t=19  <- miss
+[11:34:33]       ch9  out of range         marginal 91226.54  structural 1451.46  worst at t=18  <- miss
+[11:34:33]       ch8  out of range         marginal 4808.14  structural   -2.14  worst at t=1  <- miss
+[11:34:37]    [offset]
+[11:34:37]   anomaly score 17635534.0 nats   [injected: offset, channels [9, 12, 13]]
+[11:34:37]      ch15  out of range         marginal 17509828.00  structural   -6.00  worst at t=19  <- miss
+[11:34:37]       ch9  out of range         marginal 87874.81  structural 1479.19  worst at t=8  <- CORRECT
+[11:34:37]       ch3  out of range         marginal 4316.83  structural  655.17  worst at t=8  <- miss
+[11:34:41]    [drift]
+[11:34:41]   anomaly score 17776154.0 nats   [injected: drift, channels [1, 8, 13, 16]]
+[11:34:41]      ch15  out of range         marginal 17663202.00  structural   -8.00  worst at t=10  <- miss
+[11:34:41]       ch9  out of range         marginal 81753.18  structural 1022.82  worst at t=18  <- miss
+[11:34:41]       ch8  out of range         marginal 4091.99  structural    8.01  worst at t=18  <- CORRECT
+[11:34:44]    [decouple]
+[11:34:44]   anomaly score 17664906.0 nats   [injected: decouple, channels [5, 8]]
+[11:34:44]      ch15  out of range         marginal 17545152.00  structural   -8.00  worst at t=5  <- miss
+[11:34:44]       ch9  out of range         marginal 85767.56  structural 1068.44  worst at t=18  <- miss
+[11:34:44]       ch8  broken relationship  marginal 3649.42  structural 2012.58  worst at t=1  <- CORRECT
+[11:34:48]    [desync]
+[11:34:48]   anomaly score 20194672.0 nats   [injected: desync, channels [7, 16, 20]]
+[11:34:48]      ch15  out of range         marginal 20079446.00  structural   -6.00  worst at t=9  <- miss
+[11:34:48]       ch9  out of range         marginal 90444.04  structural   59.96  worst at t=12  <- miss
+[11:34:48]       ch3  out of range         marginal 3581.76  structural  428.24  worst at t=0  <- miss
+[11:34:48] --- stage explain done in 60.3s ---
+[11:34:48] === run ok · 60.3s · peak RSS 1.967 GB ===
+
+>>> subset-FD002 · seed 1 · logs/ts/cmapss_explain/subset-FD002/seed1
+[11:34:48] === run start · seed1 · seed 1 · hash c25c36e0b5c3 ===
+[11:34:48] stages ['explain'] · device cuda · dataset cmapss:FD002
+[11:34:48] --- stage: explain ---
+[11:34:48]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[11:34:48]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.1675414890050888, 'kind_counts': {'normal': 9833, 'desync': 349, 'offset': 380, 'drift': 361, 'decouple': 335, 'spike': 353, 'organic': 201}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+[11:34:48]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll 1408701951.323
+    [pc] epoch   6  nll 18302.229
+    [pc] epoch  12  nll 1268.814
+    [pc] epoch  18  nll  450.827
+    [pc] epoch  24  nll  433.614
+    [pc] epoch  30  nll  419.131
+    [pc] epoch  36  nll  401.794
+    [pc] epoch  42  nll  386.792
+    [pc] epoch  48  nll  387.520
+[11:35:11]   pc_train_nll: first=1408701951.3230 last=378.5415 (50 epochs)
+[11:35:11]   pc: fit 22.4s · 17,280 params · score sd 73.458 · device cuda · layered · 30,799 win/s
+[11:35:23]   attribution cost: PC exact (all views) 2.6s · AE sampling-SHAP (one view) 5.2s
+[11:35:26]   completeness: max residual 3.12e-02 nats, mean 5.27e-04
+[11:35:26]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[11:35:26]   worked examples (median-scoring window of each kind):
+[11:35:30]    [normal]
+[11:35:30]   anomaly score 367.9 nats
+[11:35:30]       ch1  out of range         marginal   29.28  structural   -0.03  worst at t=11
+[11:35:30]       ch5  out of range         marginal   28.65  structural   -0.68  worst at t=0
+[11:35:30]       ch2  out of range         marginal   28.22  structural   -0.33  worst at t=10
+[11:35:34]    [spike]
+[11:35:34]   anomaly score 376.8 nats   [injected: spike, channels [1, 10]]
+[11:35:34]       ch1  out of range         marginal   37.86  structural   -0.06  worst at t=13  <- CORRECT
+[11:35:34]      ch10  out of range         marginal   35.65  structural    0.39  worst at t=13  <- CORRECT
+[11:35:34]       ch5  out of range         marginal   33.24  structural   -1.05  worst at t=17  <- miss
+[11:35:37]    [offset]
+[11:35:37]   anomaly score 19409.7 nats   [injected: offset, channels [0, 2, 6, 11, 16]]
+[11:35:37]       ch0  broken relationship  marginal   40.79  structural 18964.66  worst at t=16  <- CORRECT
+[11:35:37]      ch18  broken relationship  marginal  -61.57  structural 18910.62  worst at t=16  <- miss
+[11:35:37]      ch16  out of range         marginal   43.11  structural    0.13  worst at t=9  <- CORRECT
+[11:35:41]    [drift]
+[11:35:41]   anomaly score 43804.5 nats   [injected: drift, channels [2, 4, 5, 11, 13, 14, 17, 19]]
+[11:35:41]      ch18  broken relationship  marginal  -68.39  structural 43211.14  worst at t=15  <- miss
+[11:35:41]       ch4  broken relationship  marginal   46.03  structural 40425.79  worst at t=15  <- CORRECT
+[11:35:41]      ch19  out of range         marginal   45.74  structural    0.43  worst at t=18  <- CORRECT
+[11:35:44]    [decouple]
+[11:35:44]   anomaly score 396.6 nats   [injected: decouple, channels [3, 9]]
+[11:35:44]       ch1  out of range         marginal   27.36  structural    0.36  worst at t=7  <- miss
+[11:35:44]       ch2  out of range         marginal   26.73  structural    0.42  worst at t=11  <- miss
+[11:35:44]       ch5  out of range         marginal   26.71  structural    0.37  worst at t=7  <- miss
+[11:35:48]    [desync]
+[11:35:48]   anomaly score 456.4 nats   [injected: desync, channels [9, 17]]
+[11:35:48]      ch17  broken relationship  marginal   30.89  structural   47.89  worst at t=2  <- CORRECT
+[11:35:48]       ch5  out of range         marginal   29.90  structural   -0.91  worst at t=7  <- miss
+[11:35:48]       ch6  out of range         marginal   28.06  structural   -0.38  worst at t=10  <- miss
+[11:35:48] --- stage explain done in 60.2s ---
+[11:35:48] === run ok · 60.2s · peak RSS 2.002 GB ===
+
+>>> subset-FD002 · seed 2 · logs/ts/cmapss_explain/subset-FD002/seed2
+[11:35:48] === run start · seed2 · seed 2 · hash c25c36e0b5c3 ===
+[11:35:48] stages ['explain'] · device cuda · dataset cmapss:FD002
+[11:35:48] --- stage: explain ---
+[11:35:49]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=3, cap=125)  (0.3s)
+[11:35:49]   task: {'kind': 'ad', 'n_train': 13817, 'n_test': 11812, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.16686420142650604, 'kind_counts': {'normal': 9841, 'offset': 367, 'drift': 340, 'spike': 351, 'decouple': 333, 'desync': 379, 'organic': 201}, 'train_units': 260, 'test_units': 259, 'n_regimes': 3, 'seed': 2, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'cap': 125.0, 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+[11:35:49]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll 1403966308.099
+    [pc] epoch   6  nll 21320.432
+    [pc] epoch  12  nll  841.623
+    [pc] epoch  18  nll  443.714
+    [pc] epoch  24  nll  423.619
+    [pc] epoch  30  nll  412.532
+    [pc] epoch  36  nll  382.178
+    [pc] epoch  42  nll  374.636
+    [pc] epoch  48  nll  360.758
+[11:36:11]   pc_train_nll: first=1403966308.0995 last=361.4691 (50 epochs)
+[11:36:11]   pc: fit 22.5s · 17,280 params · score sd 81.953 · device cuda · layered · 30,735 win/s
+[11:36:23]   attribution cost: PC exact (all views) 2.6s · AE sampling-SHAP (one view) 5.2s
+[11:36:26]   completeness: max residual 4.40e+12 nats, mean 4.01e+11
+[11:36:27]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[11:36:27]   worked examples (median-scoring window of each kind):
+[11:36:30]    [normal]
+[11:36:30]   anomaly score 10183808637856645120.0 nats
+[11:36:30]      ch18  out of range         marginal 9178085901685751808.00  structural 549755813888.00  worst at t=4
+[11:36:30]      ch17  out of range         marginal 1005722117695602688.00  structural 618475290624.00  worst at t=19
+[11:36:30]      ch10  out of range         marginal 14778.99  structural -14778.99  worst at t=0
+[11:36:34]    [spike]
+[11:36:34]   anomaly score 12175623429596119040.0 nats   [injected: spike, channels [7]]
+[11:36:34]      ch18  out of range         marginal 11202168610921381888.00  structural 1099511627776.00  worst at t=14  <- miss
+[11:36:34]      ch17  out of range         marginal 973453169407295488.00  structural 1649267441664.00  worst at t=16  <- miss
+[11:36:34]      ch10  out of range         marginal 14268.48  structural -14268.48  worst at t=0  <- miss
+[11:36:38]    [offset]
+[11:36:38]   anomaly score 10063668300824444928.0 nats   [injected: offset, channels [0, 4, 7, 12, 17, 19]]
+[11:36:38]      ch18  out of range         marginal 9429829534225530880.00  structural 1099511627776.00  worst at t=4  <- miss
+[11:36:38]      ch17  out of range         marginal 633837873245716480.00  structural 893353197568.00  worst at t=7  <- CORRECT
+[11:36:38]      ch10  out of range         marginal 9973.37  structural -9973.37  worst at t=0  <- miss
+[11:36:41]    [drift]
+[11:36:41]   anomaly score 12103284360581480448.0 nats   [injected: drift, channels [2, 3, 18]]
+[11:36:41]      ch18  out of range         marginal 11232937344313065472.00  structural 1099511627776.00  worst at t=15  <- CORRECT
+[11:36:41]      ch17  out of range         marginal 870346122915217408.00  structural 893353197568.00  worst at t=6  <- miss
+[11:36:41]      ch10  out of range         marginal 12569.46  structural -12569.46  worst at t=0  <- miss
+[11:36:45]    [decouple]
+[11:36:45]   anomaly score 9525474951214137344.0 nats   [injected: decouple, channels [11]]
+[11:36:45]      ch18  out of range         marginal 9049148372119715840.00  structural -549755813888.00  worst at t=4  <- miss
+[11:36:45]      ch17  out of range         marginal 476326853972328448.00  structural -274877906944.00  worst at t=16  <- miss
+[11:36:45]      ch10  out of range         marginal 6965.24  structural -6965.24  worst at t=0  <- miss
+[11:36:48]    [desync]
+[11:36:48]   anomaly score 11824450410800742400.0 nats   [injected: desync, channels [6, 12, 14]]
+[11:36:48]      ch18  out of range         marginal 10971986951158104064.00  structural    0.00  worst at t=4  <- miss
+[11:36:48]      ch17  out of range         marginal 852463322203684864.00  structural 137438953472.00  worst at t=19  <- miss
+[11:36:48]      ch10  out of range         marginal 13381.23  structural -13381.23  worst at t=0  <- miss
+[11:36:49] --- stage explain done in 60.4s ---
+[11:36:49] === run ok · 60.4s · peak RSS 2.002 GB ===
+
+>>> subset-FD004 · seed 0 · logs/ts/cmapss_explain/subset-FD004/seed0
+[11:36:49] === run start · seed0 · seed 0 · hash ce331db50c80 ===
+[11:36:49] stages ['explain'] · device cuda · dataset cmapss:FD004
+[11:36:49] --- stage: explain ---
+[11:36:49]   data: FleetPair(cmapss:FD004: train=249 units, test=248 units, C=21, regimes=3, cap=125)  (0.4s)
+[11:36:49]   task: {'kind': 'ad', 'n_train': 18107, 'n_test': 15855, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.16253547370433807, 'kind_counts': {'normal': 13278, 'spike': 482, 'offset': 493, 'drift': 468, 'desync': 491, 'decouple': 491, 'organic': 152}, 'train_units': 249, 'test_units': 248, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD004', 'cap': 125.0, 'subset': 'FD004', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+[11:36:49]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll 1090303046.182
+    [pc] epoch   6  nll 7214.100
+    [pc] epoch  12  nll  447.365
+    [pc] epoch  18  nll  419.004
+    [pc] epoch  24  nll  387.821
+    [pc] epoch  30  nll  359.275
+    [pc] epoch  36  nll  335.415
+    [pc] epoch  42  nll  327.376
+    [pc] epoch  48  nll  308.059
+[11:37:18]   pc_train_nll: first=1090303046.1817 last=309.9147 (50 epochs)
+[11:37:18]   pc: fit 28.7s · 17,280 params · score sd 93.160 · device cuda · layered · 31,494 win/s
+[11:37:31]   attribution cost: PC exact (all views) 2.7s · AE sampling-SHAP (one view) 5.2s
+[11:37:34]   completeness: max residual 7.81e-03 nats, mean 1.60e-04
+[11:37:35]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[11:37:35]   worked examples (median-scoring window of each kind):
+[11:37:38]    [normal]
+[11:37:38]   anomaly score 308.6 nats
+[11:37:38]       ch5  out of range         marginal   38.76  structural    0.05  worst at t=6
+[11:37:38]       ch1  out of range         marginal   31.40  structural   -0.51  worst at t=0
+[11:37:38]      ch20  out of range         marginal   29.28  structural   -0.05  worst at t=6
+[11:37:42]    [spike]
+[11:37:42]   anomaly score 337.8 nats   [injected: spike, channels [8, 18]]
+[11:37:42]       ch8  out of range         marginal   28.03  structural   -0.39  worst at t=5  <- CORRECT
+[11:37:42]       ch9  out of range         marginal   26.75  structural    0.63  worst at t=13  <- miss
+[11:37:42]      ch19  out of range         marginal   27.48  structural   -0.23  worst at t=9  <- miss
+[11:37:46]    [offset]
+[11:37:46]   anomaly score 10283.9 nats   [injected: offset, channels [4, 9]]
+[11:37:46]       ch4  broken relationship  marginal   55.79  structural 9872.17  worst at t=11  <- CORRECT
+[11:37:46]      ch18  broken relationship  marginal  -85.88  structural 9794.30  worst at t=11  <- miss
+[11:37:46]       ch9  out of range         marginal   53.61  structural    2.87  worst at t=8  <- CORRECT
+[11:37:49]    [drift]
+[11:37:49]   anomaly score 110934.7 nats   [injected: drift, channels [0, 1, 5, 6, 7, 11, 13, 19]]
+[11:37:49]       ch0  broken relationship  marginal   51.85  structural 110465.90  worst at t=18  <- CORRECT
+[11:37:49]      ch18  broken relationship  marginal  -85.97  structural 110372.57  worst at t=18  <- miss
+[11:37:49]       ch1  out of range         marginal   50.73  structural   -0.99  worst at t=18  <- CORRECT
+[11:37:53]    [decouple]
+[11:37:53]   anomaly score 401.6 nats   [injected: decouple, channels [14]]
+[11:37:53]       ch2  out of range         marginal   30.83  structural   -0.47  worst at t=10  <- miss
+[11:37:53]       ch5  out of range         marginal   29.07  structural   -0.07  worst at t=0  <- miss
+[11:37:53]      ch19  out of range         marginal   29.27  structural   -0.36  worst at t=0  <- miss
+[11:37:57]    [desync]
+[11:37:57]   anomaly score 443.1 nats   [injected: desync, channels [0, 1]]
+[11:37:57]       ch3  out of range         marginal   31.45  structural    0.20  worst at t=10  <- miss
+[11:37:57]      ch16  out of range         marginal   29.90  structural    0.41  worst at t=10  <- miss
+[11:37:57]       ch9  out of range         marginal   29.54  structural    0.07  worst at t=6  <- miss
+[11:37:57] --- stage explain done in 68.1s ---
+[11:37:57] === run ok · 68.1s · peak RSS 2.066 GB ===
+
+>>> subset-FD004 · seed 1 · logs/ts/cmapss_explain/subset-FD004/seed1
+[11:37:57] === run start · seed1 · seed 1 · hash ce331db50c80 ===
+[11:37:57] stages ['explain'] · device cuda · dataset cmapss:FD004
+[11:37:57] --- stage: explain ---
+[11:37:57]   data: FleetPair(cmapss:FD004: train=249 units, test=248 units, C=21, regimes=3, cap=125)  (0.3s)
+[11:37:57]   task: {'kind': 'ad', 'n_train': 18107, 'n_test': 15855, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.15976032614707947, 'kind_counts': {'normal': 13322, 'desync': 480, 'offset': 506, 'drift': 489, 'decouple': 430, 'spike': 476, 'organic': 152}, 'train_units': 249, 'test_units': 248, 'n_regimes': 3, 'seed': 1, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD004', 'cap': 125.0, 'subset': 'FD004', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+[11:37:57]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll 1109868801.524
+    [pc] epoch   6  nll 11073.567
+    [pc] epoch  12  nll  455.228
+    [pc] epoch  18  nll  403.458
+    [pc] epoch  24  nll  389.616
+    [pc] epoch  30  nll  346.815
+    [pc] epoch  36  nll  329.493
+    [pc] epoch  42  nll  316.437
+    [pc] epoch  48  nll  310.010
+[11:38:26]   pc_train_nll: first=1109868801.5239 last=308.5156 (50 epochs)
+[11:38:26]   pc: fit 29.0s · 17,280 params · score sd 93.813 · device cuda · layered · 31,178 win/s
+[11:38:40]   attribution cost: PC exact (all views) 2.7s · AE sampling-SHAP (one view) 5.2s
+[11:38:42]   completeness: max residual 4.40e+12 nats, mean 4.94e+11
+[11:38:43]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[11:38:43]   worked examples (median-scoring window of each kind):
+[11:38:47]    [normal]
+[11:38:47]   anomaly score 15357455049240346624.0 nats
+[11:38:47]      ch18  out of range         marginal 15357455049240346624.00  structural    0.00  worst at t=8
+[11:38:47]      ch10  out of range         marginal 2656.64  structural -2656.64  worst at t=0
+[11:38:47]      ch20  out of range         marginal 2622.41  structural -2622.41  worst at t=0
+[11:38:50]    [spike]
+[11:38:50]   anomaly score 12983422527895240704.0 nats   [injected: spike, channels [8, 10]]
+[11:38:50]      ch18  out of range         marginal 12983422527895240704.00  structural    0.00  worst at t=9  <- miss
+[11:38:50]      ch10  out of range         marginal 4317.92  structural -4317.92  worst at t=0  <- CORRECT
+[11:38:50]      ch20  out of range         marginal 3188.88  structural -3188.88  worst at t=0  <- miss
+[11:38:54]    [offset]
+[11:38:54]   anomaly score 14539494264477319168.0 nats   [injected: offset, channels [0, 1, 2, 7, 11, 14]]
+[11:38:54]      ch18  out of range         marginal 14539494264477319168.00  structural    0.00  worst at t=9  <- miss
+[11:38:54]      ch10  out of range         marginal 3775.42  structural -3775.42  worst at t=0  <- miss
+[11:38:54]      ch20  out of range         marginal 1754.07  structural -1754.07  worst at t=0  <- miss
+[11:38:57]    [drift]
+[11:38:57]   anomaly score 13003915225613729792.0 nats   [injected: drift, channels [2, 3, 8, 10, 18]]
+[11:38:57]      ch18  out of range         marginal 13003915225613729792.00  structural    0.00  worst at t=11  <- CORRECT
+[11:38:57]      ch10  out of range         marginal 4078.18  structural -4078.18  worst at t=0  <- CORRECT
+[11:38:57]      ch20  out of range         marginal 3066.38  structural -3066.38  worst at t=0  <- miss
+[11:39:01]    [decouple]
+[11:39:01]   anomaly score 13581600833870495744.0 nats   [injected: decouple, channels [15]]
+[11:39:01]      ch18  out of range         marginal 13581600833870495744.00  structural    0.00  worst at t=16  <- miss
+[11:39:01]      ch10  out of range         marginal 2783.51  structural -2783.51  worst at t=0  <- miss
+[11:39:01]      ch20  out of range         marginal 2494.32  structural -2494.32  worst at t=0  <- miss
+[11:39:05]    [desync]
+[11:39:05]   anomaly score 14520502400130744320.0 nats   [injected: desync, channels [4]]
+[11:39:05]      ch18  out of range         marginal 14520502400130744320.00  structural    0.00  worst at t=9  <- miss
+[11:39:05]      ch10  out of range         marginal 4354.54  structural -4354.54  worst at t=0  <- miss
+[11:39:05]      ch20  out of range         marginal 2651.89  structural -2651.89  worst at t=0  <- miss
+[11:39:05] --- stage explain done in 68.1s ---
+[11:39:05] === run ok · 68.1s · peak RSS 2.073 GB ===
+
+>>> subset-FD004 · seed 2 · logs/ts/cmapss_explain/subset-FD004/seed2
+[11:39:05] === run start · seed2 · seed 2 · hash ce331db50c80 ===
+[11:39:05] stages ['explain'] · device cuda · dataset cmapss:FD004
+[11:39:05] --- stage: explain ---
+[11:39:05]   data: FleetPair(cmapss:FD004: train=249 units, test=248 units, C=21, regimes=3, cap=125)  (0.4s)
+[11:39:05]   task: {'kind': 'ad', 'n_train': 18107, 'n_test': 15855, 'd': 420, 'window': 20, 'n_channels': 21, 'anomaly_rate': 0.16007567942142487, 'kind_counts': {'normal': 13317, 'offset': 489, 'drift': 466, 'spike': 456, 'decouple': 466, 'desync': 509, 'organic': 152}, 'train_units': 249, 'test_units': 248, 'n_regimes': 3, 'seed': 2, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD004', 'cap': 125.0, 'subset': 'FD004', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)'}
+[11:39:05]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll 1079408524.693
+    [pc] epoch   6  nll 9090.152
+    [pc] epoch  12  nll  469.381
+    [pc] epoch  18  nll  433.561
+    [pc] epoch  24  nll  417.183
+    [pc] epoch  30  nll  390.621
+    [pc] epoch  36  nll  367.241
+    [pc] epoch  42  nll  362.351
+    [pc] epoch  48  nll  353.189
+[11:39:34]   pc_train_nll: first=1079408524.6927 last=353.0078 (50 epochs)
+[11:39:34]   pc: fit 29.2s · 17,280 params · score sd 85.269 · device cuda · layered · 30,992 win/s
+[11:39:48]   attribution cost: PC exact (all views) 2.7s · AE sampling-SHAP (one view) 5.2s
+[11:39:51]   completeness: max residual 4.40e+12 nats, mean 4.38e+11
+[11:39:51]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[11:39:51]   worked examples (median-scoring window of each kind):
+[11:39:55]    [normal]
+[11:39:55]   anomaly score 23979387628631883776.0 nats
+[11:39:55]      ch18  out of range         marginal 23979387628631883776.00  structural    0.00  worst at t=0
+[11:39:55]      ch10  out of range         marginal 2260.66  structural -2260.66  worst at t=0
+[11:39:55]      ch20  out of range         marginal 2178.94  structural -2178.94  worst at t=0
+[11:39:58]    [spike]
+[11:39:58]   anomaly score 23464739221018771456.0 nats   [injected: spike, channels [0]]
+[11:39:58]      ch18  out of range         marginal 23464739221018771456.00  structural    0.00  worst at t=4  <- miss
+[11:39:58]      ch10  out of range         marginal 2974.28  structural -2974.28  worst at t=0  <- miss
+[11:39:58]      ch20  out of range         marginal 2214.42  structural -2214.42  worst at t=0  <- miss
+[11:40:02]    [offset]
+[11:40:02]   anomaly score 20657949918097309696.0 nats   [injected: offset, channels [5, 8, 14, 16]]
+[11:40:02]      ch18  out of range         marginal 20657949918097309696.00  structural    0.00  worst at t=11  <- miss
+[11:40:02]      ch10  out of range         marginal 2799.02  structural -2799.02  worst at t=0  <- miss
+[11:40:02]      ch20  out of range         marginal 2617.31  structural -2617.31  worst at t=0  <- miss
+[11:40:06]    [drift]
+[11:40:06]   anomaly score 23465673805902381056.0 nats   [injected: drift, channels [0, 5, 7, 14, 15]]
+[11:40:06]      ch18  out of range         marginal 23465673805902381056.00  structural    0.00  worst at t=4  <- miss
+[11:40:06]      ch10  out of range         marginal 3087.66  structural -3087.66  worst at t=0  <- miss
+[11:40:06]      ch20  out of range         marginal 2622.74  structural -2622.74  worst at t=0  <- miss
+[11:40:09]    [decouple]
+[11:40:09]   anomaly score 15579760907213864960.0 nats   [injected: decouple, channels [0, 7]]
+[11:40:09]      ch18  out of range         marginal 15579760907213864960.00  structural    0.00  worst at t=19  <- miss
+[11:40:09]      ch10  out of range         marginal 3453.85  structural -3453.85  worst at t=0  <- miss
+[11:40:09]      ch20  out of range         marginal 2980.01  structural -2980.01  worst at t=0  <- miss
+[11:40:13]    [desync]
+[11:40:13]   anomaly score 20317596093719248896.0 nats   [injected: desync, channels [12, 17]]
+[11:40:13]      ch18  out of range         marginal 20317596093719248896.00  structural    0.00  worst at t=6  <- miss
+[11:40:13]      ch10  out of range         marginal 3711.07  structural -3711.07  worst at t=0  <- miss
+[11:40:13]      ch20  out of range         marginal 2875.70  structural -2875.70  worst at t=0  <- miss
+[11:40:13] --- stage explain done in 68.3s ---
+[11:40:13] === run ok · 68.4s · peak RSS 2.078 GB ===
+
+==============================================================================
+ batch finished in 8.2 min — 9 ok, 0 skipped, 0 failed
+==============================================================================
+
+=== explain (mean ± sd over seeds) ===
+
+method                           dataset          variant                           loc_auroc          prec_at_k       deletion_auc  max_residual_nats mean_residual_nats loc_auroc[decouple]  loc_auroc[desync]   loc_auroc[drift]  seeds
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+PC Shapley (exact conditionals)  cmapss:FD001     subset-FD001                  0.8806±0.0069      0.6889±0.0292      0.2505±0.0089                  —                  —      0.4845±0.0387      0.6761±0.0417      0.9899±0.0058      3
+PC conditional (exact)           cmapss:FD001     subset-FD001                  0.8775±0.0082      0.6833±0.0197      0.2462±0.0100                  —                  —      0.4877±0.0367      0.6853±0.0403      0.9769±0.0109      3
+Gaussian conditional (exact)     cmapss:FD001     subset-FD001                  0.8593±0.0090      0.6258±0.0084      0.4603±0.1095                  —                  —      0.4715±0.0423      0.7187±0.0254      0.9442±0.0028      3
+PC marginal (exact)              cmapss:FD001     subset-FD001                  0.8576±0.0038      0.6059±0.0167      0.2556±0.0115                  —                  —      0.4789±0.0472      0.5099±0.0357      0.9800±0.0072      3
+z-score (per channel)            cmapss:FD001     subset-FD001                  0.8219±0.0095      0.5336±0.0081      0.5119±0.0520                  —                  —      0.4838±0.0457      0.4990±0.0258      0.9249±0.0006      3
+PC structural (exact)            cmapss:FD001     subset-FD001                  0.7469±0.0158      0.4915±0.0140      0.6970±0.0099                  —                  —      0.5488±0.0463      0.7578±0.0513      0.8049±0.0357      3
+AE reconstruction (per channel)  cmapss:FD001     subset-FD001                  0.7332±0.0130      0.3698±0.0334      0.3194±0.0814                  —                  —      0.4867±0.0040      0.5517±0.0361      0.8260±0.0038      3
+AE sampling-SHAP (32/ch)         cmapss:FD001     subset-FD001                  0.6668±0.0147      0.3043±0.0292      0.2856±0.1051                  —                  —      0.4929±0.0106      0.4753±0.0047      0.7486±0.0080      3
+Gaussian conditional (exact)     cmapss:FD004     subset-FD004                  0.6266±0.2185      0.3304±0.3178      0.1692±0.2143                  —                  —      0.6292±0.2588      0.6135±0.2325      0.5997±0.1580      3
+AE reconstruction (per channel)  cmapss:FD002     subset-FD002                  0.6201±0.2188      0.3130±0.3137      0.4384±0.4094                  —                  —      0.6333±0.2293      0.6137±0.2103      0.6091±0.1997      3
+PC conditional (exact)           cmapss:FD002     subset-FD002                  0.6198±0.2309      0.3002±0.2632      0.0678±0.0343                  —                  —      0.6053±0.1008      0.4344±0.2277      0.6539±0.2581      3
+PC conditional (exact)           cmapss:FD004     subset-FD004                  0.6140±0.2085      0.2846±0.2684      0.0781±0.0565                  —                  —      0.5744±0.1301      0.5239±0.1031      0.6444±0.2375      3
+AE reconstruction (per channel)  cmapss:FD004     subset-FD004                  0.6124±0.2199      0.3190±0.3182      0.1711±0.2177                  —                  —      0.6074±0.2473      0.5864±0.2290      0.5933±0.1892      3
+Gaussian conditional (exact)     cmapss:FD002     subset-FD002                  0.5949±0.1954      0.3087±0.3162      0.1382±0.0843                  —                  —      0.6585±0.2230      0.5967±0.2231      0.5553±0.1350      3
+PC structural (exact)            cmapss:FD002     subset-FD002                  0.5948±0.0145      0.2779±0.0536      0.3215±0.3086                  —                  —      0.6860±0.1741      0.7863±0.1213      0.5032±0.0197      3
+PC Shapley (exact conditionals)  cmapss:FD002     subset-FD002                  0.5927±0.2592      0.2844±0.2521      0.0682±0.0350                  —                  —      0.6096±0.0946      0.2975±0.3440      0.6560±0.2563      3
+PC Shapley (exact conditionals)  cmapss:FD004     subset-FD004                  0.5806±0.2474      0.2790±0.2726      0.0777±0.0559                  —                  —      0.5929±0.1277      0.2602±0.3475      0.6437±0.2531      3
+z-score (per channel)            cmapss:FD004     subset-FD004                  0.5735±0.2335      0.2735±0.2619      0.0580±0.0217                  —                  —      0.5297±0.0020      0.1695±0.2815      0.6652±0.2754      3
+PC marginal (exact)              cmapss:FD002     subset-FD002                  0.5722±0.2551      0.2803±0.2611      0.1096±0.1056                  —                  —      0.5214±0.0485      0.1945±0.2730      0.6641±0.2792      3
+z-score (per channel)            cmapss:FD002     subset-FD002                  0.5702±0.2558      0.2713±0.2749      0.0777±0.0219                  —                  —      0.4776±0.0546      0.1738±0.2848      0.6667±0.2746      3
+PC marginal (exact)              cmapss:FD004     subset-FD004                  0.5640±0.2188      0.2654±0.2518      0.1394±0.1628                  —                  —      0.5204±0.0199      0.2053±0.2782      0.6492±0.2685      3
+PC structural (exact)            cmapss:FD004     subset-FD004                  0.5367±0.0135      0.2165±0.0872      0.1973±0.2041                  —                  —      0.5636±0.1653      0.7637±0.0872      0.4452±0.1307      3
+AE sampling-SHAP (32/ch)         cmapss:FD004     subset-FD004                  0.4493±0.0435      0.0957±0.0466      0.1790±0.2313                  —                  —      0.4616±0.1072      0.2872±0.0250      0.4888±0.0437      3
+AE sampling-SHAP (32/ch)         cmapss:FD002     subset-FD002                  0.4412±0.0066      0.1054±0.0097      0.2001±0.2260                  —                  —      0.3600±0.1297      0.2392±0.1246      0.4913±0.0280      3
+PC chain-rule completeness       cmapss:FD004     subset-FD004                              —                  —                  —   2.932e+12±3e+12    3.107e+11±3e+11                   —                  —                  —      3
+PC chain-rule completeness       cmapss:FD002     subset-FD002                              —                  —                  —   1.466e+12±3e+12    1.335e+11±2e+11                   —                  —                  —      3
+PC chain-rule completeness       cmapss:FD001     subset-FD001                              —                  —                  —   1.119e-04±1e-04    6.557e-06±4e-06                   —                  —                  —      3
+
+wrote logs/ts/cmapss_explain/summary.csv, summary.json, summary.md
+
