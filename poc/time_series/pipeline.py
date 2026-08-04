@@ -124,9 +124,10 @@ def _fit_window_pc(cfg: Dict[str, Any], task, seed: int, log: RunLogger,
     fit_s = time.time() - t0
     log.history(f"{tag}_train_nll", pc.history)
     sd = pc.assert_informative(task.X_train)         # loud, not silent (§3)
-    # windows/s makes the device choice auditable after the fact: a circuit is
-    # launch-latency bound, so a GPU run that is SLOWER than CPU is a normal
-    # outcome and has to be visible in the log rather than assumed away.
+    # windows/s makes the device AND evaluator choice auditable after the fact.
+    # It matters: on the recursive evaluator a GPU run is legitimately slower
+    # than CPU, on the layered one it is ~2× faster above batch 128, and the
+    # only way to tell which regime a finished run was in is to log it.
     thr = len(task.X_train) * int(m["epochs"]) / max(fit_s, 1e-9)
     ev = "layered" if pc.compiled is not None else "recursive"
     log.info(f"  {tag}: fit {fit_s:.1f}s · {pc.size()['parameters']:,} params · "

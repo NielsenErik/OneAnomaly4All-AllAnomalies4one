@@ -11,11 +11,13 @@
 #   DRY=1 bash poc/time_series/launch/run_workstation.sh         # print the plan
 #   BENCH_DEVICE=1 bash poc/time_series/launch/run_workstation.sh  # time cpu vs gpu first
 #
-# DEVICE is a measurement, not a default.  A circuit is a deep DAG of many tiny
-# kernels, so it is launch-latency bound and `DEVICE=cpu` frequently beats a
-# 4080 at small K/window.  Run with BENCH_DEVICE=1 once per machine (it takes
-# about a minute) and set DEVICE from what it prints; every run.log records the
-# device and windows/s so a bad choice is visible afterwards.
+# DEVICE is a measurement, not a default — but the answer changed when the
+# evaluator did.  With the compiled (layered) evaluator, now the default, the
+# GPU wins above batch ~128 and by ~2× at 2048+; with the old per-node
+# recursion it lost to the CPU at every batch size.  Run BENCH_DEVICE=1 once
+# per machine (about a minute) and set DEVICE from what it prints; every
+# run.log records device, evaluator and windows/s, so a bad choice is visible
+# afterwards instead of being assumed away.
 #
 # Everything is RESUMABLE: a run that already finished with the same config is
 # skipped, so re-launching after a crash, a reboot or a Ctrl-C costs nothing.

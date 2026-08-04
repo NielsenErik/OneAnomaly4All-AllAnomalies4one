@@ -71,7 +71,7 @@ if torch.cuda.is_available():
         p = torch.cuda.get_device_properties(i)
         print(f"gpu[{i}]    : {p.name}  {p.total_memory / 2**30:.1f} GB")
 print(f"resolved  : {resolve_device(os.environ.get('DEVICE') or 'auto')}"
-      "   (a circuit is launch-latency bound; cpu can be faster —"
+      "   (layered evaluator: gpu wins above batch ~128 —"
       " `python -m poc.time_series.bench_device`)")
 PYEOF
 }

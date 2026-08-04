@@ -11,41 +11,74 @@ WHAT THIS MEASURED, AND WHAT IT OVERTURNED
 The earlier version of this file asserted that a circuit is inherently
 GPU-hostile: "hundreds of nodes, each doing a small stack/logsumexp, evaluated
 by a Python recursion over the DAG", therefore launch-latency bound, therefore
-the CPU usually wins.  Two of those three clauses were about the EVALUATOR, not
-about the model, and the conclusion did not survive replacing it.
+the CPU usually wins.  Two of those three clauses describe the EVALUATOR, not
+the model, and the conclusion did not survive replacing it.
 
 `CompiledCircuit` (src/probabilistic_circuits.py §6a) compiles the DAG once
 into a topological layer schedule: flat int64 child-index buffers, packed
-parameter tensors, one preallocated value buffer, one gather + one logsumexp
-per sum layer (a real GEMM when the K units of a region mix the same children),
-one gather + one sum per product layer.  The Python loop goes from O(#nodes)
-to O(depth) — on the standard 8×14 window with K=6 that is 1057 nodes and 16
-layers, a 66× reduction in interpreter steps and kernel launches.
+parameter tensors, one growing value buffer, one gather + one logsumexp per sum
+layer (a real GEMM via the max-shift trick when the K units of a region mix the
+same children), one gather + one sum per product layer.  The Python loop goes
+from O(#nodes) to O(depth): on the standard 8×14 window with K=6 that is 1057
+nodes → 16 layers, 66× fewer interpreter steps and kernel launches per forward.
 
-Measured on an M-series Mac (torch 2.10, fp32, chain vtree, window 8×14, K=6,
-1057 nodes / 16 layers), forward pass throughput in samples/s:
+MEASURED — M4 Mac, torch 2.10, fp32, chain vtree, window 8×14 (d=112), K=6,
+1057 nodes / depth 17 / 16 layers / 6 dense (GEMM) sum layers.
+Forward pass, samples/s, inputs already device-resident:
 
     batch   cpu recursive   cpu layered   mps recursive   mps layered
-       32          1,368        26,626             486        18,963
-      256         12,705        63,265           4,001       105,116
-     1024          9,972        40,119          11,761       233,593
-     4096         63,714        84,552          61,682       245,324
+       32          2,949        42,560             574        20,478
+      128         11,003        72,566           2,315        77,486
+      512         37,775       122,617           9,014       220,111
+     2048        103,552       114,301          34,621       250,002
+     8192        188,401       122,760         101,373       251,984
 
-Three conclusions, none of which match the old docstring:
+Training step (forward + backward + Adam), samples/s — what the fit loop pays:
 
-  1. The recursion, not the model, was the bottleneck: 4-39× on identical
-     hardware, identical numbers (max |Δ log p| ≈ 1.5e-5 in fp32, gated below).
-  2. With the recursion the GPU LOSES to the CPU at every batch size — that is
-     the observation the old docstring generalised into a claim about circuits.
-     With the compiled evaluator the GPU WINS by ~2.9× at batch 4096.
-  3. The crossover is a batch size, not a property: below ~256 the GPU is still
-     launch-bound and the CPU is competitive; above it the GPU pulls away and
-     keeps scaling while the CPU flattens.  Batch across sliding windows and
-     the GPU is the right device; feed it 32 windows at a time and it is not.
+    batch   cpu recursive   cpu layered   mps recursive   mps layered
+       32            585        16,804             103         6,898
+      512          7,661        37,176           1,899        71,002
+     8192         65,374        45,055          29,482        93,230
 
-So `--device` remains a knob to measure per machine — but the honest statement
+With `--compile` (torch.compile, mode="reduce-overhead", static shapes), which
+fuses the layer schedule and — on CUDA — lets CUDA graphs capture it whole:
+
+    batch   cpu layered   cpu +compile   mps layered   mps +compile
+      128       64,647        106,562        82,193        268,289
+     2048      112,020        177,328       255,137        986,585
+
+That is the launch-overhead split made visible: compiling buys 1.6× on CPU
+(fusion only) and 3.9× on the GPU (fusion + far fewer launches), which says
+most of what the layered evaluator still pays on the GPU is launch cost, not
+arithmetic.  End to end it is 986,585 vs 36,045 samples/s — 27× on the same
+GPU, purely from how the circuit is evaluated.
+
+Four conclusions, and only the last one survives from the old docstring:
+
+  1. The recursion, not the model, was the bottleneck.  2.5-35.6× on identical
+     hardware for identical numbers — worst relative disagreement 1.5e-7, i.e.
+     fp32 epsilon, gated on every run before any timing is reported.
+  2. With the recursion the GPU LOSES to the CPU at every batch size (0.19-0.54×).
+     That observation is what the old docstring generalised into a claim about
+     circuits.  With the compiled evaluator the GPU WINS from batch 128 up, by
+     2.0-2.2× at batch 2048-8192, and it keeps scaling where the CPU flattens.
+  3. The crossover is a batch size, not a property of the model: ~128 here.
+     Below it the GPU is still launch-bound.  So batch ACROSS sliding windows
+     (which the pipeline does) and the GPU is the right device; feed it 32
+     windows at a time and it is not.
+  4. On CPU at very large batch the layered evaluator gives the advantage back
+     (0.7× at 8192): its gathers materialise (B, N, A) intermediates and become
+     memory-bandwidth bound, while the recursion's per-node overhead finally
+     amortises.  On CPU, therefore, prefer batch ≈ 512; on GPU, as large as fits.
+
+So `--device` is still a knob to measure per machine — but the honest statement
 is "a circuit is a wide, shallow, batched computation once you stop evaluating
 it one node at a time", not "a circuit is GPU-hostile".
+
+END-TO-END, the claim that matters: the full smoke pipeline (every stage, one
+seed, CPU) goes from 52.3 s to 7.5 s — 7× — with all 40 result rows agreeing to
+7e-7.  The explain stage dominates that gain, because exact attribution is
+thousands of marginal queries and each one was paying the recursion.
 
 METHOD (the previous benchmark got this wrong too)
   * warmup iterations before every timed region;

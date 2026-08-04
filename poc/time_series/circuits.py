@@ -64,11 +64,18 @@ def resolve_device(device: Optional[str] = None) -> torch.device:
     """
     'auto' -> cuda when present, else mps, else cpu.
 
-    A word of warning that belongs next to the flag: a probabilistic circuit is
-    a deep DAG of MANY SMALL tensor ops, not a few large matmuls, so it is
-    launch-latency bound.  On a 4080 the win over a modern CPU is real but
-    modest for small circuits and only grows with K, the window and the batch.
-    Measure before assuming — `--device` is a knob, not an upgrade.
+    What the flag is worth depends entirely on the EVALUATOR (see
+    `evaluator=` on WindowPC, and poc/time_series/bench_device.py):
+
+      * recursive (per-node) — the GPU loses to the CPU at every batch size
+        measured, 0.19-0.54×.  The circuit is launch-latency bound, and the
+        Python recursion costs the same on both devices.
+      * layered (compiled, the default) — the GPU wins from batch ~128 up,
+        ~2× at batch 2048+, and keeps scaling where the CPU flattens.
+
+    So "a circuit is GPU-hostile" was a fact about the recursion, not about
+    circuits.  Measure per machine — `--device` is a knob, not an upgrade —
+    but measure it with the layered evaluator.
     """
     if device in (None, "auto"):
         if torch.cuda.is_available():

@@ -182,8 +182,8 @@ def main(argv=None) -> None:
     ap.add_argument("--verbose", action="store_true")
     ap.add_argument("--out", default="logs/poc_ts_ad.json")
     ap.add_argument("--device", default="auto",
-                    help="auto | cpu | cuda | cuda:0 | mps; a circuit is "
-                         "launch-latency bound, so cpu is often faster — "
+                    help="auto | cpu | cuda | cuda:0 | mps; with the compiled "
+                         "(layered) evaluator the GPU wins above batch ~128 — "
                          "measure with `python -m poc.time_series.bench_device`")
     args = ap.parse_args(argv)
 

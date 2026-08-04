@@ -135,6 +135,31 @@ def test_minus_inf_children_do_not_produce_nan():
     _agree(root, comp, x)
 
 
+def test_dense_gemm_layer_keeps_minus_inf_exact():
+    """
+    The GEMM path computes m + log(exp(g−m) @ W).  When every child of a sum
+    node is −inf the matmul is exactly 0, and log 0 must stay −inf: an ε floor
+    there would report ≈ −103 for an event of probability zero, which is a
+    wrong answer that still looks plausible in a loss curve.  This is the
+    regression test for exactly that bug.
+    """
+    dead = [CategoricalLeaf(0, n_categories=2) for _ in range(3)]
+    for lf in dead:                       # every category impossible at v = 1
+        with torch.no_grad():
+            lf.logits.copy_(torch.tensor([0.0, -float("inf")]))
+    # 4 sum nodes over the SAME 3 children -> a dense (GEMM) layer
+    prods = [ProductNode([lf, GaussianLeaf(1)]) for lf in dead]
+    sums = [SumNode(list(prods)) for _ in range(4)]
+    root = ProductNode([SumNode(sums)])
+    comp = CompiledCircuit(root)
+    assert any(p.dense for p in comp.plans), "no dense layer was built"
+    x = torch.tensor([[1.0, 0.5]])        # category 1 has probability zero
+    got = comp.log_prob(x)
+    ref = eval_log_prob(root, x)
+    assert torch.isneginf(ref).all(), "the reference should be −inf here"
+    assert torch.isneginf(got).all(), f"GEMM path returned {float(got)} not −inf"
+
+
 def test_dag_sharing_is_evaluated_once():
     """One shared subcircuit under two parents: the compiled schedule must give
     it ONE slot, which is the whole point of the DAG layout."""
@@ -214,3 +239,48 @@ def test_unsupported_nodes_are_refused_not_silently_wrong():
                    seed=0, region_graph=True)
     with pytest.raises((NotImplementedError, AttributeError, TypeError)):
         CompiledCircuit(sq.root)
+
+
+# ── leaf initialisation guardrail ───────────────────────────────────────────
+
+def test_leaf_sigma_never_collapses_on_a_plateau_feature():
+    """
+    A feature that is constant on more than half its samples has MAD exactly 0
+    — routine for sensors read under discrete operating conditions (C-MAPSS
+    FD002/FD004: 20 of 420 features).  Without a spread-relative floor the leaf
+    gets σ ≈ 1.5e-6, ordinary points land at |z| ≈ 7e5, log f ≈ −2.3e11, and
+    the first gradient step takes the whole circuit to NaN.  This is the
+    regression test for that: every seed of two real subsets used to fail.
+    """
+    n = 1000
+    col = torch.zeros(n)
+    col[: n // 10] = torch.linspace(-3.0, 3.0, n // 10)   # 90% identical
+    X = torch.stack([col, torch.randn(n)], dim=1)
+    assert float(torch.median((col - col.median()).abs())) == 0.0, "not a plateau"
+
+    lf = GaussianLeaf(0)
+    lf.fit(X)
+    assert float(lf.sigma) >= 0.01 * float(col.std()) * 0.99, float(lf.sigma)
+    lp = lf.log_density(X[:, 0])
+    assert torch.isfinite(lp).all()
+    assert float(lp.min()) > -1e6, f"log density {float(lp.min()):.3e} will explode"
+
+
+def test_a_plateau_feature_trains_without_nan():
+    """End to end: the circuit that used to go NaN now trains."""
+    torch.manual_seed(0)
+    n, w, c = 512, 4, 6
+    X = torch.randn(n, w * c)
+    X[:, ::5] = 0.0                       # plateau features, MAD = 0
+    X[: n // 20, ::5] = torch.randn(n // 20, X[:, ::5].shape[1]) * 2
+    vt = time_channel_vtree(w, c, mode="time")
+    pc = RegionGraphPC(vt, n_sum_components=4, leaf_factory=GaussianLeaf,
+                       weight_jitter=0.5, seed=0)
+    pc.fit_leaves(X)
+    comp = CompiledCircuit(pc.root)
+    opt = torch.optim.Adam(comp.parameters(), lr=0.05)
+    for _ in range(10):
+        loss = -comp.log_prob(X).mean()
+        opt.zero_grad(); loss.backward(); opt.step()
+        assert torch.isfinite(loss), "NaN is back"
+    assert float(loss) < 1e6

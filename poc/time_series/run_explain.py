@@ -169,8 +169,8 @@ def main(argv=None) -> None:
     ap.add_argument("--kinds", nargs="+",
                     default=["spike", "offset", "drift", "decouple", "desync"])
     ap.add_argument("--device", default="auto",
-                    help="auto | cpu | cuda | cuda:0 | mps; a circuit is "
-                         "launch-latency bound, so cpu is often faster — "
+                    help="auto | cpu | cuda | cuda:0 | mps; with the compiled "
+                         "(layered) evaluator the GPU wins above batch ~128 — "
                          "measure with `python -m poc.time_series.bench_device`")
     ap.add_argument("--out", default="logs/poc_ts_explain.json")
     args = ap.parse_args(argv)
