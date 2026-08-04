@@ -27,6 +27,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from .progress import Phase, track
 from src.probabilistic_circuits import (
     CategoricalLeaf,
     RegionNode,
@@ -321,7 +322,8 @@ class WindowPC:
         opt = torch.optim.Adam(params, lr=lr)
         n = len(Xd)
         self.history = []
-        for ep in range(epochs):
+        for ep in track(range(epochs), f"fit {self.vtree_method} K={self.K}",
+                        total=epochs):
             perm = torch.randperm(n, device=self.device)
             tot = 0.0
             for s in range(0, n, batch_size):
@@ -426,7 +428,7 @@ class WindowPC:
         X = self._prep(X)
         all_feats = set(range(self.d))
         marg_out, cond_out = [], []
-        for c in range(C):
+        for c in track(range(C), "typed decomposition (per channel)", total=C):
             chan = [t * C + c for t in range(W)]
             others = sorted(all_feats - set(chan))
             m, cd = [], []
@@ -453,7 +455,7 @@ class WindowPC:
         Xp = self._prep(X)
         W, C = self.window, self.n_channels
         grid = torch.zeros(len(Xp), W, C)
-        for t in range(W):
+        for t in track(range(W), f"(t,c) attribution grid {W}x{C}", total=W):
             for c in range(C):
                 f = t * C + c
                 others = [i for i in range(self.d) if i != f]
@@ -487,7 +489,10 @@ class WindowPC:
         d = self.d
         order = list(range(d)) if order is None else list(order)
         out = torch.zeros(len(Xp), d)
-        for s in range(0, len(Xp), batch_size):
+        n_batches = max((len(Xp) + batch_size - 1) // batch_size, 1)
+        for s in track(range(0, len(Xp), batch_size),
+                       f"chain-rule attribution ({d} exact conditionals)",
+                       total=n_batches):
             xb = Xp[s:s + batch_size]
             # prefix marginal: everything from position i onward integrated out
             prev = self.pc.log_marginal(xb, order)          # = 0 (all marginalised)
@@ -512,7 +517,8 @@ class WindowPC:
         g = torch.Generator().manual_seed(seed)
         chan = lambda c: [t * C + c for t in range(W)]
         acc = torch.zeros(len(Xp), C)
-        for _ in range(n_orders):
+        for _ in track(range(n_orders), f"conditional Shapley ({n_orders} orders)",
+                       total=n_orders):
             perm = torch.randperm(C, generator=g).tolist()
             marg = [f for c in perm for f in chan(c)]
             prev = self.pc.log_marginal(Xp, marg)
@@ -639,7 +645,12 @@ class SurvivalPC:
         n = len(Xd)
         inf = float("inf")
         self.history = []
-        for ep in range(epochs):
+        # the un-accelerated path: SurvivalPC needs box queries for censoring,
+        # which the compiled evaluator does not support, so this loop is the
+        # slowest thing in the whole batch and the one that most needs an ETA
+        for ep in track(range(epochs),
+                        f"survival fit ({'censored' if use_censored else 'observed'})",
+                        total=epochs):
             perm = torch.randperm(n, device=self.device)
             tot = 0.0
             for s in range(0, n, batch_size):
@@ -676,7 +687,9 @@ class SurvivalPC:
         two exact quantities, so no normalisation constant is ever estimated.
         """
         out = []
-        for s in range(0, len(X), batch_size):
+        n_batches = max((len(X) + batch_size - 1) // batch_size, 1)
+        for s in track(range(0, len(X), batch_size),
+                       f"log p(tau|x) · {self.n_bins} bins", total=n_batches):
             xb = X[s:s + batch_size]
             cols = []
             for k in range(self.n_bins):

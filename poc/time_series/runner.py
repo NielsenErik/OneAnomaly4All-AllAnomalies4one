@@ -143,10 +143,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     n_ok = n_skip = n_fail = 0
     t_batch = time.time()
 
+    total_runs = len(variants) * len(seeds)
+    done_runs = 0
+    run_times: List[float] = []
+
     for v in variants:
         for seed in seeds:
             rdir = run_dir_for(v, seed)
             resolved = resolved_for_hash(v)
+            done_runs += 1
             if not args.force and is_complete(rdir, resolved):
                 st = run_status(rdir) or {}
                 print(f"  [skip] {v['variant']} seed {seed} "
@@ -155,7 +160,18 @@ def main(argv: Optional[List[str]] = None) -> int:
                 continue
 
             os.makedirs(rdir, exist_ok=True)
-            print(f"\n>>> {v['variant']} · seed {seed} · {rdir}")
+            # Batch-level ETA from the runs already finished IN THIS BATCH.
+            # Crude (variants differ in cost) but it answers the only question
+            # you have at 3 a.m.: is this thing going to be done by morning?
+            eta = ""
+            if run_times:
+                mean = sum(run_times) / len(run_times)
+                left = mean * (total_runs - done_runs + 1)
+                eta = (f" · mean {mean / 60:.1f} min/run · "
+                       f"ETA {left / 60:.0f} min for the remaining "
+                       f"{total_runs - done_runs + 1}")
+            print(f"\n>>> [{done_runs}/{total_runs}] {v['variant']} · seed {seed} "
+                  f"· {rdir}{eta}")
             t0 = time.time()
             run_cfg = dict(v)
             run_cfg["seed"] = seed
@@ -168,6 +184,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             ok = not log.failed
             n_ok += int(ok)
             n_fail += int(not ok)
+            run_times.append(time.time() - t0)
             with open(index_path, "a") as f:
                 f.write(json.dumps({
                     "experiment": cfg["name"], "variant": v["variant"],
