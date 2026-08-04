@@ -1,8 +1,9 @@
 {
   "seed": 0,
-  "config_hash": "44c6bb8278c5",
+  "config_hash": "04a3130bb048",
   "name": "smoke",
   "device": "auto",
+  "evaluator": "layered",
   "stages": [
     "ad",
     "explain",

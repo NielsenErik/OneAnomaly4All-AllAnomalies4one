@@ -2,3 +2,7 @@
 {"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 13.5, "config_hash": "44c6bb8278c5", "finished": "2026-08-03T15:14:42"}
 {"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 32.6, "config_hash": "44c6bb8278c5", "finished": "2026-08-03T17:01:46"}
 {"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 48.3, "config_hash": "44c6bb8278c5", "finished": "2026-08-03T17:04:12"}
+{"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 17.3, "config_hash": "44c6bb8278c5", "finished": "2026-08-04T01:26:44"}
+{"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "failed", "wall_s": 0.6, "config_hash": "44c6bb8278c5", "finished": "2026-08-04T08:30:06"}
+{"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 13.9, "config_hash": "44c6bb8278c5", "finished": "2026-08-04T08:31:22"}
+{"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "failed", "wall_s": 2.8, "config_hash": "04a3130bb048", "finished": "2026-08-04T11:24:24"}

@@ -1,9 +1,11 @@
 {
-  "status": "ok",
+  "status": "failed",
   "seed": 0,
-  "config_hash": "44c6bb8278c5",
-  "updated": "2026-08-03T17:04:12",
-  "wall_s": 48.3,
-  "peak_rss_gb": 1.516,
-  "peak_gpu_gb": 0.019
+  "config_hash": "04a3130bb048",
+  "updated": "2026-08-04T11:24:24",
+  "wall_s": 2.84,
+  "peak_rss_gb": 1.704,
+  "peak_gpu_gb": 0.036,
+  "error": "TypeError: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/runner.py\", line 167, in main\n    run_stages(v, seed, log)\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 696, in run_stages\n    results[stage] = STAGE_FNS[stage](cfg, seed, log)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 285, in stage_explain\n    attrs[\"AE reconstruction (per channel)\"] = ae_channel_error(ae, task.X_test)\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/explain.py\", line 97, in ae_channel_error\n    return ((ae.net(A) - A) ** 2).mean(dim=2).numpy()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: can't convert cuda:0 device type tensor to numpy. Use Tensor.cpu() to copy the tensor to host memory first.\n"
 }
