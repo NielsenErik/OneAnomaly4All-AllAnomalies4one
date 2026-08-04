@@ -1,0 +1,26 @@
+[16:01:50] === run start · seed0 · seed 0 · hash aac4eb99237a ===
+[16:01:50] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:01:50] --- stage: ad ---
+[16:01:50]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=3, cap=125)  (0.1s)
+[16:01:50]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 3, 'seed': 0, 'per_regime_norm': True, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+    [pc] epoch   0  nll 11913.419
+    [pc] epoch   6  nll  200.232
+    [pc] epoch  12  nll  157.872
+    [pc] epoch  18  nll  133.324
+    [pc] epoch  24  nll  123.692
+    [pc] epoch  30  nll  118.170
+    [pc] epoch  36  nll  115.767
+    [pc] epoch  42  nll  114.722
+    [pc] epoch  48  nll  111.700
+[16:02:11]   pc_train_nll: first=11913.4190 last=111.0243 (50 epochs)
+[16:02:11]   pc: fit 20.6s · 157,440 params · score sd 18.365 · device cuda · layered · 12,817 win/s
+[16:02:15]   typed decomposition (mean worst-channel surprise):
+[16:02:15]        normal  n= 4001  marginal    23.38  conditional    22.66  structural     1.65
+[16:02:15]      decouple  n=  105  marginal    23.77  conditional    22.88  structural     1.46
+[16:02:15]        desync  n=  111  marginal    23.42  conditional    33.46  structural    16.96
+[16:02:15]         drift  n=  102  marginal   531.90  conditional   551.91  structural    48.73
+[16:02:15]        offset  n=  113  marginal   337.00  conditional   362.99  structural    52.75
+[16:02:15]       organic  n=   46  marginal   120.49  conditional   106.63  structural     0.61
+[16:02:15]         spike  n=  130  marginal    66.18  conditional    65.83  structural     2.19
+[16:02:15] --- stage ad done in 25.3s ---
+[16:02:15] === run ok · 25.3s · peak RSS 1.772 GB ===
