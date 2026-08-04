@@ -19,6 +19,7 @@ description: |
 
 seeds: [0, 1, 2]
 device: auto
+evaluator: layered      # layered | recursive (same numbers; see bench_device)
 stages: [explain]
 log_root: logs/ts/cmapss_explain
 skip_if_missing_data: true

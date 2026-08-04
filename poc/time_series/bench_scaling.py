@@ -22,9 +22,12 @@ from src.probabilistic_circuits import (
     GaussianLeaf,
     RegionGraphPC,
     circuit_size,
+    move_circuit_,
     random_balanced_vtree,
     time_channel_vtree,
 )
+
+from .circuits import resolve_device
 
 # Above this many leaf modules we do not even attempt the tree layout: building
 # it would take longer than the rest of the PoC and the point is already made.
@@ -37,13 +40,16 @@ def predicted_tree_leaves(d: int, K: int) -> int:
     return d * K ** math.ceil(math.log2(max(d, 2)))
 
 
-def bench(d: int, K: int, batch: int = 32, try_tree: bool = True) -> dict:
+def bench(d: int, K: int, batch: int = 32, try_tree: bool = True,
+          device=None) -> dict:
+    dev = resolve_device(device)
     vt = random_balanced_vtree(list(range(d)), seed=0)
-    x = torch.randn(batch, d)
-    row = {"d": d, "K": K}
+    x = torch.randn(batch, d, device=dev)
+    row = {"d": d, "K": K, "device": str(dev)}
 
     t0 = time.time()
     dag = RegionGraphPC(vt, n_sum_components=K, leaf_factory=GaussianLeaf)
+    move_circuit_(dag, dev)          # never .to(): exponential on a DAG
     row["dag_build_s"] = time.time() - t0
     sz = circuit_size(dag.root)
     row["dag_leaves"] = sz["leaf"]
@@ -59,6 +65,7 @@ def bench(d: int, K: int, batch: int = 32, try_tree: bool = True) -> dict:
     if try_tree and est <= TREE_BUDGET:
         t0 = time.time()
         tree = DensityPC(vt, n_sum_components=K, leaf_factory=GaussianLeaf)
+        move_circuit_(tree, dev)
         row["tree_build_s"] = time.time() - t0
         tsz = circuit_size(tree.root)
         row["tree_leaves"] = tsz["leaf"]
@@ -78,16 +85,22 @@ def main(argv=None) -> None:
     ap.add_argument("--dims", type=int, nargs="+",
                     default=[8, 16, 32, 64, 112, 256, 1024])
     ap.add_argument("--batch", type=int, default=32)
+    ap.add_argument("--device", default="cpu",
+                    help="auto | cpu | cuda | cuda:0 | mps.  Defaults to cpu: "
+                         "this is a SIZE benchmark, and build cost is pure "
+                         "Python either way")
     args = ap.parse_args(argv)
 
-    print(f"\nTree (DensityPC) vs DAG (RegionGraphPC), K = {args.K}\n")
+    dev = resolve_device(args.device)
+    print(f"\nTree (DensityPC) vs DAG (RegionGraphPC), K = {args.K}, "
+          f"device = {dev}\n")
     hdr = (f"{'d':>6} {'tree leaves':>14} {'DAG leaves':>11} {'tree params':>12} "
            f"{'DAG params':>11} {'tree build':>11} {'DAG build':>10} {'DAG fwd':>9}")
     print(hdr)
     print("-" * len(hdr))
     rows = []
     for d in args.dims:
-        r = bench(d, args.K, batch=args.batch)
+        r = bench(d, args.K, batch=args.batch, device=args.device)
         rows.append(r)
         tl = (f"{r['tree_leaves']:,}" if r["tree_leaves"] is not None
               else f"~{r['tree_leaves_predicted']:.1e} (skipped)")
@@ -108,6 +121,7 @@ def main(argv=None) -> None:
         vt = time_channel_vtree(w, C, mode="time")
         pc = RegionGraphPC(vt, n_sum_components=args.K, leaf_factory=GaussianLeaf)
         pc.validate()
+        move_circuit_(pc, dev)
         sz = circuit_size(pc.root)
         print(f"  window {w:>2}×{C:<3} (d={d:>4}): DAG {sz['leaf']:>7,} leaves, "
               f"{sz['parameters']:>8,} params, all 4 properties OK   |   "

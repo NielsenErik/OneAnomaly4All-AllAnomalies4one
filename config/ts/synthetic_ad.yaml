@@ -12,6 +12,7 @@ description: |
 
 seeds: [0, 1, 2, 3, 4]
 device: auto
+evaluator: layered      # layered | recursive (same numbers; see bench_device)
 stages: [ad]
 log_root: logs/ts/synthetic_ad
 

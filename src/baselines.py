@@ -280,20 +280,22 @@ class AutoencoderBaseline(Baseline):
     name = "ae"
 
     def __init__(self, hidden: int = 64, bottleneck: int = 8,
-                 epochs: int = 100, lr: float = 1e-3, seed: int = 0):
+                 epochs: int = 100, lr: float = 1e-3, seed: int = 0,
+                 device=None):
         self.hidden, self.bottleneck = hidden, bottleneck
         self.epochs, self.lr, self.seed = epochs, lr, seed
+        self.device = torch.device(device) if device else torch.device("cpu")
 
     def fit(self, X) -> "Baseline":
         torch.manual_seed(self.seed)
-        X = torch.as_tensor(_np(X), dtype=torch.float32)
+        X = torch.as_tensor(_np(X), dtype=torch.float32).to(self.device)
         d = X.shape[1]
         self.net = nn.Sequential(
             nn.Linear(d, self.hidden), nn.ReLU(),
             nn.Linear(self.hidden, self.bottleneck), nn.ReLU(),
             nn.Linear(self.bottleneck, self.hidden), nn.ReLU(),
             nn.Linear(self.hidden, d),
-        )
+        ).to(self.device)
         opt = torch.optim.Adam(self.net.parameters(), lr=self.lr)
         for _ in range(self.epochs):
             loss = ((self.net(X) - X) ** 2).mean()
@@ -304,9 +306,9 @@ class AutoencoderBaseline(Baseline):
         return self
 
     def score(self, X) -> torch.Tensor:
-        X = torch.as_tensor(_np(X), dtype=torch.float32)
+        X = torch.as_tensor(_np(X), dtype=torch.float32).to(self.device)
         with torch.no_grad():
-            return ((self.net(X) - X) ** 2).sum(dim=1)
+            return ((self.net(X) - X) ** 2).sum(dim=1).cpu()
 
 
 class DeepSVDD(Baseline):
@@ -317,18 +319,20 @@ class DeepSVDD(Baseline):
     name = "deep_svdd"
 
     def __init__(self, hidden: int = 64, rep_dim: int = 16,
-                 epochs: int = 100, lr: float = 1e-3, seed: int = 0):
+                 epochs: int = 100, lr: float = 1e-3, seed: int = 0,
+                 device=None):
         self.hidden, self.rep_dim = hidden, rep_dim
         self.epochs, self.lr, self.seed = epochs, lr, seed
+        self.device = torch.device(device) if device else torch.device("cpu")
 
     def fit(self, X) -> "Baseline":
         torch.manual_seed(self.seed)
-        X = torch.as_tensor(_np(X), dtype=torch.float32)
+        X = torch.as_tensor(_np(X), dtype=torch.float32).to(self.device)
         d = X.shape[1]
         self.net = nn.Sequential(
             nn.Linear(d, self.hidden, bias=False), nn.ReLU(),
             nn.Linear(self.hidden, self.rep_dim, bias=False),
-        )
+        ).to(self.device)
         with torch.no_grad():
             self.c = self.net(X).mean(dim=0)
             # keep the center away from 0 (paper's collapse safeguard)
@@ -343,9 +347,9 @@ class DeepSVDD(Baseline):
         return self
 
     def score(self, X) -> torch.Tensor:
-        X = torch.as_tensor(_np(X), dtype=torch.float32)
+        X = torch.as_tensor(_np(X), dtype=torch.float32).to(self.device)
         with torch.no_grad():
-            return ((self.net(X) - self.c) ** 2).sum(dim=1)
+            return ((self.net(X) - self.c) ** 2).sum(dim=1).cpu()
 
 
 # ─── CLIP-based image baselines (WinCLIP / AnomalyCLIP-lite / AnomalyGPT) ───

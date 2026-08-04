@@ -9,6 +9,13 @@
 #   JOBS=3 DEVICE=cpu bash poc/time_series/launch/run_workstation.sh
 #   SEEDS="0 1 2 3 4" bash poc/time_series/launch/run_workstation.sh
 #   DRY=1 bash poc/time_series/launch/run_workstation.sh         # print the plan
+#   BENCH_DEVICE=1 bash poc/time_series/launch/run_workstation.sh  # time cpu vs gpu first
+#
+# DEVICE is a measurement, not a default.  A circuit is a deep DAG of many tiny
+# kernels, so it is launch-latency bound and `DEVICE=cpu` frequently beats a
+# 4080 at small K/window.  Run with BENCH_DEVICE=1 once per machine (it takes
+# about a minute) and set DEVICE from what it prints; every run.log records the
+# device and windows/s so a bad choice is visible afterwards.
 #
 # Everything is RESUMABLE: a run that already finished with the same config is
 # skipped, so re-launching after a crash, a reboot or a Ctrl-C costs nothing.
@@ -41,6 +48,14 @@ hostinfo
 "$PY" -m poc.time_series.check_data || true
 
 has_tier() { [[ " $TIERS " == *" $1 "* ]]; }
+
+# ── device measurement, opt-in ─────────────────────────────────────────────
+if [ -n "${BENCH_DEVICE:-}" ]; then
+  banner "device benchmark — same circuit on every available device"
+  "$PY" -m poc.time_series.bench_device --epochs 3 \
+        | tee "$CONSOLE_DIR/bench_device_${STAMP}.log"
+  echo "set DEVICE=... from the line above and re-launch."
+fi
 
 # ── tier 0: wiring check, always ───────────────────────────────────────────
 banner "tier 0 — smoke test (wiring only; these numbers mean nothing)"

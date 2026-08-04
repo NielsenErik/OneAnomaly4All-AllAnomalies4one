@@ -63,7 +63,8 @@ def fit_circuit(task, args, seed: int, use_censored: bool) -> SurvivalPC:
                     vtree_method=args.vtree, n_sum_components=args.K,
                     leaf_components=args.leaf_components,
                     tau_where=args.tau_where, delta=args.delta,
-                    channel_groups=task.channel_groups, seed=seed)
+                    channel_groups=task.channel_groups, seed=seed,
+                    device=args.device)
     pc.fit(task.X_train, task.tau_train, task.delta_train,
            epochs=args.epochs, lr=args.lr, use_censored=use_censored,
            verbose=args.verbose)
@@ -127,7 +128,7 @@ def run_once(args, seed: int) -> Dict[str, Dict[str, float]]:
     keep = task.delta_train == 1
     Xb = task.X_train[keep]
     yb = ((task.tau_train[keep].float() + 0.5) * _bin_width(task)).to(task.rul_test)
-    for b in rul_baselines(seed=seed, alpha=args.alpha):
+    for b in rul_baselines(seed=seed, alpha=args.alpha, device=args.device):
         t0 = time.time()
         b.fit(Xb, yb)
         r = eval_baseline(b, task, args.alpha)
@@ -235,6 +236,10 @@ def main(argv=None) -> None:
     ap.add_argument("--survival-demo", action="store_true")
     ap.add_argument("--no-partial", action="store_true")
     ap.add_argument("--verbose", action="store_true")
+    ap.add_argument("--device", default="auto",
+                    help="auto | cpu | cuda | cuda:0 | mps; a circuit is "
+                         "launch-latency bound, so cpu is often faster — "
+                         "measure with `python -m poc.time_series.bench_device`")
     ap.add_argument("--out", default="logs/poc_ts_rul.json")
     args = ap.parse_args(argv)
 

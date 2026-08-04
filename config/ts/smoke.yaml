@@ -12,6 +12,7 @@ description: |
 
 seeds: [0]
 device: auto
+evaluator: layered      # layered | recursive (same numbers; see bench_device)
 stages: [ad, explain, rul, calibration]
 log_root: logs/ts/smoke
 

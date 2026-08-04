@@ -47,6 +47,10 @@ DEFAULTS: Dict[str, Any] = {
     "description": "",
     "seeds": [0, 1, 2],
     "device": "auto",                 # auto | cpu | cuda | cuda:0 | mps
+    # layered = the compiled layer-parallel evaluator (§6a); recursive = the
+    # per-node reference.  Identical numbers, gated against each other at fit
+    # time; "recursive" exists for the A/B and for debugging, not for results.
+    "evaluator": "layered",           # layered | recursive
     "log_root": None,                 # default: logs/ts/<name>
     "stages": ["ad"],
     "skip_if_missing_data": True,     # real-data configs no-op when files absent

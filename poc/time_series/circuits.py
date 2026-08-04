@@ -240,6 +240,7 @@ class WindowPC:
         seed: int = 0,
         device: Optional[str] = None,
         weight_jitter: float = 0.5,
+        evaluator: str = "layered",
     ):
         self.window, self.n_channels = window, n_channels
         self.d = window * n_channels
@@ -252,6 +253,11 @@ class WindowPC:
         self.seed = seed
         self.device = resolve_device(device)
         self.weight_jitter = weight_jitter
+        # "layered" = the compiled layer-parallel evaluator (default);
+        # "recursive" = the per-node reference.  Same numbers either way — the
+        # knob exists so the A/B is one flag, not a code change.
+        self.evaluator = evaluator
+        self.compiled = None
         self.pc = None
         self.history: List[float] = []
 
@@ -299,7 +305,13 @@ class WindowPC:
         move_circuit_(self.pc, self.device)   # DAG-safe; .to() is exponential here
 
         Xd = X_cpu.to(self.device)
-        opt = torch.optim.Adam(self.pc.parameters(), lr=lr)
+        # Compile to the layer-parallel evaluator, gated against the recursive
+        # reference on a real batch.  This is the difference between one Python
+        # frame per NODE (10^3-10^5 per step) and one per LAYER (~16), and it is
+        # what makes the GPU worth using at all — see poc/time_series/bench_device.
+        model = self._compile_or_fallback(Xd[: min(len(Xd), 64)])
+        params = list(model.parameters())
+        opt = torch.optim.Adam(params, lr=lr)
         n = len(Xd)
         self.history = []
         for ep in range(epochs):
@@ -307,16 +319,40 @@ class WindowPC:
             tot = 0.0
             for s in range(0, n, batch_size):
                 xb = Xd[perm[s:s + batch_size]]
-                loss = -self.pc.log_prob(xb).mean()
+                loss = -model.log_prob(xb).mean()
                 opt.zero_grad(); loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.pc.parameters(), 1.0)
+                torch.nn.utils.clip_grad_norm_(params, 1.0)
                 opt.step()
                 tot += float(loss.detach()) * len(xb)
             self.history.append(tot / max(n, 1))
             every = log_every or (max(epochs // 6, 1) if verbose else 0)
             if every and ep % every == 0:
                 print(f"    [pc] epoch {ep:3d}  nll {self.history[-1]:8.3f}")
+        if self.compiled is not None:
+            # the DAG owns the semantics (validate/MPE/serialisation): give it
+            # the trained values back before anything else reads it
+            self.compiled.write_back()
         return self
+
+    def _compile_or_fallback(self, x_probe: torch.Tensor):
+        """Fast evaluator when the circuit supports it, recursion when not.
+
+        Signed/SOS circuits are not compiled (§6a is monotone-only), so the
+        SOS ablation keeps running — slower, and correct, which is the right
+        way round.
+        """
+        self.compiled = None
+        if self.evaluator == "recursive" or self.use_sos:
+            return self.pc
+        try:
+            self.compiled = self.pc.compile_(x_probe=x_probe, device=self.device)
+            return self.compiled
+        except (NotImplementedError, RuntimeError) as exc:
+            print(f"    [pc] compiled evaluator unavailable ({exc}); "
+                  "falling back to the recursion")
+            self.pc.use_recursive()
+            self.compiled = None
+            return self.pc
 
     # ── degeneracy guardrail ─────────────────────────────────────────────
 

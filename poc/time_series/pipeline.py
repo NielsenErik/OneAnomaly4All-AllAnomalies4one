@@ -117,14 +117,20 @@ def _fit_window_pc(cfg: Dict[str, Any], task, seed: int, log: RunLogger,
                   leaf_components=int(m["leaf_components"]),
                   channel_groups=task.channel_groups, use_sos=bool(m["sos"]),
                   delta=bool(m["delta"]), weight_jitter=float(m["weight_jitter"]),
-                  seed=seed, device=cfg.get("device"))
+                  seed=seed, device=cfg.get("device"),
+                  evaluator=cfg.get("evaluator", "layered"))
     pc.fit(task.X_train, epochs=int(m["epochs"]), lr=float(m["lr"]),
            batch_size=int(m["batch_size"]), log_every=max(int(m["epochs"]) // 8, 1))
     fit_s = time.time() - t0
     log.history(f"{tag}_train_nll", pc.history)
     sd = pc.assert_informative(task.X_train)         # loud, not silent (§3)
+    # windows/s makes the device choice auditable after the fact: a circuit is
+    # launch-latency bound, so a GPU run that is SLOWER than CPU is a normal
+    # outcome and has to be visible in the log rather than assumed away.
+    thr = len(task.X_train) * int(m["epochs"]) / max(fit_s, 1e-9)
+    ev = "layered" if pc.compiled is not None else "recursive"
     log.info(f"  {tag}: fit {fit_s:.1f}s · {pc.size()['parameters']:,} params · "
-             f"score sd {sd:.3f} · device {pc.device}")
+             f"score sd {sd:.3f} · device {pc.device} · {ev} · {thr:,.0f} win/s")
     pc.fit_seconds = fit_s                            # type: ignore[attr-defined]
     return pc
 
@@ -174,7 +180,8 @@ def stage_ad(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, Any]:
     # ── baselines, simple tier first ─────────────────────────────────────
     if ev["baselines"]:
         for b in detection_baselines(task.window, task.n_channels, seed=seed,
-                                     include_slow=not ev["fast_baselines"]):
+                                     include_slow=not ev["fast_baselines"],
+                                     device=cfg.get("device")):
             t0 = time.time()
             try:
                 b.fit(task.X_train)
@@ -202,7 +209,8 @@ def stage_ad(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, Any]:
                         **detection_report(imputed, y, kinds), dead=len(dead)))
         if ev["baselines"]:
             for b in detection_baselines(task.window, task.n_channels, seed=seed,
-                                         include_slow=False)[:3]:
+                                         include_slow=False,
+                                         device=cfg.get("device"))[:3]:
                 b.fit(task.X_train)
                 log.result(_row(cfg, "ad", f"{b.name} · {len(dead)} dead (imputed)",
                                 **detection_report(b.score(X_imp), y, kinds),
@@ -448,7 +456,7 @@ def stage_rul(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, Any]:
         bw = task.cap / task.n_bins
         Xb = task.X_train[keep]
         yb = (task.tau_train[keep].float() + 0.5) * bw
-        for b in rul_baselines(seed=seed, alpha=alpha):
+        for b in rul_baselines(seed=seed, alpha=alpha, device=cfg.get("device")):
             t0 = time.time()
             b.fit(Xb, yb)
             pred = b.predict(task.X_test)
@@ -612,7 +620,7 @@ def stage_calibration(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[st
     if ev["baselines"]:
         keep = sub.delta_train == 1
         yb = (sub.tau_train[keep].float() + 0.5) * bw
-        for b in rul_baselines(seed=seed, alpha=alpha):
+        for b in rul_baselines(seed=seed, alpha=alpha, device=cfg.get("device")):
             if "conformal" not in b.name.lower():
                 continue
             b.fit(sub.X_train[keep], yb)

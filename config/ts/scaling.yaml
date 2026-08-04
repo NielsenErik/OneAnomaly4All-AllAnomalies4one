@@ -15,6 +15,7 @@ description: Tree (DensityPC) vs DAG (RegionGraphPC) node counts, parameters and
 
 seeds: [0]
 device: cpu              # a construction/size benchmark, not a training one
+evaluator: layered      # layered | recursive (same numbers; see bench_device)
 stages: [scaling]
 log_root: logs/ts/scaling
 

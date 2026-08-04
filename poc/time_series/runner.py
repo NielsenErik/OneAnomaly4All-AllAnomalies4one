@@ -59,6 +59,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--seeds", type=int, nargs="+", default=None,
                     help="override the config's seed list")
     ap.add_argument("--device", default=None, help="auto | cpu | cuda | cuda:0 | mps")
+    ap.add_argument("--evaluator", default=None, choices=["layered", "recursive"],
+                    help="circuit evaluator; 'layered' (default) compiles the DAG "
+                         "into a topological layer schedule, 'recursive' is the "
+                         "per-node reference (same numbers, much slower)")
     # `extend`, not the default `store`: with plain nargs="+" a second --set on
     # the same command line silently REPLACES the first, which is a quiet way to
     # run the wrong experiment.
@@ -90,6 +94,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         cfg["seeds"] = list(args.seeds)
     if args.device:
         cfg["device"] = args.device
+    if args.evaluator:
+        cfg["evaluator"] = args.evaluator
     if args.log_root:
         cfg["log_root"] = args.log_root
     if args.tag:

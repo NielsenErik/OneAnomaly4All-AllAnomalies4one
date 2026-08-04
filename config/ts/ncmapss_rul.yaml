@@ -17,6 +17,7 @@ description: |
 
 seeds: [0, 1, 2]
 device: auto
+evaluator: layered      # layered | recursive (same numbers; see bench_device)
 stages: [rul, calibration]
 log_root: logs/ts/ncmapss_rul
 skip_if_missing_data: true

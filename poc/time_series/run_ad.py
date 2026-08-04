@@ -57,7 +57,7 @@ def run_once(args, seed: int) -> Dict[str, dict]:
     pc = WindowPC(task.window, task.n_channels, vtree_method=args.vtree,
                   n_sum_components=args.K, leaf_components=args.leaf_components,
                   channel_groups=task.channel_groups, use_sos=args.sos,
-                  delta=args.delta, seed=seed)
+                  delta=args.delta, seed=seed, device=args.device)
     pc.fit(task.X_train, epochs=args.epochs, lr=args.lr, verbose=args.verbose)
     fit_s = time.time() - t0
     s = pc.score(task.X_test)
@@ -69,7 +69,8 @@ def run_once(args, seed: int) -> Dict[str, dict]:
 
     # ── baselines ────────────────────────────────────────────────────────
     for b in detection_baselines(task.window, task.n_channels, seed=seed,
-                                 include_slow=not args.fast):
+                                 include_slow=not args.fast,
+                                 device=args.device):
         t0 = time.time()
         try:
             b.fit(task.X_train)
@@ -94,7 +95,8 @@ def run_once(args, seed: int) -> Dict[str, dict]:
         results[f"  ↳ PC, {len(dead)} dead sensors (imputed)"] = \
             detection_report(imputed, task.y_test, task.kind_test)
         for b in detection_baselines(task.window, task.n_channels, seed=seed,
-                                     include_slow=False)[:3]:
+                                     include_slow=False,
+                                     device=args.device)[:3]:
             b.fit(task.X_train)
             results[f"  ↳ {b.name}, {len(dead)} dead (imputed)"] = \
                 detection_report(b.score(Xte_imp), task.y_test, task.kind_test)
@@ -141,7 +143,7 @@ def vtree_ablation(args, seed: int) -> Dict[str, dict]:
         pc = WindowPC(task.window, task.n_channels, vtree_method=method,
                       n_sum_components=args.K, leaf_components=args.leaf_components,
                       channel_groups=task.channel_groups, use_sos=args.sos,
-                      delta=args.delta, seed=seed)
+                      delta=args.delta, seed=seed, device=args.device)
         pc.fit(task.X_train, epochs=args.epochs, lr=args.lr)
         with torch.no_grad():
             held_nll = float(-pc.pc.log_prob(task.X_train[:512]).mean())
@@ -179,6 +181,10 @@ def main(argv=None) -> None:
     ap.add_argument("--fast", action="store_true", help="skip slow baselines")
     ap.add_argument("--verbose", action="store_true")
     ap.add_argument("--out", default="logs/poc_ts_ad.json")
+    ap.add_argument("--device", default="auto",
+                    help="auto | cpu | cuda | cuda:0 | mps; a circuit is "
+                         "launch-latency bound, so cpu is often faster — "
+                         "measure with `python -m poc.time_series.bench_device`")
     args = ap.parse_args(argv)
 
     if args.vtree_ablation:

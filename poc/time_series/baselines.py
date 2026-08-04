@@ -34,11 +34,19 @@ from src.baselines import (
     make_baseline,
 )
 
+from .circuits import resolve_device
+
 
 def _np(X) -> np.ndarray:
     if isinstance(X, torch.Tensor):
         X = X.detach().cpu().numpy()
     return np.asarray(X, dtype=np.float64)
+
+
+# The torch baselines honour the same `--device` as the circuit, for one
+# reason: a timing comparison between the circuit and a conv autoencoder is
+# meaningless if one of them silently ran on the CPU.  The sklearn baselines
+# accept the argument and ignore it — they have no device.
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -132,14 +140,15 @@ class ConvAutoencoder:
 
     def __init__(self, window: int, n_channels: int, hidden: int = 32,
                  latent: int = 16, epochs: int = 60, lr: float = 1e-3,
-                 seed: int = 0, **kw):
+                 seed: int = 0, device=None, **kw):
         self.w, self.C = window, n_channels
         self.hidden, self.latent, self.epochs, self.lr, self.seed = (
             hidden, latent, epochs, lr, seed)
+        self.device = resolve_device(device)
 
     def _reshape(self, X) -> torch.Tensor:
         t = X if isinstance(X, torch.Tensor) else torch.from_numpy(_np(X)).float()
-        return t.reshape(-1, self.w, self.C).permute(0, 2, 1).float()
+        return t.reshape(-1, self.w, self.C).permute(0, 2, 1).float().to(self.device)
 
     def fit(self, X) -> "ConvAutoencoder":
         torch.manual_seed(self.seed)
@@ -149,10 +158,10 @@ class ConvAutoencoder:
             nn.Conv1d(self.hidden, self.latent, 3, padding=1), nn.ReLU(),
             nn.Conv1d(self.latent, self.hidden, 3, padding=1), nn.ReLU(),
             nn.Conv1d(self.hidden, self.C, 3, padding=1),
-        )
+        ).to(self.device)
         opt = torch.optim.Adam(self.net.parameters(), lr=self.lr)
         for _ in range(self.epochs):
-            perm = torch.randperm(len(A))
+            perm = torch.randperm(len(A), device=self.device)
             for s in range(0, len(A), 256):
                 b = A[perm[s:s + 256]]
                 loss = ((self.net(b) - b) ** 2).mean()
@@ -162,13 +171,18 @@ class ConvAutoencoder:
     @torch.no_grad()
     def score(self, X) -> np.ndarray:
         A = self._reshape(X)
-        return ((self.net(A) - A) ** 2).mean(dim=(1, 2)).numpy()
+        return ((self.net(A) - A) ** 2).mean(dim=(1, 2)).cpu().numpy()
 
 
 class SklearnWrapper:
     """Adapter for the detectors already implemented in src/baselines.py."""
 
-    def __init__(self, key: str, name: str, seed: int = 0, **kw):
+    # torch-backed keys in src/baselines.py; everything else is sklearn/numpy
+    _TORCH_KEYS = ("ae", "deep_svdd")
+
+    def __init__(self, key: str, name: str, seed: int = 0, device=None, **kw):
+        if key in self._TORCH_KEYS:
+            kw["device"] = device
         self.inner = make_baseline(key, seed=seed, **kw)
         self.name = name
 
@@ -182,8 +196,12 @@ class SklearnWrapper:
 
 
 def detection_baselines(window: int, n_channels: int, seed: int = 0,
-                        include_slow: bool = True) -> List:
-    """The full detector line-up, simple tier first."""
+                        include_slow: bool = True, device=None) -> List:
+    """The full detector line-up, simple tier first.
+
+    `device` reaches the two torch detectors only; the rest are sklearn/numpy
+    and run on CPU whatever is asked for.
+    """
     out = [
         ChannelZScore(window, n_channels),
         MovingAverageResidual(window, n_channels),
@@ -196,8 +214,8 @@ def detection_baselines(window: int, n_channels: int, seed: int = 0,
         out += [
             SklearnWrapper("iforest", "Isolation Forest", seed=seed),
             SklearnWrapper("gmm", "GMM (8 comp.)", seed=seed),
-            ConvAutoencoder(window, n_channels, seed=seed),
-            SklearnWrapper("deep_svdd", "Deep SVDD", seed=seed),
+            ConvAutoencoder(window, n_channels, seed=seed, device=device),
+            SklearnWrapper("deep_svdd", "Deep SVDD", seed=seed, device=device),
         ]
     return out
 
@@ -243,17 +261,19 @@ class MLPRegressorRUL:
 
     name = "MLP regressor"
 
-    def __init__(self, epochs: int = 80, lr: float = 1e-3, seed: int = 0, **kw):
+    def __init__(self, epochs: int = 80, lr: float = 1e-3, seed: int = 0,
+                 device=None, **kw):
         self.epochs, self.lr, self.seed = epochs, lr, seed
+        self.device = resolve_device(device)
 
     def fit(self, X, y, delta=None) -> "MLPRegressorRUL":
         torch.manual_seed(self.seed)
-        A = torch.as_tensor(_np(X), dtype=torch.float32)
-        b = torch.as_tensor(_np(y), dtype=torch.float32)
-        self.net = _MLP(A.shape[1], 1)
+        A = torch.as_tensor(_np(X), dtype=torch.float32).to(self.device)
+        b = torch.as_tensor(_np(y), dtype=torch.float32).to(self.device)
+        self.net = _MLP(A.shape[1], 1).to(self.device)
         opt = torch.optim.Adam(self.net.parameters(), lr=self.lr)
         for _ in range(self.epochs):
-            perm = torch.randperm(len(A))
+            perm = torch.randperm(len(A), device=self.device)
             for s in range(0, len(A), 256):
                 i = perm[s:s + 256]
                 loss = ((self.net(A[i]).squeeze(-1) - b[i]) ** 2).mean()
@@ -262,8 +282,8 @@ class MLPRegressorRUL:
 
     @torch.no_grad()
     def predict(self, X) -> Dict[str, np.ndarray]:
-        A = torch.as_tensor(_np(X), dtype=torch.float32)
-        return {"mean": self.net(A).squeeze(-1).numpy()}
+        A = torch.as_tensor(_np(X), dtype=torch.float32).to(self.device)
+        return {"mean": self.net(A).squeeze(-1).cpu().numpy()}
 
 
 class ConformalQuantileRUL:
@@ -284,9 +304,10 @@ class ConformalQuantileRUL:
     name = "quantile reg. + conformal (CQR)"
 
     def __init__(self, alpha: float = 0.10, epochs: int = 80, lr: float = 1e-3,
-                 cal_frac: float = 0.3, seed: int = 0, **kw):
+                 cal_frac: float = 0.3, seed: int = 0, device=None, **kw):
         self.alpha, self.epochs, self.lr = alpha, epochs, lr
         self.cal_frac, self.seed = cal_frac, seed
+        self.device = resolve_device(device)
 
     @staticmethod
     def _pinball(pred, target, q):
@@ -296,18 +317,18 @@ class ConformalQuantileRUL:
     def fit(self, X, y, delta=None) -> "ConformalQuantileRUL":
         torch.manual_seed(self.seed)
         rng = np.random.default_rng(self.seed)
-        A = torch.as_tensor(_np(X), dtype=torch.float32)
-        b = torch.as_tensor(_np(y), dtype=torch.float32)
+        A = torch.as_tensor(_np(X), dtype=torch.float32).to(self.device)
+        b = torch.as_tensor(_np(y), dtype=torch.float32).to(self.device)
         idx = rng.permutation(len(A))
         n_cal = max(int(len(A) * self.cal_frac), 1)
         cal, tr = idx[:n_cal], idx[n_cal:]
 
         lo_q, hi_q = self.alpha / 2, 1 - self.alpha / 2
-        self.net = _MLP(A.shape[1], 3)     # [lo, median, hi]
+        self.net = _MLP(A.shape[1], 3).to(self.device)     # [lo, median, hi]
         opt = torch.optim.Adam(self.net.parameters(), lr=self.lr)
         At, bt = A[tr], b[tr]
         for _ in range(self.epochs):
-            perm = torch.randperm(len(At))
+            perm = torch.randperm(len(At), device=self.device)
             for s in range(0, len(At), 256):
                 i = perm[s:s + 256]
                 out = self.net(At[i])
@@ -326,12 +347,14 @@ class ConformalQuantileRUL:
 
     @torch.no_grad()
     def predict(self, X) -> Dict[str, np.ndarray]:
-        out = self.net(torch.as_tensor(_np(X), dtype=torch.float32))
+        A = torch.as_tensor(_np(X), dtype=torch.float32).to(self.device)
+        out = self.net(A).cpu()
         return {"mean": out[:, 1].numpy(),
                 "lo": (out[:, 0] - self.q_hat).numpy(),
                 "hi": (out[:, 2] + self.q_hat).numpy()}
 
 
-def rul_baselines(seed: int = 0, alpha: float = 0.10) -> List:
-    return [RidgeRUL(), MLPRegressorRUL(seed=seed),
-            ConformalQuantileRUL(seed=seed, alpha=alpha)]
+def rul_baselines(seed: int = 0, alpha: float = 0.10, device=None) -> List:
+    """Ridge is numpy; the other two are torch and honour `device`."""
+    return [RidgeRUL(), MLPRegressorRUL(seed=seed, device=device),
+            ConformalQuantileRUL(seed=seed, alpha=alpha, device=device)]

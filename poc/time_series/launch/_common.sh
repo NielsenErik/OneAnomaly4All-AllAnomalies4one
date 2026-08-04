@@ -59,13 +59,20 @@ hostinfo() {
   echo "device    : $DEVICE   jobs: $JOBS   threads/job: $THREADS"
   echo "log root  : $OUT"
   echo "started   : $(date)"
-  "$PY" - <<'PYEOF'
+  # Print what `auto` actually RESOLVES to.  "device: auto" in a log is not a
+  # record of what ran; every run.log also carries the concrete device.
+  DEVICE="$DEVICE" "$PY" - <<'PYEOF'
+import os
 import torch
+from poc.time_series.circuits import resolve_device
 print(f"torch     : {torch.__version__}  cuda={torch.cuda.is_available()}")
 if torch.cuda.is_available():
     for i in range(torch.cuda.device_count()):
         p = torch.cuda.get_device_properties(i)
         print(f"gpu[{i}]    : {p.name}  {p.total_memory / 2**30:.1f} GB")
+print(f"resolved  : {resolve_device(os.environ.get('DEVICE') or 'auto')}"
+      "   (a circuit is launch-latency bound; cpu can be faster —"
+      " `python -m poc.time_series.bench_device`)")
 PYEOF
 }
 

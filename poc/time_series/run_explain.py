@@ -58,9 +58,10 @@ def build_all(args, seed):
                         strength=args.strength)
     pc = WindowPC(task.window, task.n_channels, vtree_method=args.vtree,
                   n_sum_components=args.K, channel_groups=task.channel_groups,
-                  delta=args.delta, seed=seed)
+                  delta=args.delta, seed=seed, device=args.device)
     pc.fit(task.X_train, epochs=args.epochs, lr=args.lr)
-    ae = ConvAutoencoder(task.window, task.n_channels, seed=seed).fit(task.X_train)
+    ae = ConvAutoencoder(task.window, task.n_channels, seed=seed,
+                         device=args.device).fit(task.X_train)
     gc = GaussianConditional(task.window, task.n_channels).fit(task.X_train)
     zs = ChannelZScore(task.window, task.n_channels).fit(task.X_train)
     return task, pc, ae, gc, zs
@@ -167,6 +168,10 @@ def main(argv=None) -> None:
     ap.add_argument("--fig-dir", default="logs/figs")
     ap.add_argument("--kinds", nargs="+",
                     default=["spike", "offset", "drift", "decouple", "desync"])
+    ap.add_argument("--device", default="auto",
+                    help="auto | cpu | cuda | cuda:0 | mps; a circuit is "
+                         "launch-latency bound, so cpu is often faster — "
+                         "measure with `python -m poc.time_series.bench_device`")
     ap.add_argument("--out", default="logs/poc_ts_explain.json")
     args = ap.parse_args(argv)
 

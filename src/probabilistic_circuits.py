@@ -40,7 +40,8 @@ import json
 import math
 import random
 from dataclasses import dataclass, field
-from typing import Callable, Dict, FrozenSet, Iterable, List, Optional, Sequence, Tuple, Union
+from typing import (Any, Callable, Dict, FrozenSet, Iterable, List, Optional,
+                    Sequence, Tuple, Union)
 
 import numpy as np
 import torch
@@ -2025,14 +2026,47 @@ class RegionGraphPC(nn.Module):
         _fit_leaves_with_jitter(self, X, jitter)
 
     # ── exact inference (all memoised ⇒ linear in the DAG) ───────────────
+    #
+    # Two evaluators, same semantics:
+    #   * the recursion below — reference, works on every circuit, one Python
+    #     frame per node;
+    #   * CompiledCircuit (§6a) — same numbers, one Python step per LAYER.
+    # `compile_()` switches the queries onto the fast path after checking it
+    # against the recursion; `self._compiled` is deliberately kept out of the
+    # module registry so `.parameters()` never returns the same weights twice.
+
+    def compile_(self, x_probe: Optional[torch.Tensor] = None,
+                 device=None, verify: bool = True) -> "CompiledCircuit":
+        """Build (and gate) the layer-parallel evaluator for this circuit."""
+        comp = CompiledCircuit(self.root, device=device)
+        if verify:
+            if x_probe is None:
+                raise ValueError("compile_(verify=True) needs a probe batch")
+            comp.assert_matches_reference(self.root, x_probe)
+        self.__dict__["_compiled"] = comp
+        return comp
+
+    @property
+    def compiled(self) -> Optional["CompiledCircuit"]:
+        return self.__dict__.get("_compiled")
+
+    def use_recursive(self) -> None:
+        """Drop the fast path (for A/B timing, or an unsupported query)."""
+        self.__dict__.pop("_compiled", None)
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
-        return eval_log_prob(self.root, z)
+        return self.log_prob(z)
 
     def log_prob(self, z: torch.Tensor) -> torch.Tensor:
+        comp = self.compiled
+        if comp is not None:
+            return comp.log_prob(z)
         return eval_log_prob(self.root, z)
 
     def log_marginal(self, z: torch.Tensor, marginalized: Iterable[int]) -> torch.Tensor:
+        comp = self.compiled
+        if comp is not None:
+            return comp.log_prob(z, marginalized=list(marginalized))
         return eval_log_marginal(self.root, z, marginalized)
 
     def log_box(
@@ -2299,6 +2333,380 @@ def mpe(
     for i, v in assignment.items():
         out[i] = v
     return out, float(log_val)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 6a. CompiledCircuit — layer-parallel evaluator (the fast path)
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# `eval_log_marginal` above walks the DAG with a memoised Python recursion:
+# one interpreter frame and one or more kernel launches PER NODE, every forward
+# pass, forever.  That cost is a property of the EVALUATOR, not of the model —
+# and it is what made the circuit look GPU-hostile.  Nothing about a PC forces
+# it: nodes at the same topological depth are independent by construction, so
+# the whole layer can be one batched op.
+#
+# This section compiles a monotone circuit ONCE into:
+#   * a topological layer schedule (Python loop is O(depth) ≈ 10-40, not
+#     O(#nodes) ≈ 10^3-10^5),
+#   * flat int64 child-index tensors and packed parameter tensors, device
+#     resident, never rebuilt per forward,
+#   * per-layer kernels: one gather + one logsumexp for a sum layer, one
+#     gather + one sum for a product layer, and a real GEMM for the common
+#     case where the K sum units of a region all mix the same children.
+#
+# The recursive evaluator stays exactly where it is, as the reference oracle:
+# `assert_matches_reference` gates every use of the fast path against it.
+#
+# SCOPE: monotone circuits (SumNode / ProductNode / LeafNode) with density and
+# marginal queries.  Signed/SOS circuits and per-sample box queries stay on the
+# recursion — they are not the hot loop, and a fast wrong answer is a failure.
+
+
+class _LayerPlan:
+    """One topological layer, pre-resolved to tensors.  Built once."""
+
+    __slots__ = ("kind", "child_slots", "dense", "n_nodes", "arity", "pad_frac")
+
+    def __init__(self, kind: str, child_slots: torch.Tensor, dense: bool):
+        self.kind = kind                       # "sum" | "product"
+        self.child_slots = child_slots         # (N, A) int64, slot 0 = pad
+        self.dense = dense                     # every node mixes the SAME children
+        self.n_nodes, self.arity = child_slots.shape
+        self.pad_frac = float((child_slots == 0).float().mean())
+
+
+class CompiledCircuit(nn.Module):
+    """
+    A circuit DAG compiled into a static layer schedule with packed parameters.
+
+    Use it like the original module::
+
+        compiled = CompiledCircuit(pc.root)
+        compiled.assert_matches_reference(x)      # gate, against the recursion
+        lp = compiled.log_prob(x)                 # (B,)
+        lp = compiled.log_prob(x, marginalized=[3, 7])   # exact marginals
+
+    The compiled object OWNS its parameters (packed, contiguous, one tensor per
+    layer) rather than referencing the per-node ones: reading K scattered
+    `nn.Parameter` scalars per forward would put the Python loop straight back.
+    Train on `compiled.parameters()`, then `write_back()` to push the values
+    into the original DAG so property validation, MPE and serialisation keep
+    working on the structure that owns the semantics.
+
+    Structure is NOT modified: the same nodes, the same scopes, the same four
+    properties.  This is a layout change for the evaluator, exactly like the
+    tree→DAG rebuild was for the parameters.
+    """
+
+    SUPPORTED_LEAVES = ("GaussianLeaf", "GaussianMixtureLeaf", "CategoricalLeaf")
+
+    def __init__(self, root: nn.Module, device=None, dtype=torch.float32):
+        super().__init__()
+        self.dtype_ = dtype
+        self._compile(root)
+        if device is not None:
+            self.to(device)
+
+    # ── compilation ──────────────────────────────────────────────────────
+
+    def _compile(self, root: nn.Module) -> None:
+        nodes, children = _topological_nodes(root)
+        depth: Dict[int, int] = {}
+        for node in nodes:                      # nodes come in topological order
+            kids = children[id(node)]
+            depth[id(node)] = 0 if not kids else 1 + max(depth[id(k)] for k in kids)
+        self.depth = max(depth.values()) + 1 if depth else 0
+
+        # slot 0 is the PAD slot and holds log 1 = 0 forever: it is the identity
+        # for a product layer, and it is paired with a -inf weight in a sum
+        # layer, so ragged arities need no masking anywhere in the hot loop.
+        slot: Dict[int, int] = {}
+        next_slot = 1
+
+        # ── leaves, grouped by type so each group is one vectorised kernel ──
+        leaves = [n for n in nodes if isinstance(n, LeafNode)]
+        for lf in leaves:
+            cls = type(lf).__name__
+            if cls not in self.SUPPORTED_LEAVES:
+                raise NotImplementedError(
+                    f"CompiledCircuit does not support leaf type {cls!r}; "
+                    "use the recursive evaluator for this circuit")
+        self.leaf_groups: List[str] = []
+        self._leaf_nodes_by_group: Dict[str, List[nn.Module]] = {}
+        for cls in self.SUPPORTED_LEAVES:
+            group = [lf for lf in leaves if type(lf).__name__ == cls]
+            if not group:
+                continue
+            for lf in group:
+                slot[id(lf)] = next_slot
+                next_slot += 1
+            self.leaf_groups.append(cls)
+            feats = torch.tensor([lf.feature_idx for lf in group], dtype=torch.long)
+            self.register_buffer(f"{cls}_feat", feats)
+            if cls == "GaussianLeaf":
+                self.register_parameter(f"{cls}_mu", nn.Parameter(
+                    torch.stack([lf.mu.detach() for lf in group]).to(self.dtype_)))
+                self.register_parameter(f"{cls}_log_sigma", nn.Parameter(
+                    torch.stack([lf.log_sigma.detach() for lf in group]).to(self.dtype_)))
+            elif cls == "GaussianMixtureLeaf":
+                self.register_parameter(f"{cls}_mus", nn.Parameter(
+                    torch.stack([lf.mus.detach() for lf in group]).to(self.dtype_)))
+                self.register_parameter(f"{cls}_log_sigmas", nn.Parameter(
+                    torch.stack([lf.log_sigmas.detach() for lf in group]).to(self.dtype_)))
+                self.register_parameter(f"{cls}_logits", nn.Parameter(
+                    torch.stack([lf.logits.detach() for lf in group]).to(self.dtype_)))
+            else:                                # CategoricalLeaf
+                self.register_parameter(f"{cls}_logits", nn.Parameter(
+                    torch.stack([lf.logits.detach() for lf in group]).to(self.dtype_)))
+            self._leaf_nodes_by_group[cls] = group
+
+        # ── inner layers, by (depth, kind) ───────────────────────────────
+        inner = [n for n in nodes if not isinstance(n, LeafNode)]
+        for node in inner:
+            if not isinstance(node, (SumNode, ProductNode)):
+                raise NotImplementedError(
+                    f"CompiledCircuit does not support node type "
+                    f"{type(node).__name__!r} (signed/SOS and classifier nodes "
+                    "stay on the recursive evaluator)")
+        self.plans: List[_LayerPlan] = []
+        self._layer_nodes: List[List[nn.Module]] = []
+        self._sum_layer_index: List[int] = []
+        by_layer: Dict[Tuple[int, str], List[nn.Module]] = {}
+        for node in inner:
+            kind = "sum" if isinstance(node, SumNode) else "product"
+            by_layer.setdefault((depth[id(node)], kind), []).append(node)
+
+        for (_, kind), group in sorted(by_layer.items(), key=lambda kv: (kv[0][0], kv[0][1])):
+            for node in group:
+                slot[id(node)] = next_slot
+                next_slot += 1
+            arity = max(len(children[id(n)]) for n in group)
+            idx = torch.zeros(len(group), arity, dtype=torch.long)   # 0 = pad
+            for r, node in enumerate(group):
+                kids = children[id(node)]
+                idx[r, :len(kids)] = torch.tensor([slot[id(k)] for k in kids])
+            # "dense" = every node in this layer mixes exactly the same children.
+            # That is the region-graph case (K sum units over one region), and
+            # it is what lets the sum become a GEMM instead of a wide gather.
+            dense = bool((idx == idx[0]).all()) and len(group) > 1
+            plan = _LayerPlan(kind, idx, dense)
+            if kind == "sum":
+                logits = torch.full((len(group), arity), -float("inf"))
+                for r, node in enumerate(group):
+                    w = node.weights.detach().to(self.dtype_)
+                    logits[r, :len(w)] = w
+                # -inf on the pad columns is exactly right: log_softmax sends it
+                # to weight 0, so padding cannot leak probability mass.
+                self.register_parameter(f"sum_w_{len(self.plans)}",
+                                        nn.Parameter(logits.to(self.dtype_)))
+                self._sum_layer_index.append(len(self.plans))
+            self.register_buffer(f"idx_{len(self.plans)}", idx)
+            self._layer_nodes.append(group)
+            self.plans.append(plan)
+
+        self.n_slots = next_slot
+        self.root_slot = slot[id(root)]
+        self._nodes = nodes
+        self._slot = slot
+        self.n_nodes = len(nodes)
+
+    # ── the hot loop ─────────────────────────────────────────────────────
+
+    def _leaf_values(self, x: torch.Tensor,
+                     marg_mask: Optional[torch.Tensor]) -> List[torch.Tensor]:
+        """All leaves of each type in one kernel.  Marginalised features get
+        log ∫ f = 0, which is what makes the exact-marginal query as cheap as
+        the density query instead of a second traversal."""
+        out = []
+        for cls in self.leaf_groups:
+            feat = getattr(self, f"{cls}_feat")
+            v = x.index_select(1, feat)                      # (B, n)
+            if cls == "GaussianLeaf":
+                mu = getattr(self, f"{cls}_mu")
+                sigma = F.softplus(getattr(self, f"{cls}_log_sigma")) + 1e-5
+                val = (-0.5 * ((v - mu) / sigma) ** 2
+                       - torch.log(sigma) - 0.5 * LOG_2PI)
+            elif cls == "GaussianMixtureLeaf":
+                mus = getattr(self, f"{cls}_mus")             # (n, C)
+                sig = F.softplus(getattr(self, f"{cls}_log_sigmas")) + 1e-5
+                lw = F.log_softmax(getattr(self, f"{cls}_logits"), dim=-1)
+                z = (v.unsqueeze(-1) - mus) / sig             # (B, n, C)
+                comp = -0.5 * z ** 2 - torch.log(sig) - 0.5 * LOG_2PI
+                val = torch.logsumexp(lw + comp, dim=-1)
+            else:                                            # CategoricalLeaf
+                lw = F.log_softmax(getattr(self, f"{cls}_logits"), dim=-1)
+                k = v.long().clamp_(min=0, max=lw.shape[-1] - 1)
+                val = torch.gather(lw.unsqueeze(0).expand(x.shape[0], -1, -1),
+                                   2, k.unsqueeze(-1)).squeeze(-1)
+            if marg_mask is not None:
+                val = torch.where(marg_mask.index_select(0, feat),
+                                  torch.zeros((), dtype=val.dtype, device=val.device),
+                                  val)
+            out.append(val)
+        return out
+
+    def forward(self, x: torch.Tensor,
+                marg_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+        x = x.to(dtype=self.dtype_)
+        B = x.shape[0]
+        # One growing value buffer.  Slots were numbered in evaluation order, so
+        # concatenating each layer's output keeps slot i at column i, and every
+        # gather only ever reads columns written by an earlier layer.
+        parts = [x.new_zeros(B, 1)]                          # slot 0 = log 1
+        parts.extend(self._leaf_values(x, marg_mask))
+        vals = torch.cat(parts, dim=1)
+
+        s = 0
+        for li, plan in enumerate(self.plans):
+            idx = getattr(self, f"idx_{li}")
+            if plan.kind == "product":
+                out = vals[:, idx.reshape(-1)].reshape(B, plan.n_nodes,
+                                                       plan.arity).sum(dim=-1)
+            else:
+                logits = getattr(self, f"sum_w_{self._sum_layer_index[s]}")
+                s += 1
+                logw = F.log_softmax(logits, dim=-1)         # (N, A)
+                if plan.dense:
+                    # every node mixes the same A children -> (B, A) @ (A, N).
+                    # The max-shift makes exp() safe, and the matmul is a real
+                    # GEMM (tensor cores on CUDA) instead of a wide elementwise
+                    # logsumexp over a (B, N, A) intermediate.
+                    g = vals[:, idx[0]]                      # (B, A)
+                    m = g.max(dim=1, keepdim=True).values
+                    m = torch.where(torch.isfinite(m), m, torch.zeros_like(m))
+                    out = m + torch.log(
+                        torch.exp(g - m) @ logw.exp().transpose(0, 1) + 1e-45)
+                else:
+                    g = vals[:, idx.reshape(-1)].reshape(B, plan.n_nodes,
+                                                         plan.arity)
+                    out = torch.logsumexp(g + logw, dim=-1)
+            vals = torch.cat([vals, out], dim=1)
+        return vals[:, self.root_slot]
+
+    # ── query API, matching the recursive evaluator ──────────────────────
+
+    def log_prob(self, x: torch.Tensor,
+                 marginalized: Optional[Sequence[int]] = None) -> torch.Tensor:
+        mask = None
+        if marginalized:
+            mask = torch.zeros(x.shape[1], dtype=torch.bool, device=x.device)
+            mask[list(marginalized)] = True
+        return self.forward(x, mask)
+
+    def log_partition(self, n_features: int) -> torch.Tensor:
+        """Marginalising EVERY variable: must be 0 for a normalised circuit."""
+        x = torch.zeros(1, n_features, device=self._device(), dtype=self.dtype_)
+        return self.forward(x, torch.ones(n_features, dtype=torch.bool,
+                                          device=x.device))
+
+    def _device(self):
+        return getattr(self, f"{self.leaf_groups[0]}_feat").device
+
+    # ── the gate ─────────────────────────────────────────────────────────
+
+    @torch.no_grad()
+    def assert_matches_reference(self, root: nn.Module, x: torch.Tensor,
+                                 marginalized: Sequence[int] = (),
+                                 atol: float = 1e-4, rtol: float = 1e-4) -> float:
+        """
+        Compare against the recursive oracle and REFUSE on mismatch.
+
+        A compiled evaluator that is fast and wrong is worse than a slow one,
+        and the failure mode is silent — the loss still goes down.  Every
+        speedup number in this project has to pass through here first.
+        """
+        ref = eval_log_marginal(root, x.to(self._device()), marginalized)
+        got = self.forward(x.to(self._device()),
+                           None if not marginalized else
+                           torch.zeros(x.shape[1], dtype=torch.bool,
+                                       device=self._device()).index_fill_(
+                               0, torch.tensor(list(marginalized),
+                                               device=self._device()), True))
+        # compare on CPU in float64: MPS has no float64, and the whole point of
+        # the gate is that the comparison itself must not lose precision
+        ref_c, got_c = ref.detach().cpu().double(), got.detach().cpu().double()
+        err = float((got_c - ref_c).abs().max())
+        scale = max(float(ref_c.abs().max()), 1.0)
+        tol = atol + rtol * scale
+        if not math.isfinite(err) or err > tol:
+            raise RuntimeError(
+                f"compiled circuit disagrees with the recursive reference: "
+                f"max |Δ log p| = {err:.3e} > {tol:.3e}. Refusing to use the "
+                "fast path.")
+        # relative, because an absolute Δ is unreadable: at |log p| ≈ 2e5 a
+        # Δ of 6e-2 IS fp32 round-off, and at |log p| ≈ 200 it would not be
+        self.last_gate = {"abs": err, "rel": err / scale, "scale": scale}
+        return err
+
+    # ── parameter sync ───────────────────────────────────────────────────
+
+    @torch.no_grad()
+    def write_back(self) -> None:
+        """Push trained packed parameters back into the original DAG nodes, so
+        validate(), MPE, sampling and serialisation see the trained model."""
+        for cls, group in getattr(self, "_leaf_nodes_by_group", {}).items():
+            if cls == "GaussianLeaf":
+                mu = getattr(self, f"{cls}_mu")
+                ls = getattr(self, f"{cls}_log_sigma")
+                for i, lf in enumerate(group):
+                    lf.mu.copy_(mu[i]); lf.log_sigma.copy_(ls[i])
+            elif cls == "GaussianMixtureLeaf":
+                mus = getattr(self, f"{cls}_mus")
+                lss = getattr(self, f"{cls}_log_sigmas")
+                lg = getattr(self, f"{cls}_logits")
+                for i, lf in enumerate(group):
+                    lf.mus.copy_(mus[i]); lf.log_sigmas.copy_(lss[i])
+                    lf.logits.copy_(lg[i])
+            else:
+                lg = getattr(self, f"{cls}_logits")
+                for i, lf in enumerate(group):
+                    lf.logits.copy_(lg[i])
+        s = 0
+        for li, plan in enumerate(self.plans):
+            if plan.kind != "sum":
+                continue
+            logits = getattr(self, f"sum_w_{self._sum_layer_index[s]}")
+            s += 1
+            for r, node in enumerate(self._layer_nodes[li]):
+                node.weights.copy_(logits[r, :len(node.weights)])
+
+    # ── reporting ────────────────────────────────────────────────────────
+
+    def schedule_report(self) -> Dict[str, Any]:
+        return {
+            "nodes": self.n_nodes,
+            "depth": self.depth,
+            "layers": len(self.plans),
+            "dense_sum_layers": sum(1 for p in self.plans
+                                    if p.kind == "sum" and p.dense),
+            "max_layer_width": max((p.n_nodes for p in self.plans), default=0),
+            "pad_waste": (sum(p.pad_frac * p.n_nodes * p.arity for p in self.plans)
+                          / max(sum(p.n_nodes * p.arity for p in self.plans), 1)),
+        }
+
+
+def _topological_nodes(root: nn.Module):
+    """Distinct nodes in topological order (children before parents), plus the
+    child lists.  Iterative: a deep circuit blows the Python recursion limit."""
+    children: Dict[int, List[nn.Module]] = {}
+    order: List[nn.Module] = []
+    seen: set = set()
+    stack = [(root, False)]
+    while stack:
+        node, expanded = stack.pop()
+        if expanded:
+            order.append(node)
+            continue
+        if id(node) in seen:
+            continue
+        seen.add(id(node))
+        kids = list(node.child_nodes) if not isinstance(node, LeafNode) else []
+        children[id(node)] = kids
+        stack.append((node, True))
+        for k in kids:
+            stack.append((k, False))
+    return order, children
 
 
 # ═══════════════════════════════════════════════════════════════════════════
