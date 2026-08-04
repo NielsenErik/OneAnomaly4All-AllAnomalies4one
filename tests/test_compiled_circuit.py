@@ -284,3 +284,89 @@ def test_a_plateau_feature_trains_without_nan():
         opt.zero_grad(); loss.backward(); opt.step()
         assert torch.isfinite(loss), "NaN is back"
     assert float(loss) < 1e6
+
+
+# ── box (interval) queries — the censored likelihood ────────────────────────
+
+def _survival_pc(window=5, channels=4, n_bins=10, K=3, seed=0):
+    """A (window, tau) circuit shaped like SurvivalPC's: Gaussians on the
+    sensors, a Categorical on tau, tau coupled deep."""
+    from poc.time_series.circuits import (attach_variable, build_window_vtree,
+                                          mixed_leaf_factory)
+
+    torch.manual_seed(seed)
+    d = window * channels
+    base = build_window_vtree("chain", window, channels, X=torch.randn(64, d))
+    vt = attach_variable(base, d, where="deep")
+    pc = RegionGraphPC(vt, n_sum_components=K,
+                       leaf_factory=mixed_leaf_factory(d, n_bins, 1),
+                       weight_jitter=0.5, seed=seed)
+    pc.validate()
+    return pc, d, n_bins
+
+
+def _z(n, d, n_bins):
+    return torch.cat([torch.randn(n, d),
+                      torch.randint(0, n_bins, (n, 1)).float()], dim=1)
+
+
+@pytest.mark.parametrize("lo,hi", [(0.0, float("inf")), (3.0, float("inf")),
+                                   (2.0, 7.0), (-float("inf"), 5.0)])
+def test_box_query_matches_the_reference_scalar_endpoints(lo, hi):
+    pc, d, nb = _survival_pc()
+    comp = CompiledCircuit(pc.root)
+    z = _z(24, d, nb)
+    ref = eval_log_marginal(pc.root, z, (), boxes={d: (lo, hi)})
+    got = comp.log_box(z, {d: (lo, hi)})
+    assert torch.allclose(ref, got, atol=ATOL, rtol=1e-4), \
+        f"max |Δ| = {float((ref - got).abs().max()):.3e}"
+
+
+def test_box_query_with_per_sample_endpoints():
+    """Every censored unit has its OWN censoring time; a batch of them must be
+    one pass, not one pass per distinct threshold."""
+    pc, d, nb = _survival_pc()
+    comp = CompiledCircuit(pc.root)
+    z = _z(32, d, nb)
+    lo = torch.randint(0, nb, (32,)).float()
+    ref = eval_log_marginal(pc.root, z, (), boxes={d: (lo, float("inf"))})
+    got = comp.log_box(z, {d: (lo, float("inf"))})
+    assert torch.allclose(ref, got, atol=ATOL, rtol=1e-4)
+
+
+def test_box_and_marginalisation_compose():
+    """Survival under dead sensors: box on tau, marginalise the dead channels."""
+    pc, d, nb = _survival_pc()
+    comp = CompiledCircuit(pc.root)
+    z = _z(16, d, nb)
+    lo = torch.randint(0, nb, (16,)).float()
+    marg = [0, 3, 7]
+    ref = eval_log_marginal(pc.root, z, marg, boxes={d: (lo, float("inf"))})
+    got = comp.log_box(z, {d: (lo, float("inf"))}, marginalized=marg)
+    assert torch.allclose(ref, got, atol=ATOL, rtol=1e-4)
+
+
+def test_full_range_box_equals_marginalising_that_variable():
+    """S(0) = P(tau >= 0) = 1, so the box over ALL bins must equal the density
+    with tau marginalised out.  An identity, so it must hold exactly."""
+    pc, d, nb = _survival_pc()
+    comp = CompiledCircuit(pc.root)
+    z = _z(16, d, nb)
+    box = comp.log_box(z, {d: (0.0, float("inf"))})
+    marg = comp.log_prob(z, marginalized=[d])
+    assert torch.allclose(box, marg, atol=1e-5, rtol=1e-5)
+
+
+def test_gaussian_and_mixture_leaves_support_boxes():
+    """Box support must not be Categorical-only — the tau leaf is categorical
+    today, but a continuous tau is a one-line config change."""
+    for leaf in (GaussianLeaf, lambda i: GaussianMixtureLeaf(i, n_components=3)):
+        root = SumNode([ProductNode([leaf(0), leaf(1)]),
+                        ProductNode([leaf(0), leaf(1)])])
+        comp = CompiledCircuit(root)
+        x = torch.randn(12, 2)
+        lo = torch.rand(12) - 2.0
+        for endpoints in ((-1.0, 1.5), (lo, float("inf"))):
+            ref = eval_log_marginal(root, x, (), boxes={0: endpoints})
+            got = comp.log_box(x, {0: endpoints})
+            assert torch.allclose(ref, got, atol=ATOL, rtol=1e-4)

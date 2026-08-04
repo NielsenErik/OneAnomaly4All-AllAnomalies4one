@@ -560,3 +560,61 @@ def test_end_to_end_ad_stage_writes_comparable_rows(tmp_path):
         assert "auroc" in r
     assert os.path.exists(os.path.join(rdir, "artifacts", "ad_scores.npz"))
     assert os.path.exists(os.path.join(rdir, "history_pc_train_nll.csv"))
+
+
+# ── one fit, many evaluations ───────────────────────────────────────────────
+
+def test_last_window_view_equals_rebuilding_the_task():
+    """
+    `eval.test_protocols` reports "all" and "last" from ONE fit, by selecting
+    the final window of each test unit instead of rebuilding the task with
+    `rul_test_windows: last`.  That is only legitimate if the selection is
+    exactly what the builder produces — this asserts it, because the whole
+    2x saving on the RUL tier rests on it.
+    """
+    import torch
+
+    from poc.time_series.config import load_config
+    from poc.time_series.datasets import build_rul_task, load_fleets
+    from poc.time_series.pipeline import _test_protocol_views
+
+    # `rul_test_windows` only bites on sources with an OFFICIAL test fleet
+    # (make_rul_task_split); the synthetic source splits its own units and
+    # ignores it.  So this has to run on real C-MAPSS, and skip without it.
+    spec = dict(load_config("config/ts/cmapss_rul.yaml")["dataset"])
+    spec.update(subset="FD001", window=8, stride=4, rul_stride=6, bins=10,
+                censor_frac=0.3)
+    ok, why = dataset_available(spec)
+    if not ok:
+        pytest.skip(f"needs real C-MAPSS: {why}")
+
+    def build(protocol):
+        s = dict(spec, rul_test_windows=protocol)
+        return build_rul_task(load_fleets(s, seed=0), s, seed=0)
+
+    all_task, last_task = build("all"), build("last")
+
+    views = dict(_test_protocol_views(all_task, ["all", "last"]))
+    derived = views["last"]
+    assert torch.equal(derived.X_test, last_task.X_test)
+    assert torch.equal(derived.rul_test, last_task.rul_test)
+    assert torch.equal(derived.tau_test, last_task.tau_test)
+    # and the training data was never touched
+    assert torch.equal(all_task.X_train, last_task.X_train)
+
+
+def test_alpha_is_not_a_training_input():
+    """
+    The calibration stage evaluates several alphas from one fit.  That is valid
+    only because alpha reaches nothing before `ConformalPredictive`.  Guard it
+    by signature: `_fit_survival` must not accept or read an alpha.
+    """
+    import inspect
+
+    from poc.time_series.pipeline import _fit_survival
+
+    params = inspect.signature(_fit_survival).parameters
+    assert "alpha" not in params
+    src = inspect.getsource(_fit_survival)
+    assert "alpha" not in src, "the survival fit now reads alpha — the " \
+                               "one-fit-many-alphas optimisation is invalid"
