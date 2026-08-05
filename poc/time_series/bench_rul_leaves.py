@@ -143,11 +143,15 @@ def main(argv=None) -> None:
     ap.add_argument("--out", default="logs/rul_leaves.json",
                     help="rows appended here as they finish")
     ap.add_argument("--floor", choices=("relative", "legacy"), default="relative",
-                    help="'relative' = sigma >= max(0.01*std, 1e-3) per feature, "
-                         "at init AND during training; 'legacy' = the absolute "
-                         "1e-5 epsilon only, which is what produced the "
-                         "collapsed 3-component row. Run BOTH: the difference "
-                         "is the whole question.")
+                    help="which RUNTIME floor holds during training: "
+                         "'relative' = sigma >= max(0.01*std, 1e-3) per "
+                         "feature; 'legacy' = the absolute 1e-5 epsilon, i.e. "
+                         "the pre-change behaviour that produced the collapsed "
+                         "3-component row. BOTH modes initialise from the same "
+                         "relative rule (see GaussianLeaf.fit), so the "
+                         "difference between the two runs is the runtime floor "
+                         "alone. Run BOTH: that difference is the whole "
+                         "question.")
     args = ap.parse_args(argv)
     seeds = [args.seeds[0]] if args.quick else args.seeds
     epochs = 15 if args.quick else args.epochs

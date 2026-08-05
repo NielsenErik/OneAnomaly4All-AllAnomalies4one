@@ -1438,21 +1438,53 @@ class GaussianLeaf(LeafNode):
         So the floor is RELATIVE to the feature's own spread: a leaf may be
         sharp, but never sharper than the data it was fitted to.  1% of the
         standard deviation was chosen by measurement, not taste — it is the
-        loosest floor that fixes the degenerate features, and on C-MAPSS it
-        binds on exactly the 20 broken features of FD002/FD004 and on ZERO
-        features of FD001/FD003, so previously recorded numbers for the
-        subsets that already worked are unchanged.
+        loosest floor that fixes the degenerate features.
+
+        How WIDELY it binds is config-dependent and was once recorded here as
+        "the 20 broken features of FD002/FD004, ZERO on FD001/FD003".  That
+        holds for the window=20 setting it was measured on; under the RUL
+        bench's own task (`bench_rul_capacity.make_task`, window=30, bins=25)
+        the counts are:
+
+            FD001  30/450 features MAD==0, all of channel 3
+            FD003  30/480 features MAD==0, all of channel 7
+            FD002  60/630 MAD==0, 90 raised by the floor (channels 15, 17, 18)
+            FD004  same as FD002
+
+        So FD001/FD003 are NOT untouched: one whole sensor channel is
+        median-constant in each, and every window position over it is floored.
+        Any claim that a recorded FD001 number is unaffected by this floor has
+        to be checked, not assumed.
 
         The same bound is also installed as a RUNTIME floor, not just an
         initialisation: nothing otherwise stops gradient descent from walking
         σ back down to the 1e-5 epsilon over training, which is the collapse
         the init floor was meant to prevent in the first place.
+
+        `use_relative_floor` switches the RUNTIME floor only.  The relative
+        bound was always part of the initialisation — that is the part that
+        keeps MAD-zero features finite — so it is applied in both modes and
+        they differ in what constrains σ during training, not where it starts.
+        Tying the two together would make the legacy mode a third regime (no
+        floor anywhere) rather than the pre-change behaviour it is supposed to
+        reproduce, and the A/B would no longer isolate the runtime floor.
+
+        One residual asymmetry, on the degenerate features only: where the
+        relative bound BINDS (σ_fit == floor), σ = floor + softplus(·) cannot
+        start AT the floor and still have gradient room, so `_floored_log_sigma`
+        seeds it at 1.25x the floor, while legacy — whose floor is the 1e-5
+        epsilon — starts exactly at σ_fit.  Everywhere else the two modes
+        initialise bit-identically.  Per the counts above that asymmetry covers
+        30/450 leaves on FD001 at leaf_components=1 and 0/450 at 3 (a mixture's
+        std/n seed clears the floor), so the 1-component row of the leaf sweep
+        is the one place the A/B is not a pure runtime-floor contrast.
         """
         vals = _column(X, self.feature_idx)
         mu = float(np.median(vals))
         mad_sigma = float(np.median(np.abs(vals - mu))) * 1.4826
-        floor = relative_sigma_floor(vals) if self.use_relative_floor else 1e-5
-        sigma = max(mad_sigma, floor)
+        rel = relative_sigma_floor(vals)
+        sigma = max(mad_sigma, rel)                          # init: both modes
+        floor = rel if self.use_relative_floor else 1e-5     # runtime: the A/B
         with torch.no_grad():
             self.mu.fill_(mu)
             self.sigma_floor.fill_(floor)
@@ -1512,13 +1544,20 @@ class GaussianMixtureLeaf(LeafNode):
         a joint NLL ~10x "better" than the single-Gaussian circuit, on both
         train AND test, while what improved was mostly spiking on channels
         that barely vary.
+
+        As in `GaussianLeaf.fit`, `use_relative_floor` switches the RUNTIME
+        floor.  The init differs from the single-Gaussian case in one respect:
+        the pre-change mixture had NO relative bound at initialisation, only
+        the absolute 1e-3, so that is what the legacy branch must seed with if
+        `--floor legacy` is to reproduce the recorded capacity numbers.  The
+        relative mode keeps the wider `rel` seed it was measured with.
         """
         vals = _column(X, self.feature_idx)
         qs = np.quantile(vals, np.linspace(0.1, 0.9, self.n_components))
         floor = relative_sigma_floor(vals) if self.use_relative_floor else 1e-5
         # per-component width: each covers roughly 1/n of the feature's spread
         spread = float(np.std(vals) + 1e-6) / max(self.n_components, 1)
-        sigma = max(spread, floor)
+        sigma = max(spread, floor, 1e-3)
         with torch.no_grad():
             self.mus.copy_(torch.tensor(qs, dtype=torch.float32))
             self.sigma_floor.fill_(floor)
