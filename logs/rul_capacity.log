@@ -1,0 +1,164 @@
+nohup: ignoring input
+    survival fit (censored): 29/60 (48%) · 0.96 it/s · elapsed 00:30 · ETA 00:32
+    survival fit (censored): 59/60 (98%) · 0.97 it/s · elapsed 01:01 · ETA 00:01
+    survival fit (censored): done 60/60 in 01:02
+    survival fit (censored): 29/60 (48%) · 0.96 it/s · elapsed 00:30 · ETA 00:32
+    survival fit (censored): 58/60 (97%) · 0.96 it/s · elapsed 01:00 · ETA 00:02
+    survival fit (censored): done 60/60 in 01:02
+    survival fit (censored): 29/60 (48%) · 0.96 it/s · elapsed 00:30 · ETA 00:32
+    survival fit (censored): 58/60 (97%) · 0.96 it/s · elapsed 01:00 · ETA 00:02
+    survival fit (censored): done 60/60 in 01:02
+    survival fit (censored): 29/30 (97%) · 0.96 it/s · elapsed 00:30 · ETA 00:01
+    survival fit (censored): done 30/30 in 00:31
+    survival fit (censored): 29/30 (97%) · 0.96 it/s · elapsed 00:30 · ETA 00:01
+    survival fit (censored): done 30/30 in 00:31
+    survival fit (censored): 29/30 (97%) · 0.96 it/s · elapsed 00:30 · ETA 00:01
+    survival fit (censored): done 30/30 in 00:31
+    survival fit (censored): 29/120 (24%) · 0.96 it/s · elapsed 00:30 · ETA 01:34
+    survival fit (censored): 58/120 (48%) · 0.96 it/s · elapsed 01:00 · ETA 01:04
+    survival fit (censored): 87/120 (72%) · 0.96 it/s · elapsed 01:30 · ETA 00:34
+    survival fit (censored): 116/120 (97%) · 0.96 it/s · elapsed 02:00 · ETA 00:04
+    survival fit (censored): done 120/120 in 02:04
+    survival fit (censored): 29/120 (24%) · 0.96 it/s · elapsed 00:30 · ETA 01:34
+    survival fit (censored): 58/120 (48%) · 0.96 it/s · elapsed 01:00 · ETA 01:04
+    survival fit (censored): 87/120 (72%) · 0.96 it/s · elapsed 01:30 · ETA 00:34
+    survival fit (censored): 116/120 (97%) · 0.96 it/s · elapsed 02:00 · ETA 00:04
+    survival fit (censored): done 120/120 in 02:04
+    survival fit (censored): 29/120 (24%) · 0.96 it/s · elapsed 00:30 · ETA 01:34
+    survival fit (censored): 58/120 (48%) · 0.96 it/s · elapsed 01:00 · ETA 01:04
+    survival fit (censored): 87/120 (72%) · 0.96 it/s · elapsed 01:30 · ETA 00:34
+    survival fit (censored): 116/120 (97%) · 0.96 it/s · elapsed 02:00 · ETA 00:04
+    survival fit (censored): done 120/120 in 02:04
+    survival fit (censored): 29/240 (12%) · 0.96 it/s · elapsed 00:30 · ETA 03:39
+    survival fit (censored): 58/240 (24%) · 0.96 it/s · elapsed 01:00 · ETA 03:09
+    survival fit (censored): 87/240 (36%) · 0.96 it/s · elapsed 01:30 · ETA 02:39
+    survival fit (censored): 116/240 (48%) · 0.96 it/s · elapsed 02:00 · ETA 02:09
+    survival fit (censored): 145/240 (60%) · 0.96 it/s · elapsed 02:30 · ETA 01:38
+    survival fit (censored): 174/240 (72%) · 0.96 it/s · elapsed 03:01 · ETA 01:08
+    survival fit (censored): 203/240 (85%) · 0.96 it/s · elapsed 03:31 · ETA 00:38
+    survival fit (censored): 232/240 (97%) · 0.96 it/s · elapsed 04:01 · ETA 00:08
+    survival fit (censored): done 240/240 in 04:09
+    survival fit (censored): 29/240 (12%) · 0.96 it/s · elapsed 00:30 · ETA 03:39
+    survival fit (censored): 58/240 (24%) · 0.96 it/s · elapsed 01:00 · ETA 03:09
+    survival fit (censored): 87/240 (36%) · 0.96 it/s · elapsed 01:30 · ETA 02:38
+    survival fit (censored): 116/240 (48%) · 0.96 it/s · elapsed 02:00 · ETA 02:08
+    survival fit (censored): 145/240 (60%) · 0.96 it/s · elapsed 02:30 · ETA 01:38
+    survival fit (censored): 174/240 (72%) · 0.96 it/s · elapsed 03:00 · ETA 01:08
+    survival fit (censored): 203/240 (85%) · 0.96 it/s · elapsed 03:30 · ETA 00:38
+    survival fit (censored): 232/240 (97%) · 0.96 it/s · elapsed 04:00 · ETA 00:08
+    survival fit (censored): done 240/240 in 04:09
+    survival fit (censored): 29/240 (12%) · 0.96 it/s · elapsed 00:30 · ETA 03:39
+    survival fit (censored): 58/240 (24%) · 0.96 it/s · elapsed 01:00 · ETA 03:09
+    survival fit (censored): 87/240 (36%) · 0.96 it/s · elapsed 01:30 · ETA 02:39
+    survival fit (censored): 116/240 (48%) · 0.96 it/s · elapsed 02:00 · ETA 02:09
+    survival fit (censored): 145/240 (60%) · 0.96 it/s · elapsed 02:30 · ETA 01:38
+    survival fit (censored): 174/240 (72%) · 0.96 it/s · elapsed 03:01 · ETA 01:08
+    survival fit (censored): 203/240 (85%) · 0.96 it/s · elapsed 03:31 · ETA 00:38
+    survival fit (censored): 232/240 (97%) · 0.96 it/s · elapsed 04:01 · ETA 00:08
+    survival fit (censored): done 240/240 in 04:09
+    survival fit (censored): 41/60 (68%) · 1.35 it/s · elapsed 00:30 · ETA 00:14
+    survival fit (censored): done 60/60 in 00:44
+    survival fit (censored): 41/60 (68%) · 1.35 it/s · elapsed 00:30 · ETA 00:14
+    survival fit (censored): done 60/60 in 00:44
+    survival fit (censored): 41/60 (68%) · 1.35 it/s · elapsed 00:30 · ETA 00:14
+    survival fit (censored): done 60/60 in 00:44
+    survival fit (censored): 19/60 (32%) · 0.63 it/s · elapsed 00:30 · ETA 01:04
+    survival fit (censored): 38/60 (63%) · 0.63 it/s · elapsed 01:00 · ETA 00:34
+    survival fit (censored): 57/60 (95%) · 0.63 it/s · elapsed 01:30 · ETA 00:04
+    survival fit (censored): done 60/60 in 01:35
+    survival fit (censored): 19/60 (32%) · 0.63 it/s · elapsed 00:30 · ETA 01:05
+    survival fit (censored): 38/60 (63%) · 0.63 it/s · elapsed 01:00 · ETA 00:34
+    survival fit (censored): 57/60 (95%) · 0.63 it/s · elapsed 01:30 · ETA 00:04
+    survival fit (censored): done 60/60 in 01:35
+    survival fit (censored): 19/60 (32%) · 0.63 it/s · elapsed 00:30 · ETA 01:05
+    survival fit (censored): 38/60 (63%) · 0.63 it/s · elapsed 01:00 · ETA 00:34
+    survival fit (censored): 57/60 (95%) · 0.63 it/s · elapsed 01:30 · ETA 00:04
+    survival fit (censored): done 60/60 in 01:35
+    survival fit (censored): 7/60 (12%) · 0.23 it/s · elapsed 00:30 · ETA 03:50
+    survival fit (censored): 14/60 (23%) · 0.23 it/s · elapsed 01:00 · ETA 03:20
+    survival fit (censored): 21/60 (35%) · 0.23 it/s · elapsed 01:31 · ETA 02:49
+    survival fit (censored): 28/60 (47%) · 0.23 it/s · elapsed 02:01 · ETA 02:19
+    survival fit (censored): 35/60 (58%) · 0.23 it/s · elapsed 02:32 · ETA 01:48
+    survival fit (censored): 42/60 (70%) · 0.23 it/s · elapsed 03:03 · ETA 01:18
+    survival fit (censored): 49/60 (82%) · 0.23 it/s · elapsed 03:33 · ETA 00:47
+    survival fit (censored): 56/60 (93%) · 0.23 it/s · elapsed 04:04 · ETA 00:17
+    survival fit (censored): done 60/60 in 04:21
+    survival fit (censored): 7/60 (12%) · 0.23 it/s · elapsed 00:30 · ETA 03:50
+    survival fit (censored): 14/60 (23%) · 0.23 it/s · elapsed 01:00 · ETA 03:20
+    survival fit (censored): 21/60 (35%) · 0.23 it/s · elapsed 01:31 · ETA 02:49
+    survival fit (censored): 28/60 (47%) · 0.23 it/s · elapsed 02:01 · ETA 02:19
+    survival fit (censored): 35/60 (58%) · 0.23 it/s · elapsed 02:32 · ETA 01:48
+    survival fit (censored): 42/60 (70%) · 0.23 it/s · elapsed 03:02 · ETA 01:18
+    survival fit (censored): 49/60 (82%) · 0.23 it/s · elapsed 03:33 · ETA 00:47
+    survival fit (censored): 56/60 (93%) · 0.23 it/s · elapsed 04:03 · ETA 00:17
+    survival fit (censored): done 60/60 in 04:21
+    survival fit (censored): 7/60 (12%) · 0.23 it/s · elapsed 00:30 · ETA 03:50
+    survival fit (censored): 14/60 (23%) · 0.23 it/s · elapsed 01:00 · ETA 03:20
+    survival fit (censored): 21/60 (35%) · 0.23 it/s · elapsed 01:31 · ETA 02:49
+    survival fit (censored): 28/60 (47%) · 0.23 it/s · elapsed 02:01 · ETA 02:19
+    survival fit (censored): 35/60 (58%) · 0.23 it/s · elapsed 02:32 · ETA 01:48
+    survival fit (censored): 42/60 (70%) · 0.23 it/s · elapsed 03:02 · ETA 01:18
+    survival fit (censored): 49/60 (82%) · 0.23 it/s · elapsed 03:33 · ETA 00:47
+    survival fit (censored): 56/60 (93%) · 0.23 it/s · elapsed 04:03 · ETA 00:17
+    survival fit (censored): done 60/60 in 04:21
+    survival fit (censored): 29/60 (48%) · 0.96 it/s · elapsed 00:30 · ETA 00:32
+    survival fit (censored): 58/60 (97%) · 0.96 it/s · elapsed 01:00 · ETA 00:02
+    survival fit (censored): done 60/60 in 01:02
+    survival fit (censored): 29/60 (48%) · 0.96 it/s · elapsed 00:30 · ETA 00:32
+    survival fit (censored): 58/60 (97%) · 0.96 it/s · elapsed 01:00 · ETA 00:02
+    survival fit (censored): done 60/60 in 01:02
+    survival fit (censored): 29/60 (48%) · 0.96 it/s · elapsed 00:30 · ETA 00:32
+    survival fit (censored): 58/60 (97%) · 0.96 it/s · elapsed 01:00 · ETA 00:02
+    survival fit (censored): done 60/60 in 01:02
+    survival fit (censored): 29/60 (48%) · 0.96 it/s · elapsed 00:30 · ETA 00:32
+    survival fit (censored): 58/60 (97%) · 0.96 it/s · elapsed 01:00 · ETA 00:02
+    survival fit (censored): done 60/60 in 01:02
+    survival fit (censored): 29/60 (48%) · 0.96 it/s · elapsed 00:30 · ETA 00:32
+    survival fit (censored): 58/60 (97%) · 0.96 it/s · elapsed 01:00 · ETA 00:02
+    survival fit (censored): done 60/60 in 01:02
+    survival fit (censored): 29/60 (48%) · 0.96 it/s · elapsed 00:30 · ETA 00:32
+    survival fit (censored): 58/60 (97%) · 0.96 it/s · elapsed 01:00 · ETA 00:02
+    survival fit (censored): done 60/60 in 01:02
+    survival fit (censored): 46/60 (77%) · 1.51 it/s · elapsed 00:30 · ETA 00:09
+    survival fit (censored): done 60/60 in 00:39
+    survival fit (censored): 46/60 (77%) · 1.51 it/s · elapsed 00:30 · ETA 00:09
+    survival fit (censored): done 60/60 in 00:39
+    survival fit (censored): 46/60 (77%) · 1.52 it/s · elapsed 00:30 · ETA 00:09
+    survival fit (censored): done 60/60 in 00:39
+    survival fit (censored): 29/60 (48%) · 0.93 it/s · elapsed 00:31 · ETA 00:33
+    survival fit (censored): 58/60 (97%) · 0.94 it/s · elapsed 01:02 · ETA 00:02
+    survival fit (censored): done 60/60 in 01:04
+    survival fit (censored): 28/60 (47%) · 0.93 it/s · elapsed 00:30 · ETA 00:34
+    survival fit (censored): 57/60 (95%) · 0.93 it/s · elapsed 01:01 · ETA 00:03
+    survival fit (censored): done 60/60 in 01:04
+    survival fit (censored): 28/60 (47%) · 0.93 it/s · elapsed 00:30 · ETA 00:34
+    survival fit (censored): 56/60 (93%) · 0.93 it/s · elapsed 01:00 · ETA 00:04
+    survival fit (censored): done 60/60 in 01:04
+
+C-MAPSS FD001 · task held at window=30, stride=1, censoring=0.0 (literature-comparable)
+seeds [0, 1, 2]
+
+RIDGE REFERENCE (same split)     15.96       16.29         —           —
+
+circuit variant              RMSE last    RMSE all      CRPS         NLL   vs ridge   fit s
+-------------------------------------------------------------------------------------------
+baseline (current config)        25.45       28.02     12.86       453.4      +9.49      68
+epochs 30                        25.46       28.43     13.12       455.5      +9.50      36
+epochs 120                       25.54       27.95     12.85       449.8      +9.58     130
+epochs 240                       25.47       27.83     12.79       448.6      +9.51     255
+rul_K 8                          25.57       28.24     13.02       472.3      +9.62      48
+rul_K 16                         25.55       28.24     12.98       466.1      +9.59     103
+rul_K 24                         25.51       27.92     12.81       436.4      +9.56     280
+tau bins 50                      25.51       28.03     13.28       457.1      +9.56      70
+tau bins 100                     25.68       27.44     13.16       461.1      +9.72      74
+tau_where root                   38.33       36.93     17.88       456.1     +22.37      44
+leaf mixture (3 comp.)           20.96       23.13     10.36        60.2      +5.00      70
+
+Interpretation:
+  * a knob that closes the 'vs ridge' column is the deficit;
+  * if `epochs` keeps helping, it is UNDER-TRAINING, and the rest of
+    this table was measured on models that had not converged;
+  * if NLL improves while RMSE does not, the objective is the problem
+    (better density != better conditional mean) and the fix is a
+    discriminative term, not more capacity.
+
