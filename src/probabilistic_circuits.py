@@ -1373,17 +1373,54 @@ def _gauss_log_interval(mu: torch.Tensor, sigma: torch.Tensor, lo, hi) -> torch.
     return torch.nan_to_num(out, nan=-1e30, neginf=-1e30)
 
 
+def relative_sigma_floor(vals: np.ndarray) -> float:
+    """
+    The smallest width a leaf on this feature is allowed to take: 1% of the
+    feature's own standard deviation, never below 1e-3.  See
+    `GaussianLeaf.fit` for why it is relative and how the constant was chosen.
+    """
+    return max(0.01 * float(np.std(vals)), 1e-3)
+
+
+def _floored_log_sigma(sigma: float, floor: float, min_frac: float = 0.25) -> float:
+    """
+    Initialise the LEARNABLE part of σ = floor + softplus(log_sigma).
+
+    The subtlety that a naive `inv_softplus(sigma - floor)` gets wrong: a leaf
+    whose fitted width already sits AT its floor would start with a learnable
+    part of ~0, i.e. log_sigma ≈ −14, where softplus' gradient is ~1e-6.  Adam
+    normalises the step, so the parameter still moves ~lr per step — but it
+    needs ~200 of them to climb back to where σ can grow at all, and a leaf
+    that must WIDEN (a plateau feature with a few real outliers) stays pinned
+    at the floor for the whole run and drives the loss to ~1e9.  The floor is
+    supposed to stop collapse, not freeze the width.
+
+    So the learnable part never starts below `min_frac` of the floor.  For any
+    leaf whose width exceeds its floor — every ordinary feature — this is
+    inactive and σ initialises exactly where it did before.
+    """
+    return _inv_softplus(max(sigma - floor, min_frac * floor))
+
+
 class GaussianLeaf(LeafNode):
     """Single Gaussian input unit."""
+
+    # Set False to restore the pre-floor behaviour (an absolute 1e-5 guard
+    # only).  It exists so the "is the mixture-leaf gain real, or is it width
+    # collapse?" A/B is one flag rather than a code change.
+    use_relative_floor: bool = True
 
     def __init__(self, feature_idx: int, mu_init: float = 0.0, sigma_init: float = 1.0):
         super().__init__(feature_idx)
         self.mu = nn.Parameter(torch.tensor(float(mu_init)))
         self.log_sigma = nn.Parameter(torch.tensor(math.log(sigma_init)))
+        # A BUFFER, not a parameter: it must survive `move_circuit_`, be saved
+        # with the circuit, and never receive a gradient.
+        self.register_buffer("sigma_floor", torch.tensor(1e-5))
 
     @property
     def sigma(self) -> torch.Tensor:
-        return F.softplus(self.log_sigma) + 1e-5
+        return F.softplus(self.log_sigma) + self.sigma_floor
 
     def fit(self, X) -> None:
         """
@@ -1405,15 +1442,23 @@ class GaussianLeaf(LeafNode):
         binds on exactly the 20 broken features of FD002/FD004 and on ZERO
         features of FD001/FD003, so previously recorded numbers for the
         subsets that already worked are unchanged.
+
+        The same bound is also installed as a RUNTIME floor, not just an
+        initialisation: nothing otherwise stops gradient descent from walking
+        σ back down to the 1e-5 epsilon over training, which is the collapse
+        the init floor was meant to prevent in the first place.
         """
         vals = _column(X, self.feature_idx)
         mu = float(np.median(vals))
         mad_sigma = float(np.median(np.abs(vals - mu))) * 1.4826
-        spread = float(np.std(vals))
-        sigma = max(mad_sigma, 0.01 * spread, 1e-3)
+        floor = relative_sigma_floor(vals) if self.use_relative_floor else 1e-5
+        sigma = max(mad_sigma, floor)
         with torch.no_grad():
             self.mu.fill_(mu)
-            self.log_sigma.fill_(_inv_softplus(sigma))
+            self.sigma_floor.fill_(floor)
+            # σ = floor + softplus(log_sigma): the learnable part carries the
+            # excess over the floor, kept off zero so the leaf can still widen.
+            self.log_sigma.fill_(_floored_log_sigma(sigma, floor))
 
     def log_density(self, v: torch.Tensor) -> torch.Tensor:
         s = self.sigma
@@ -1438,25 +1483,46 @@ class GaussianLeaf(LeafNode):
 class GaussianMixtureLeaf(LeafNode):
     """Mixture-of-Gaussians input unit (monotone, normalized)."""
 
+    use_relative_floor: bool = True     # see GaussianLeaf.use_relative_floor
+
     def __init__(self, feature_idx: int, n_components: int = 4):
         super().__init__(feature_idx)
         self.n_components = n_components
         self.mus = nn.Parameter(torch.linspace(-1.0, 1.0, n_components))
         self.log_sigmas = nn.Parameter(torch.zeros(n_components))
         self.logits = nn.Parameter(torch.zeros(n_components))
+        self.register_buffer("sigma_floor", torch.tensor(1e-5))
 
     @property
     def sigmas(self) -> torch.Tensor:
-        return F.softplus(self.log_sigmas) + 1e-5
+        return F.softplus(self.log_sigmas) + self.sigma_floor
 
     def fit(self, X) -> None:
-        """Quantile-spread initialisation of component means."""
+        """
+        Quantile-spread initialisation of component means, under the same
+        relative width floor as `GaussianLeaf.fit`.
+
+        A mixture needs the floor MORE than a single Gaussian does, not less.
+        One Gaussian must cover the whole feature, so the data itself resists
+        collapse; a component only has to cover the mass nearest its own mean,
+        so on a feature that is near-constant — every dead or
+        discretely-clamped sensor channel — the likelihood-maximising width is
+        zero, and density diverges.  Measured on C-MAPSS FD001, an unfloored
+        3-component fit ends with 91 components pinned at the 1e-5 epsilon and
+        a joint NLL ~10x "better" than the single-Gaussian circuit, on both
+        train AND test, while what improved was mostly spiking on channels
+        that barely vary.
+        """
         vals = _column(X, self.feature_idx)
         qs = np.quantile(vals, np.linspace(0.1, 0.9, self.n_components))
+        floor = relative_sigma_floor(vals) if self.use_relative_floor else 1e-5
+        # per-component width: each covers roughly 1/n of the feature's spread
         spread = float(np.std(vals) + 1e-6) / max(self.n_components, 1)
+        sigma = max(spread, floor)
         with torch.no_grad():
             self.mus.copy_(torch.tensor(qs, dtype=torch.float32))
-            self.log_sigmas.fill_(_inv_softplus(max(spread, 1e-3)))
+            self.sigma_floor.fill_(floor)
+            self.log_sigmas.fill_(_floored_log_sigma(sigma, floor))
             self.logits.fill_(0.0)
 
     def log_density(self, v: torch.Tensor) -> torch.Tensor:
