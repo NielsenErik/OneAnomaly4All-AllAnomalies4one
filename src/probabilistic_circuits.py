@@ -1729,11 +1729,20 @@ def _fit_leaves_with_jitter(model: nn.Module, X: torch.Tensor, jitter: float) ->
         if jitter <= 0:
             continue
         with torch.no_grad():
+            # Jitter is scaled by the leaf's ACTUAL width, which for a floored
+            # leaf is floor + softplus(...), not softplus(...) alone.  On a
+            # feature sitting at its floor the learnable part is a fraction of
+            # the width, so reading it directly would shrink the perturbation
+            # by ~5x and weaken exactly the symmetry break this exists for.
             if hasattr(m, "mu") and hasattr(m, "log_sigma"):
-                sigma = F.softplus(m.log_sigma) + 1e-6
+                sigma = getattr(m, "sigma", None)
+                if not isinstance(sigma, torch.Tensor):
+                    sigma = F.softplus(m.log_sigma) + 1e-6
                 m.mu.add_(torch.randn(()) * jitter * sigma)
             elif hasattr(m, "mus") and hasattr(m, "log_sigmas"):
-                sigmas = F.softplus(m.log_sigmas) + 1e-6
+                sigmas = getattr(m, "sigmas", None)
+                if not isinstance(sigmas, torch.Tensor):
+                    sigmas = F.softplus(m.log_sigmas) + 1e-6
                 m.mus.add_(torch.randn_like(m.mus) * jitter * sigmas)
             elif hasattr(m, "logits"):
                 m.logits.add_(torch.randn_like(m.logits) * jitter)
@@ -2534,6 +2543,14 @@ class CompiledCircuit(nn.Module):
             self.leaf_groups.append(cls)
             feats = torch.tensor([lf.feature_idx for lf in group], dtype=torch.long)
             self.register_buffer(f"{cls}_feat", feats)
+            # The per-leaf σ floor is part of the DENSITY, not a detail of the
+            # node objects: packing it here is what keeps the compiled path
+            # numerically identical to the recursion (the consistency gate in
+            # `_compile_or_fallback` fails loudly on ~50 nats if it is missed).
+            if cls in ("GaussianLeaf", "GaussianMixtureLeaf"):
+                self.register_buffer(f"{cls}_sigma_floor", torch.stack(
+                    [lf.sigma_floor.detach().reshape(()) for lf in group]
+                ).to(self.dtype_))
             if cls == "GaussianLeaf":
                 self.register_parameter(f"{cls}_mu", nn.Parameter(
                     torch.stack([lf.mu.detach() for lf in group]).to(self.dtype_)))
@@ -2628,13 +2645,16 @@ class CompiledCircuit(nn.Module):
         if cls == "GaussianLeaf":
             mu = getattr(self, "GaussianLeaf_mu").index_select(0, cols)
             sigma = (F.softplus(getattr(self, "GaussianLeaf_log_sigma")
-                                .index_select(0, cols)) + 1e-5)
+                                .index_select(0, cols))
+                     + getattr(self, "GaussianLeaf_sigma_floor").index_select(0, cols))
             out = _gauss_log_interval(mu.unsqueeze(0), sigma.unsqueeze(0),
                                       _pair(lo, 1), _pair(hi, 1))
         elif cls == "GaussianMixtureLeaf":
             mus = getattr(self, "GaussianMixtureLeaf_mus").index_select(0, cols)
             sig = (F.softplus(getattr(self, "GaussianMixtureLeaf_log_sigmas")
-                              .index_select(0, cols)) + 1e-5)
+                              .index_select(0, cols))
+                   + getattr(self, "GaussianMixtureLeaf_sigma_floor")
+                     .index_select(0, cols).unsqueeze(-1))   # (n, 1) over C
             lw = F.log_softmax(getattr(self, "GaussianMixtureLeaf_logits")
                                .index_select(0, cols), dim=-1)
             comp = _gauss_log_interval(mus.unsqueeze(0), sig.unsqueeze(0),
@@ -2667,12 +2687,14 @@ class CompiledCircuit(nn.Module):
             v = x.index_select(1, feat)                      # (B, n)
             if cls == "GaussianLeaf":
                 mu = getattr(self, f"{cls}_mu")
-                sigma = F.softplus(getattr(self, f"{cls}_log_sigma")) + 1e-5
+                sigma = (F.softplus(getattr(self, f"{cls}_log_sigma"))
+                         + getattr(self, f"{cls}_sigma_floor"))
                 val = (-0.5 * ((v - mu) / sigma) ** 2
                        - torch.log(sigma) - 0.5 * LOG_2PI)
             elif cls == "GaussianMixtureLeaf":
                 mus = getattr(self, f"{cls}_mus")             # (n, C)
-                sig = F.softplus(getattr(self, f"{cls}_log_sigmas")) + 1e-5
+                sig = (F.softplus(getattr(self, f"{cls}_log_sigmas"))
+                       + getattr(self, f"{cls}_sigma_floor").unsqueeze(-1))
                 lw = F.log_softmax(getattr(self, f"{cls}_logits"), dim=-1)
                 z = (v.unsqueeze(-1) - mus) / sig             # (B, n, C)
                 comp = -0.5 * z ** 2 - torch.log(sig) - 0.5 * LOG_2PI

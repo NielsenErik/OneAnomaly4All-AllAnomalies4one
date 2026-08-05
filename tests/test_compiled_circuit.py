@@ -370,3 +370,46 @@ def test_gaussian_and_mixture_leaves_support_boxes():
             ref = eval_log_marginal(root, x, (), boxes={0: endpoints})
             got = comp.log_box(x, {0: endpoints})
             assert torch.allclose(ref, got, atol=ATOL, rtol=1e-4)
+
+
+@pytest.mark.parametrize("n_components", [1, 3])
+def test_compiled_matches_recursion_with_fitted_sigma_floors(n_components):
+    """
+    The per-feature σ floor is part of the density, so the compiled path must
+    pack it — not recompute σ from log_sigma with the default epsilon.
+
+    Every other test here builds leaves and never calls `fit`, which leaves
+    every floor at its 1e-5 default and makes the two paths agree by accident.
+    Fitting is what separates them: on a near-constant feature the floor
+    becomes ~1e-3, and a compiled path that ignores it disagrees with the
+    recursion by tens of nats — which is exactly how this was found, as a
+    fast-path refusal mid-benchmark rather than as a wrong number.
+    """
+    torch.manual_seed(0)
+    n, w, c = 256, 4, 5
+    X = torch.randn(n, w * c)
+    X[:, ::4] = 1.0                       # near-constant -> floor binds
+    X[: n // 25, ::4] += 0.5
+
+    leaf = (GaussianLeaf if n_components == 1
+            else (lambda i: GaussianMixtureLeaf(i, n_components=n_components)))
+    vt = time_channel_vtree(w, c, mode="time")
+    pc = RegionGraphPC(vt, n_sum_components=3, leaf_factory=leaf,
+                       weight_jitter=0.5, seed=0)
+    pc.fit_leaves(X)
+
+    floors = [float(m.sigma_floor) for m in pc.root.modules()
+              if hasattr(m, "sigma_floor")]
+    assert max(floors) > 1e-4, "test is vacuous unless some floor actually binds"
+
+    comp = CompiledCircuit(pc.root)
+    x = X[:32]
+    assert torch.allclose(eval_log_prob(pc.root, x), comp.log_prob(x),
+                          atol=ATOL, rtol=1e-4)
+    assert torch.allclose(eval_log_marginal(pc.root, x, (0, 1)),
+                          comp.log_prob(x, marginalized=[0, 1]),
+                          atol=ATOL, rtol=1e-4)
+    lo = torch.full((32,), -0.5)
+    ref = eval_log_marginal(pc.root, x, (), boxes={0: (lo, float("inf"))})
+    assert torch.allclose(ref, comp.log_box(x, {0: (lo, float("inf"))}),
+                          atol=ATOL, rtol=1e-4)
