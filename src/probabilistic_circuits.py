@@ -1099,6 +1099,57 @@ def flatten_region_graph(root: RegionNode, max_arity: int = 4) -> RegionNode:
 # independent chains — a factorial HMM — is NOT tractable in general, so that is
 # not the way to scale it; increase K, or enrich the per-step emission.)
 
+def permute_region_graph(root: RegionNode, perm: Sequence[int]) -> RegionNode:
+    """
+    Relabel every scope of a region graph through `perm` (feature i becomes
+    perm[i]).  The circuit is IDENTICAL in shape, arity, depth and parameter
+    count — only which variable sits where changes.
+
+    This is the control the structure ablation never had.  "The chain wins"
+    was measured against other structures, which differ in capacity as well as
+    in layout, so the comparison could never separate "models time as a chain"
+    from "groups related variables together".  A permuted chain holds capacity
+    exactly fixed and breaks only the assumption, which makes the difference
+    attributable:
+
+      permute the TIMESTEP BLOCKS   -> keeps each timestep's channels
+                                       contiguous, destroys the time ORDER
+      permute ALL FEATURES          -> destroys the blocking as well
+
+    Measured on synthetic AR(1) windows (hand-off §B.3): +0.07 nats for the
+    first, +5.17 for the second — i.e. the chain's advantage is the blocking,
+    not the chain.
+    """
+    perm = list(perm)
+    if sorted(perm) != list(range(len(perm))):
+        raise ValueError("perm must be a permutation of 0..n-1")
+    cache: Dict[FrozenSet[int], RegionNode] = {}
+
+    def walk(r: RegionNode) -> RegionNode:
+        hit = cache.get(r.scope)
+        if hit is not None:
+            return hit
+        new = RegionNode(frozenset(perm[i] for i in r.scope))
+        cache[r.scope] = new
+        new.partitions = [tuple(walk(c) for c in part) for part in r.partitions]
+        return new
+
+    return walk(root)
+
+
+def timestep_block_permutation(n_steps: int, n_channels: int,
+                               seed: int = 0) -> List[int]:
+    """A permutation that reorders whole TIMESTEPS, keeping each timestep's
+    channels together and contiguous."""
+    rng = np.random.default_rng(seed)
+    order = rng.permutation(n_steps)
+    perm = [0] * (n_steps * n_channels)
+    for new_t, old_t in enumerate(order):
+        for c in range(n_channels):
+            perm[old_t * n_channels + c] = new_t * n_channels + c
+    return perm
+
+
 def chain_region_graph(
     n_steps: int,
     n_channels: int = 1,
@@ -1553,7 +1604,14 @@ class GaussianMixtureLeaf(LeafNode):
         relative mode keeps the wider `rel` seed it was measured with.
         """
         vals = _column(X, self.feature_idx)
-        qs = np.quantile(vals, np.linspace(0.1, 0.9, self.n_components))
+        # np.linspace(0.1, 0.9, 1) is [0.1], NOT [0.5] — a 1-component mixture
+        # would centre its only Gaussian on the 10th percentile.  Harmless for
+        # n >= 2, but it rigs the one experiment that can separate "a second
+        # component helps" from "being a GaussianMixtureLeaf helps" (§A.4/A.5),
+        # because that experiment IS the n=1 mixture.
+        levels = (np.array([0.5]) if self.n_components == 1
+                  else np.linspace(0.1, 0.9, self.n_components))
+        qs = np.quantile(vals, levels)
         floor = relative_sigma_floor(vals) if self.use_relative_floor else 1e-5
         # per-component width: each covers roughly 1/n of the feature's spread
         spread = float(np.std(vals) + 1e-6) / max(self.n_components, 1)
@@ -1696,21 +1754,47 @@ class InputNode(LeafNode):
         self.log_sigma = nn.Parameter(torch.log(torch.tensor(float(sigma_init))))
         self.log_nu = nn.Parameter(torch.log(torch.tensor(5.0)))
         self.logits = nn.Parameter(torch.zeros(3))
+        # Same buffer contract as GaussianLeaf: survives move_circuit_, is saved
+        # with the circuit, never receives a gradient.
+        self.register_buffer("sigma_floor", torch.tensor(1e-6))
 
     def fit(self, X) -> None:
-        """Median / MAD initialisation from data."""
+        """
+        Median / MAD initialisation, under the SAME relative width floor as
+        `GaussianLeaf.fit`.
+
+        Until 2026-08-05 this was the one leaf with no floor at all, and it is
+        the DEFAULT `leaf_factory` for `RegionGraphPC` / `DensityPC` — so every
+        path outside the RUL task was exposed to the sigma ~ 1.5e-6 -> NaN
+        failure that `GaussianLeaf` had already fixed.  It was left alone
+        because changing a default mid-campaign moves recorded numbers; that
+        reason expired when the 2026-08-04 real-data logs turned out to predate
+        the GaussianLeaf fix anyway (hand-off §B.9), so every number this could
+        move has to be re-measured regardless.
+
+        The floor is relative to the feature's own spread for the reason given
+        at length in `GaussianLeaf.fit`: MAD is exactly 0 whenever a feature
+        takes one value on more than half the samples, which is the norm for
+        sensors read under discrete operating conditions, not an edge case.
+        """
         vals = _column(X, self.feature_idx)
         mu = float(np.median(vals))
-        mad = float(np.median(np.abs(vals - mu)) + 1e-6)
-        sigma = mad * 1.4826
+        mad_sigma = float(np.median(np.abs(vals - mu))) * 1.4826
+        floor = relative_sigma_floor(vals)
+        sigma = max(mad_sigma, floor)
         with torch.no_grad():
             self.mu.fill_(mu)
-            self.log_sigma.fill_(np.log(sigma))
+            self.sigma_floor.fill_(floor)
+            self.log_sigma.fill_(_floored_log_sigma(sigma, floor))
             self.log_nu.fill_(np.log(5.0))
             self.logits.fill_(0.0)
 
+    @property
+    def sigma(self) -> torch.Tensor:
+        return F.softplus(self.log_sigma) + self.sigma_floor
+
     def log_density(self, v: torch.Tensor) -> torch.Tensor:
-        sigma = F.softplus(self.log_sigma) + 1e-6
+        sigma = self.sigma
         nu = F.softplus(self.log_nu) + 1e-3
         stack = torch.stack(
             [
@@ -2039,8 +2123,23 @@ class RegionGraphPC(nn.Module):
         weight_jitter: float = 0.5,
         seed: int = 0,
         pairing: str = "auto",
+        allow_zero_jitter: bool = False,
     ):
         super().__init__()
+        # Degeneracy #2, refused at construction instead of documented in a
+        # gotcha list.  weight_jitter=0 makes the K units of every region
+        # identical functions receiving identical gradients — the symmetry is
+        # exact and never breaks, so the circuit is a product of marginals with
+        # a perfectly ordinary training loss.  `allow_zero_jitter=True` exists
+        # for the tests that need to BUILD the degenerate case on purpose.
+        if weight_jitter <= 0 and not allow_zero_jitter:
+            raise ValueError(
+                "weight_jitter must be > 0: with uniform initial weights the "
+                f"{n_sum_components} units of each region are identical "
+                "functions with identical gradients, so every region collapses "
+                "to one effective component and the circuit silently becomes a "
+                "product of marginals. Pass allow_zero_jitter=True only to "
+                "construct that degeneracy deliberately.")
         # accept either a vtree (binary, single-partition) or a full region
         # graph (n-ary, optionally multi-partition).  The vtree is kept when it
         # was supplied, because structured-decomposability validation needs it.

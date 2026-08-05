@@ -53,6 +53,16 @@ grid:
   model.vtree:
     - chain                # HMM-shaped region graph (synthetic winner)
     - chain_grouped
+    # THE TWO CONTROLS (added 2026-08-05, hand-off §B.3).  Same chain circuit,
+    # identical parameter count, only the variable->position map is broken:
+    #   perm_blocks   destroys the timestep ORDER, keeps channel blocking
+    #   perm_features destroys the blocking too
+    # If chain ~ perm_blocks < perm_features, the chain's advantage is that it
+    # groups each timestep's channels together and NOT that it is HMM-shaped —
+    # which is what the synthetic measurement says (+0.07 vs +5.17 nats) and
+    # would rewrite how this whole table is read.
+    - chain_perm_blocks
+    - chain_perm_features
     - time                 # balanced temporal vtree
     - channel
     - random               # the control: is structure doing anything at all?

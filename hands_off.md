@@ -1,18 +1,597 @@
 # Hand-off — time-series PoC
 
-_Last updated: 2026-08-03 (evening), after building the config-driven
-experiment pipeline and the real-data layer. The morning hand-off (overnight
-batch + corrected RUL gate) is preserved in full below as §7; two earlier ones
-are archived after it. Nothing was deleted._
+_Last updated: 2026-08-05 (evening), after the diagnostic-suite pass (§B).
+The σ-floor episode from earlier the same day follows unchanged in §A; the
+2026-08-03 hand-off from §0; two more are archived after it. Nothing was
+deleted._
 
 Read `CLAUDE.md` (hard constraints), then
 [`poc/time_series/launch/README.md`](poc/time_series/launch/README.md) (how to
 run anything) and [`data/README.md`](data/README.md) (what is real and what is
 injected). This file is the state of play and the next actions.
 
+**If you read one thing: §B.2. Two of the results in §2 are now suspended
+pending one re-run, and §B.7 is that re-run.**
+
 ---
 
-## 0. What changed today, and what to do with it
+## B. LATEST (2026-08-05, evening) — three diagnostic suites, and what they found
+
+### B.1 What was built and why
+
+Everything wrong in this project so far has been wrong in the same way: a
+number that looked reasonable, produced by a model whose training loss looked
+normal. Six times. The individual bugs were each fixed afterwards; the SHAPE
+was only ever written down (§3). So this pass built the checks that shape
+implies, and ran them:
+
+| file | what it isolates | cost |
+|---|---|---|
+| `tests/test_ad_diagnostics.py` (15) | is the METRIC valid, is the GENERATOR's premise true, is the MODEL reading the data, is the STRUCTURE result about structure | 4 s |
+| `tests/test_rul_diagnostics.py` (15) | objective validity, H1/H3/H5 measured, box-query exactness, what the miscalibration is made of | 11 s |
+| `tests/test_experiment_hygiene.py` (8 + 4 xfail) | the four recurring bug SHAPES, one test each | 2 s |
+
+```bash
+PYTHONPATH=. pytest tests/test_ad_diagnostics.py tests/test_rul_diagnostics.py \
+                    tests/test_experiment_hygiene.py -q -s      # 38 passed, 4 xfailed, 17 s
+```
+
+The four `xfail(strict=True)` are the already-known open items (§A.5 ×2, §A.7,
+and `weight_jitter=0`). They flip to XPASS the day each is fixed — that is the
+signal, not a green tick.
+
+**These are pre-batch checks, not post-batch ones.** 17 seconds against runs
+that take a night.
+
+### B.2 FINDING 1 — "exact ≠ calibrated" is largely a UNIT MISMATCH
+
+`SurvivalPC.predict` returns `q05`/`q95` as bin **centres**. `picp` scores them
+against `rul_test` in **cycles**. Every reported PICP for the circuit comes
+from that pair (`run_rul.py:82`, `pipeline.py:416`), and the conformal layer
+adds a scalar to those same centres (`conformal.py:158`).
+
+Measured at the recorded settings (bins=25, cap=130, K=12, τ deep, chain, 393
+synthetic test windows):
+
+| quantity | value | what it says |
+|---|---|---|
+| PICP, centres (as reported) | **0.616** | severe under-coverage at nominal 0.90 |
+| PIT **variance** | **0.0841** vs 1/12 = 0.0833 | the dispersion is calibrated to 3 d.p. — the predictive is **not** overconfident |
+| median distance of a miss outside the interval | **2.60 cycles** | = **exactly half a bin** (5.2/2) |
+| PICP, same bins read as **edges** | **0.929** | MPIW 68.5 → 73.7, i.e. one bin width |
+| true BIN inside the selected bins | **0.929** | the pmf covers its own target correctly |
+| PIT mean | **0.408** vs 0.5 | a pure LOCATION shift; the shape term is 10× smaller |
+
+So the density is not miscalibrated in width. What remains is a location
+shift — and §B.4 shows that shift IS the censoring bias, so the write-up is
+counting one defect twice. It also explains why post-hoc conformal "worked"
+with no exactness guarantee: it was fitting back the half-bin the extraction
+dropped.
+
+**Status: CONFIRMED on real C-MAPSS, 2026-08-05 21:42** —
+`logs/ts/cmapss_rul_endpoints/`, FD001, 4 censoring levels × 3 seeds, all 12
+runs ok. Mean over seeds, `all` protocol:
+
+| censor | arm | PICP centres | PICP **edges** | MPIW | PIT var (1/12 = .0833) |
+|---|---|---|---|---|---|
+| 0.2 | exact censored | 0.404 | **0.975** | 70.5 → 75.5 | 0.0772 |
+| 0.2 | drop censored | 0.410 | **0.978** | 73.3 → 78.3 | 0.0742 |
+| 0.35 | exact censored | 0.401 | **0.972** | 69.1 → 74.1 | 0.0789 |
+| 0.35 | drop censored | 0.410 | **0.979** | 73.4 → 78.4 | 0.0737 |
+| 0.5 | exact censored | 0.393 | **0.966** | 66.5 → 71.5 | 0.0810 |
+| 0.5 | drop censored | 0.409 | **0.977** | 72.8 → 77.8 | 0.0734 |
+| 0.7 | exact censored | 0.353 | **0.930** | 55.9 → 60.9 | 0.0891 |
+| 0.7 | drop censored | 0.406 | **0.975** | 71.9 → 76.9 | 0.0752 |
+
+Every row: 0.35–0.41 → 0.93–0.98 for **5 cycles** — one bin. Seed sd on PICP
+is ~0.002. **This comparison has no confound available to it**: centres and
+edges are two readings of the SAME pmf from the SAME fitted model, so nothing
+about machine, commit or seed can explain the gap.
+
+And the PIT variance is **below** 1/12 in seven of eight rows: the predictive
+is if anything too DIFFUSE. "Exact but overconfident" is the wrong description
+of every model measured.
+
+**Verdict: the recorded PICP 0.38–0.52 is the endpoint convention.** Report
+`picp_edge`. "Exact ≠ calibrated" comes out of the paper as a headline and
+returns as a two-line note on reading intervals off a discrete predictive.
+The residual defect is a LOCATION shift — see §B.9, where it turns out to be
+the censoring bias, i.e. one defect the write-up was counting twice.
+
+### B.3 FINDING 2 — the chain's advantage is BLOCKING, not temporal order
+
+Capacity held exactly fixed (same circuit, same parameter count, only the
+variable→position map changes), held-out NLL in nats:
+
+| | base | timestep ORDER permuted | ALL features permuted |
+|---|---|---|---|
+| real (AR(1)) windows | 43.76 | **+0.07** | **+5.17** |
+| temporal structure destroyed | 43.63 | −0.08 | **+6.50** |
+
+Scrambling the timestep order costs nothing. Scrambling which channels sit
+together costs 5 nats — and still costs 6.5 nats on data with no temporal
+structure at all, so it is a property of the layout, not of the data.
+
+**The chain wins because it keeps each timestep's channels contiguous.** "It
+is HMM-shaped" is not the explanation, and the ablation table in §2 is ordering
+region graphs by variable GROUPING. That also changes what the curvature/SOS/
+multi-partition negatives mean — they may be losing on blocking granularity,
+not on structure quality. **Status: SUSPENDED pending the same check on real
+C-MAPSS** (§B.7 step 1).
+
+Related validity precondition, now executable: `decouple` is vacuous unless
+permuting the timesteps destroys enough lag-1 structure. window=4 destroys 21%
+and every view scores 0.51–0.55 (chance); window=8 destroys 56%. Nobody
+re-checks this pair when `window` or `phi_ar` moves.
+
+### B.4 FINDING 3 — H1/H3/H5, measured at last
+
+The five hypotheses of 2026-08-02 were written with the signature that would
+confirm each, and then the expensive end-to-end run was done instead. Cheap
+versions, run:
+
+- **H5 (binning/cap damage) — FALSE, cleared.** The learned τ marginal is
+  0.018 total-variation from the empirical histogram (top bin 0.587 vs 0.577).
+  Stop looking here.
+- **H1 (τ drowned by the window) — TRUE but modest.** τ takes 2.0% of the leaf
+  gradient mass against a 3.2% dimensional share (1.6× under), ~8× under per
+  parameter. Real, but not the order-of-magnitude effect it was assumed to be;
+  the ratio grows with `window·C`, so re-measure at 450 features before
+  building a re-weighting fix.
+- **H3 (root coupling) — TRUE and worse than recorded.** sd of E[τ|x] in
+  cycles: root 0.009 / 0.024 / **4.27** / 0.001 at K = 4/6/8/12; deep 19.3 /
+  19.0 / 19.8 / 20.3. Root is CONSTANT at three of four K and merely feeble at
+  the fourth. The collapse is **not monotone in K**, so any single-K ablation
+  of `tau_where` is a coin flip.
+- The trivial-maximiser mechanism behind the dead T1 gate now **reproduces in
+  3 seconds**: bias −1.07 cycles at 15% censoring, +4.24 at 75%. T1 stays dead,
+  for a reason that now fits in one sentence and one test.
+
+### B.5 FINDING 4 — two blind guardrails and a new trap
+
+- **`assert_informative` cannot see partial collapse.** A circuit that ignores
+  whole channels has a perfectly variable score. Sabotage two of six channels
+  and it passes; the per-channel sensitivity sweep catches it (blinded
+  channels ~1 nat vs ~50–200 for the rest).
+- **`predict`'s degeneracy threshold is 1e-3·cap = 0.1 cycles** against a
+  target whose own sd is 31.5 cycles — **315× too loose**. A predictive with 8%
+  of the target's spread is accepted silently. It catches total collapse only;
+  it is not a quality check, and nothing downstream is either.
+- **NEW TRAP — the compiled evaluator shadows the DAG.** After `fit`,
+  `log_prob` routes through `CompiledCircuit`, which holds its own parameter
+  tensors. `write_back()` syncs compiled→DAG; there is **no DAG→compiled
+  sync**. So any post-fit edit to the DAG — a calibration pass, pruning, leaf
+  surgery, a diagnostic — is silently a no-op with correct-looking results.
+  Call `pc.pc.use_recursive()` first. Same family as `.to()` being exponential:
+  a convenience that quietly does the wrong thing.
+
+### B.6 Corrections to this file's own record
+
+Checked against the tree, not assumed:
+
+1. **§1 and §4 say real data is "PLUMBED AND TESTED, NOT YET RUN".** It has
+   been run. `logs/ts/` holds **2092 result rows dated 2026-08-04**:
+   `cmapss_ad` 12/12 runs, `cmapss_explain` 9/9, `cmapss_rul` 12/12,
+   `cmapss_structure` 27/27, `cmapss_calibration` **10/14** (incomplete).
+   `data/cmapss/` is populated; `data/ncmapss/` is not.
+2. **Those results are nowhere in this file.** On real FD001 the PC actually
+   *leads* detection — 0.8378 vs Mahalanobis 0.8246, conv-AE 0.8115 — on the
+   axis §1 says not to claim. Also on real data every method sits at ~0.51 on
+   `decouple`: one third of the anomaly taxonomy carries no signal there.
+3. **§A.9 says `logs/rul_leaves_relative.json` is "new and valid".** It is not
+   in the tree; only `rul_leaves_legacy.json` exists. The §A.2 relative table
+   has no artifact behind it.
+4. **§A.9 lists three files as uncommitted.** They are committed (`1da0529`).
+
+A stale status board is the same bug shape as §3 — a control that does not
+match its treatment. Reconcile before planning off this file.
+
+### B.7 What to do, in order
+
+**Step 0 — settle the calibration finding. DONE 2026-08-05 21:42.** Code in
+(§B.8), run complete, read in §B.2 and §B.9. The finding was the endpoint
+convention. Two follow-ups it created, both above step 1 in priority:
+**(0a)** re-run tonight's commit on `jawa17-desktop` to de-confound the
+censoring reversal (§B.9); **(0b)** decide whether the calibration stage is
+still worth its 4 missing runs, given that conformal may be buying only the
+half-bin.
+
+```bash
+# what is running (real C-MAPSS FD001, 4 censoring levels x 3 seeds, ~1 h CPU)
+PYTHONPATH=. python -m poc.time_series.runner config/ts/cmapss_rul.yaml \
+    --device cpu --log-root logs/ts/cmapss_rul_endpoints
+# a NEW log root on purpose: the 2026-08-04 rows stay untouched for comparison
+PYTHONPATH=. python -m poc.time_series.aggregate logs/ts/cmapss_rul_endpoints
+```
+
+**How to read it.** Three columns now sit next to each other in the `rul`
+table, and no one of them is decisive alone:
+
+| picp | picp_edge | pit_var | verdict |
+|---|---|---|---|
+| low | ≈ 0.90 | ≈ 1/12 | the model was fine; the interval was read wrong. **Delete "exact ≠ calibrated" as a headline**, keep it as a two-line note on discrete predictive intervals, and narrow the conformal stage's purpose to "removes the censoring-induced location shift" |
+| low | still low | ≫ 1/12 | the predictive really is overconfident. The finding is real, it is a good result, and it now has a mechanism to state |
+| low | ≈ 0.90 | ≈ 1/12, `pit_mean` far from 0.5 | both: the width is right, the location is off — and §B.4 says that shift is the censoring bias, so it is ONE defect, not two |
+
+**Early evidence, from the smoke run of the new code (synthetic, meaningless
+magnitudes — the AGREEMENT is the point):**
+
+```
+raw exact predictive:  PICP 0.534 centres / 0.944 edges,  MPIW 108.3 / 119.2
+conformal[cqr] a=0.10: PICP 0.944                          MPIW 119.2
+```
+
+Conformal reproduces the edge interval to three digits, in both coverage and
+width. At this scale it is buying **exactly the half-bin and nothing else**.
+If that holds on real data, the calibration stage is not measuring
+calibration.
+
+**Steps 1–3 — DONE 2026-08-05, evening.** §B.9 collapsed them into each other:
+once the 2026-08-04 real-data logs turned out to be pre-σ-floor, everything has
+to be re-measured at one commit anyway, so the code fixes had to land BEFORE
+that batch rather than after it. All of them are in (§B.8):
+
+| was | now |
+|---|---|
+| `np.linspace(0.1,0.9,1)` → 10th percentile | median at n=1 |
+| `InputNode.fit` unfloored, and the DEFAULT factory | same relative floor as `GaussianLeaf`, `sigma_floor` buffer, `sigma` property |
+| `leaf_components` confounds class/init/count | `mixture_at_1=True` opt-in builds `GaussianMixtureLeaf(n=1)`; the default is unchanged on purpose |
+| `weight_jitter=0` accepted silently | refused in the constructor; `allow_zero_jitter=True` to build it deliberately |
+| `predict` refuses below `1e-3·cap` = 0.1 cycles | refuses below 5% of the training target's own sd (`SurvivalPC.target_sd`) |
+| `assert_informative` sees total collapse only | also refuses PARTIAL collapse, via `WindowPC.channel_sensitivity` against the median channel |
+| structure ablation has no capacity-fixed control | `chain_perm_blocks` / `chain_perm_features` vtrees — same circuit, **identical parameter count (912 verified)**, only the variable→position map broken; both in `config/ts/cmapss_structure.yaml` |
+
+Still open from step 3: `n_floor` (`bench_rul_leaves.py:125`) → use
+`leaves_at_their_own_floor` from `tests/test_experiment_hygiene.py`; and the
+compiled/DAG sync, which is currently a documented call to `use_recursive()`
+rather than a guarded invariant.
+
+**Step 4 — process.** Add the three suites to `run_workstation.sh` as tier 0.
+17 seconds; every one of the six degeneracies would have been caught by a check
+of this shape. And before any A/B: name what the flag switches, and test that
+the "off" branch reproduces a recorded number.
+
+### B.10 THE NEXT ACTION — one batch, on the workstation, at this commit
+
+Everything above converges on a single run. It is not "re-run RUL": it is
+**re-establish every real-data number at one commit**, because §B.9 voided the
+2026-08-04 set, and it de-confounds the censoring reversal and answers the
+structure question as a side effect.
+
+```bash
+# on jawa17-desktop, at THIS commit, after `git pull`
+bash poc/time_series/launch/run_smoke.sh                  # ~3 min, proves the wiring
+PYTHONPATH=. python -m pytest tests/test_ad_diagnostics.py \
+    tests/test_rul_diagnostics.py tests/test_experiment_hygiene.py -q   # 17 s
+TIERS="1 2 5" JOBS=3 bash poc/time_series/launch/run_workstation.sh
+```
+
+Three questions it settles, none of which can be answered any other way:
+
+1. **the de-confound** — the censoring ablation at this commit on the machine
+   that produced the 08-04 numbers. Only the σ-floor then differs. Until this
+   runs, no sentence about the censored term's sign on real data is supportable
+   and **T1 stays dead**.
+2. **the structure question** (§B.3) — `chain` vs `chain_perm_blocks` vs
+   `chain_perm_features` at identical parameter count. If blocks ≈ chain and
+   features is much worse, the ablation table is about variable grouping and
+   the "HMM-shaped" reading comes out of the paper.
+3. **the void numbers** — ad, explain, structure and rul all re-measured under
+   the σ-floor, the `InputNode` floor and both guardrails, so the whole set is
+   mutually comparable for the first time.
+
+Expect the guardrails to REJECT runs that previously produced numbers. That is
+the point; a rejected run is a result, and the message names the channels or
+the sd that failed.
+
+**Do NOT draft the Paper A section (§4 action 4) until step 0 and step 1 land.**
+Three claims are currently in motion: exact≠calibrated (suspended), "the chain
+wins on AUROC and likelihood" (suspended), "mixture leaves add capacity"
+(blocked by §A.4). What survives untouched: exact attribution 0.902 vs 0.857,
+completeness at 1.5e-5 nats, box-query exactness at 6e-6, and T1's death.
+
+### B.9 What else the re-run showed — one clean result, one CONFOUND
+
+**Clean, because it is within one run on one tree: the censored term shifts the
+predictive UP, monotonically with censoring.** PIT mean, `all` protocol
+(>0.5 = under-predicting remaining life, <0.5 = over-predicting):
+
+| censor | 0.2 | 0.35 | 0.5 | 0.7 |
+|---|---|---|---|---|
+| **exact censored** | 0.556 | 0.523 | **0.494** | **0.430** |
+| drop censored | 0.595 | 0.586 | 0.588 | 0.576 |
+
+The drop-censored arm under-predicts by a constant amount at every level —
+the textbook bias of training only on units you saw fail. The exact censored
+term removes that bias monotonically, passes through perfect calibration
+around 50% censoring, and **overshoots into over-prediction at 70%**, where it
+also over-sharpens (MPIW 55.9 vs 71.9, PIT var 0.0891 — the only row above
+1/12).
+
+That is the trivial maximiser of `log P(τ ≥ c | x)`, visible as a dose-response
+curve rather than as one failed CRPS comparison. **It is a better statement of
+why T1 died than the one on record**, and it costs nothing to make: the term
+does exactly what the theory says, in both directions, and 70% censoring is
+where the correction runs out of uncensored anchors.
+
+**CONFOUNDED — do not act on this.** Tonight's run and the 2026-08-04 run use
+the same config and the same data, and they disagree about the censoring
+ablation:
+
+| censor 0.7, `all` | CRPS exact | CRPS drop | who wins |
+|---|---|---|---|
+| 2026-08-04 (`logs/ts/cmapss_rul`) | 9.07 | 8.44 | drop — consistent with the dead gate |
+| tonight (`…_endpoints`) | 11.34 | 11.82 | **exact** — the reverse |
+
+Absolute levels moved too (RMSE ~19–21 → ~25–27). **Two things changed at
+once**, which is the exact failure this whole session is about:
+
+1. **commit** — 08-04 ran at `8816d97`, which is the PRE-σ-floor-fix code named
+   in §A.1. Tonight ran at `1da0529` + the step-0 edits. The relative leaf
+   floor forces wider leaves on every MAD-zero feature, which is a real model
+   change, not a numerical one.
+2. **machine** — 08-04: `jawa17-desktop`, RTX 4080, 8 threads. Tonight: this
+   Mac, CPU, 4 threads.
+
+So the reversal is not evidence of anything yet. **T1 stays dead.** To settle
+it, run tonight's commit on `jawa17-desktop` — that holds the machine fixed
+against 08-04 and leaves the σ-floor as the only difference. Until then no
+sentence about the censored term's sign on real data is supportable.
+
+Note this cuts both ways: **the 2026-08-04 real-data numbers were produced by
+the pre-fix leaf code** and are not comparable to anything measured after
+2026-08-05 either. That applies to `cmapss_ad`, `cmapss_explain` and
+`cmapss_structure` as much as to RUL (§B.6).
+
+### B.8 State of the tree
+
+**Uncommitted, and this is now a large diff — commit before the workstation
+batch (§B.10), which needs to run at a known commit.**
+
+Tests: 87 green across the three new suites + `test_ts_pipeline` +
+`test_leaf_sigma_floor`; 173 green across the fast half of `tests/`; the full
+suite passes (exit 0) but takes >10 min, dominated by `test_inference` and
+`test_vtree`. Smoke run clean end to end on all four stages. **All four strict
+xfails are now cleared** — they were the signal that the open items were open,
+and they flipped as each was fixed.
+
+| file | change |
+|---|---|
+| `tests/test_ad_diagnostics.py` | **new**, 15 tests |
+| `tests/test_rul_diagnostics.py` | **new**, 16 tests (incl. the step-0 pin) |
+| `tests/test_experiment_hygiene.py` | **new**, 12 tests (was 8 + 4 xfail) |
+| `poc/time_series/circuits.py` | `bin_edges()`; `q05_edge`/`q95_edge` in `predict` beside the unchanged `q05`/`q95`; `window_leaf()` + `mixture_at_1` on both models; `channel_sensitivity()`; `assert_informative` refuses partial collapse; `predict` threshold relative to `target_sd`; the two layout-control vtrees |
+| `src/probabilistic_circuits.py` | `InputNode` floored like `GaussianLeaf` (buffer + `sigma` property); `linspace` → median at n=1; `weight_jitter=0` refused (`allow_zero_jitter` escape); `permute_region_graph` + `timestep_block_permutation` |
+| `poc/time_series/metrics.py` | `pit_values` / `pit_report`; the PICP caveat in the module docstring |
+| `poc/time_series/pipeline.py` | `_eval_survival` returns `(metrics, pred)` and adds `picp_edge`/`mpiw_edge`/`interval_score_edge`/`pit_*`; `rul_pred_*.npz` artifact per fit per protocol; the same edge columns in `_partial_evidence`; a three-arm log line in the calibration stage |
+| `poc/time_series/run_rul.py` | the same columns, so the old driver stays comparable |
+| `poc/time_series/aggregate.py` | the new columns in `PREFERRED_COLUMNS` so they reach `summary.md` |
+| `config/ts/cmapss_structure.yaml` | the two capacity-fixed layout controls |
+| `tests/test_region_graph.py` | the `weight_jitter=0` collapse test now goes through the escape hatch, plus a new test that the default refuses it |
+
+**The npz artifact is the part that outlives this question.** Every RUL fit now
+persists `pmf`, both interval pairs, `rul_true`, `tau_true` and `bin_edges`, so
+the next "what would this have been under a different convention?" is a
+two-minute re-analysis rather than a re-run. The reason step 0 needed a re-run
+at all is that the stage previously saved scalars only.
+
+**The npz artifact is the part that outlives this question.** Every RUL fit now
+persists `pmf`, both interval pairs, `rul_true`, `tau_true` and `bin_edges`, so
+the next "what would this have been under a different convention?" is a
+two-minute re-analysis rather than a re-run. The reason step 0 needed a re-run
+at all is that the stage previously saved scalars only.
+
+**Running now:** `logs/ts/cmapss_rul_endpoints/` (started 19:27, ~1 h, CPU).
+The old `logs/ts/cmapss_rul/` rows from 2026-08-04 are untouched.
+
+---
+
+## A. Earlier on 2026-08-05 — the leaf σ-floor episode, and the one experiment now open
+
+### A.1 What was wrong
+
+`bench_rul_leaves --floor legacy` was **not** the pre-change behaviour. The
+`use_relative_floor` flag gated the relative bound at **both** initialisation
+and training, but the pre-change code (commit `8816d97`) only ever had it at
+*init*:
+
+| | init | runtime |
+|---|---|---|
+| pre-change (`8816d97`) | `σ = max(MAD·1.4826, 0.01·std, 1e-3)` | `+1e-5` epsilon |
+| broken `legacy` branch | `σ = max(MAD·1.4826, 1e-5)` | `+1e-5` epsilon |
+| **fixed `legacy`** | `σ = max(MAD·1.4826, 0.01·std, 1e-3)` | `+1e-5` epsilon |
+| `relative` | same as fixed legacy | `max(0.01·std, 1e-3)` |
+
+So `legacy` was a **third regime — no floor anywhere** — and the first
+`logs/rul_leaves_legacy.json` was not comparable to the capacity table it was
+meant to be read against.
+
+**FIXED** in `src/probabilistic_circuits.py`: the init rule now applies in both
+modes and the flag switches the **runtime** floor only.
+`tests/test_leaf_sigma_floor.py` (11 tests) pins this so the two floors cannot
+be conflated again — it fails against the pre-fix code.
+
+**Scope of the contamination, measured, not assumed:** only the **1-component**
+row was affected. The mixture init edit is a provable no-op on all four C-MAPSS
+subsets (worst-case std 1.54e-2 on FD002 ⇒ `spread = std/n ≥ 1.5e-3` clears
+both floors even at n=10). Rows 2–10 of the old table were valid pre-change
+behaviour all along; the table was unusable because its *baseline* was wrong.
+
+**Validated:** fixed `legacy`, FD001, 1 comp, 3 seeds, 60 ep → RMSE-last
+**25.46** (CUDA) / **25.53** (CPU) vs the capacity table's **25.45**. The two
+benches agree; the leaf question is well-posed.
+
+### A.2 The two tables (FD001, K=12, bins=25, tau_where=deep, 60 ep, 3 seeds)
+
+Ridge reference **15.96**.
+
+**`--floor legacy`** (collapse permitted — the contaminated control):
+
+| comps | RMSE last | per seed | CRPS | NLL test | σ min | @floor |
+|---|---|---|---|---|---|---|
+| 1 | 25.46 | 25.2 25.5 25.7 | 12.91 | 428.8 | 1.05e-03 | 0 |
+| 2 | 23.19 | 23.5 20.6 25.5 | 11.42 | 52.6 | 1.00e-05 | 85 |
+| 3 | 22.48 | 22.5 22.9 22.1 | 11.00 | 39.1 | 1.00e-05 | 105 |
+| 5 | 21.81 | 21.0 22.4 22.0 | 10.71 | 82.4 | 1.00e-05 | 76 |
+| 10 | 25.29 | 25.3 25.0 25.5 | 12.69 | 252.8 | 1.00e-05 | 45 |
+
+**`--floor relative`** (the floor holding — the valid arm):
+
+| comps | RMSE last | per seed | CRPS | NLL test | σ min | @floor |
+|---|---|---|---|---|---|---|
+| 1 | 25.65 | 25.7 25.6 25.6 | 12.70 | 363.6 | 2.15e-03 | 0 |
+| **2** | **20.22** | 19.1 20.5 21.1 | 10.38 | 178.7 | 2.11e-03 | 0 |
+| 3 | 20.61 | 19.4 21.4 21.0 | 10.33 | 162.3 | 2.11e-03 | 0 |
+| 5 | 21.96 | 22.1 21.2 22.6 | 10.80 | **148.2** | 2.11e-03 | 0 |
+| 10 | 24.21 | 25.4 21.7 25.5 | 12.17 | 286.3 | 2.11e-03 | 0 |
+
+### A.3 What these say
+
+1. **The floor makes the model better, not worse.** relative − legacy =
+   +0.19, **−2.97**, **−1.87**, +0.15, −1.08. Collapse was *hurting* RMSE at
+   2–3 components. The prior intuition ("collapse flatters RMSE", from the
+   1-comp 24.24-vs-25.46 pair) does **not** generalise to the mixtures.
+2. **The legacy density gain was an artefact, confirmed.** Legacy NLL 39.1 at
+   3 comps vs relative 162.3 — 4× worse once spiking is forbidden. Never quote
+   the legacy NLL column as model quality.
+3. **Density capacity is real; RUL accuracy is not.** In the *valid* arm NLL
+   falls monotonically 363.6 → 178.7 → 162.3 → **148.2** (best at 5 comps)
+   while RMSE-last is best at **2** and degrades after. Same lesson as
+   `forman_rg` in §2: *density fit ≠ the downstream task.* More components
+   genuinely buy density and genuinely cost prognosis.
+4. **Seed spread grows with components** (max−min: 0.1, 2.0, 2.0, 1.4, 3.8) —
+   the 10-comp row is unstable (25.4 / 21.7 / 25.5).
+5. **The circuit still loses to ridge on real FD001**, badly: best config 20.22
+   vs ridge 15.96. The synthetic-data result "PC beats ridge on RMSE" (§2) does
+   **not** reproduce on real C-MAPSS. This is a credibility finding, not a
+   tuning problem — do not quote the synthetic RUL-vs-ridge comparison again
+   without this caveat next to it.
+
+### A.4 THE CONFOUND — why "1 vs 2 components" is not yet a clean contrast
+
+`WindowPC._leaf_factory` (`poc/time_series/circuits.py:314`) and
+`mixed_leaf_factory` (same file, :213) both do:
+
+```python
+return GaussianMixtureLeaf(i, n_components=c) if c > 1 else GaussianLeaf(i)
+```
+
+So `c=1` changes **three things at once** vs `c=2`:
+
+| | c = 1 | c ≥ 2 |
+|---|---|---|
+| class | `GaussianLeaf` | `GaussianMixtureLeaf` |
+| σ init | `max(MAD·1.4826, 0.01·std, 1e-3)` | `std / n` |
+| mixture logits | none | learnable |
+
+The σ inits are *different rules*, not the same rule at different n — MAD-based
+robust scale vs `std/n`. On FD001 the mixture init never touches its floor
+(min std 0.211 ⇒ `spread ≥ 0.021`), so the mixture always starts n× sharper.
+
+**Therefore the 25.65 → 20.22 jump cannot currently be attributed to "having 2
+components".** It is confounded with "being a `GaussianMixtureLeaf` initialised
+at `std/n`".
+
+### A.5 The decisive experiment (NOT run — the enabling edits were declined)
+
+Add a **1-component `GaussianMixtureLeaf`** arm. It is mathematically a single
+Gaussian, so it isolates the class/init from the component count:
+
+- if `GMLeaf(n=1)` ≈ **20.2** → the win is the **initialisation rule**, and the
+  fix is to seed `GaussianLeaf` at `std` rather than MAD (cheap, and it means
+  mixture leaves are not needed at all);
+- if `GMLeaf(n=1)` ≈ **25.6** → the win is **real capacity** from the second
+  component, and mixture leaves earn their place.
+
+~70 s per row on the workstation GPU. **Three edits are required first and none
+of them is in the tree** (the first was declined mid-session, so I stopped
+before the other two):
+
+1. **`GaussianMixtureLeaf.fit` — latent bug, must fix before running n=1.**
+   `np.linspace(0.1, 0.9, 1)` is `[0.1]`, **not** `[0.5]`, so a 1-component
+   mixture centres its only Gaussian on the **10th percentile**. Harmless for
+   n ≥ 2; rigs the n=1 comparison against the mixture. Use the median when
+   `n_components == 1`.
+2. **`_leaf_factory` / `mixed_leaf_factory`** — an opt-in (e.g. `--mixture-at-1`)
+   so `c=1` can build `GaussianMixtureLeaf(n_components=1)`. Keep it opt-in;
+   changing the default would move every recorded 1-comp number.
+3. **`bench_rul_leaves.run_one`'s `n_floor`** — see A.6.
+
+### A.6 The collapse diagnostic is blind in the arm that matters
+
+`n_floor = int((sig < 1e-3).sum())` counts σ below an **absolute** 1e-3. In
+`relative` mode every leaf's floor is `max(0.01·std, 1e-3) ≥ 1e-3`, so
+**`@floor` is structurally 0 there and can never detect collapse.** The `0`s in
+the relative table are not evidence of no collapse.
+
+The real evidence points the other way: σ min = **2.11e-03** = exactly
+`0.01 × 0.2112` = the relative floor of FD001's tightest feature. Leaves *are*
+pressed against the floor; it is holding them, not making them unnecessary.
+
+Fix: count leaves at **their own** floor (`σ ≤ 1.01 · leaf.sigma_floor`), which
+is mode-independent. `leaf_sigmas()` must then also return the `sigma_floor`
+buffers.
+
+### A.7 Still-open bug, deliberately not fixed
+
+`InputNode.fit` (`src/probabilistic_circuits.py`, the heavy-tailed
+Gaussian/Laplace/Student-t leaf) still does `mad = median(|v−μ|) + 1e-6` with
+**no relative floor** — the exact `σ ≈ 1.5e-6` → NaN path the `GaussianLeaf`
+docstring describes as fixed. It is the **default `leaf_factory`** for the
+generic builders (`RegionGraphPC` / `DensityPC` when no factory is passed), so
+anything outside the RUL path is exposed. Left alone because changing a default
+mid-campaign shifts recorded numbers. **Fix before any non-RUL run.**
+
+### A.8 Corrected fact worth keeping
+
+The `GaussianLeaf.fit` docstring used to claim the floor "binds on exactly the
+20 broken features of FD002/FD004 and on ZERO features of FD001/FD003". That
+was measured at window=20; under the RUL bench's task (window=30, bins=25) it
+is false. Measured:
+
+| subset | features | MAD == 0 | floor raises σ |
+|---|---|---|---|
+| FD001 | 450 | 30 (all of channel 3) | 30 |
+| FD003 | 480 | 30 (all of channel 7) | 30 |
+| FD002 | 630 | 60 | 90 (channels 15, 17, 18) |
+| FD004 | 630 | 60 | 90 (channels 15, 17, 18) |
+
+One whole median-constant sensor channel per subset. Note MAD = 0 with
+std = 0.21: these are plateau channels with real excursions, not dead ones.
+Now corrected in-code.
+
+### A.9 State of the tree
+
+**Uncommitted**, nothing pushed:
+
+| file | change |
+|---|---|
+| `src/probabilistic_circuits.py` | init/runtime floor split in `GaussianLeaf.fit` + `GaussianMixtureLeaf.fit`; docstring corrections (A.8) |
+| `poc/time_series/bench_rul_leaves.py` | `--floor` help text only |
+| `tests/test_leaf_sigma_floor.py` | **new**, 11 tests |
+
+Tests: 96 passed (`test_inference`, `test_compiled_circuit`, `test_vtree`,
+`test_leaf_sigma_floor`), exit 0. Full suite not re-run since.
+
+`logs/rul_leaves_legacy.json` has been regenerated with the fix and is valid.
+`logs/rul_leaves_relative.json` is new and valid.
+
+### A.10 Run these next
+
+```bash
+export PYTHONPATH=.
+# after the three edits in A.5:
+python -m poc.time_series.bench_rul_leaves --device cuda --floor relative \
+    --components 1 2 --mixture-at-1 --out logs/rul_leaves_mix1.json
+```
+
+Read it as A.5 says. Until that has run, **do not** write "mixture leaves add
+capacity" anywhere — the current evidence supports only "something about the
+mixture leaf helps at 2 components, and it is not more components beyond 2".
+
+---
+
+## 0. What changed on 2026-08-03 (evening), and what to do with it
 
 The three top-priority actions from the morning hand-off are now **built and
 tested**; none of them has been *run at scale* yet, which is the next session's
@@ -63,7 +642,14 @@ never `.to()`. A test pins it.
 | Degeneracy guardrail | **DONE** (2026-08-03 evening) |
 | Conformal layer on the exact predictive | **BUILT, not yet run at scale** |
 | Experiment pipeline / configs / launchers / logging | **DONE** (2026-08-03 evening), 29 new tests |
-| Real data (C-MAPSS + N-C-MAPSS) | **PLUMBED AND TESTED, NOT YET RUN** — the files are not in the repo; this is still the credibility gap until tier 1 has run |
+| Real data (C-MAPSS) | **RUN** — 2092 rows dated 2026-08-04 in `logs/ts/` (ad 12/12, explain 9/9, rul 12/12, structure 27/27, calibration 10/14). N-C-MAPSS still not run: `data/ncmapss/` is empty. **The results are not yet folded into this file** — see §B.6 |
+| Leaf σ floor (init vs runtime) | **FIXED + TESTED** 2026-08-05 (§A); the `legacy` A/B is now valid |
+| "do mixture leaves help?" | **OPEN and CONFOUNDED** — §A.4/A.5; needs the 1-component-mixture arm before any claim |
+| Real-data RUL accuracy | **NEGATIVE** — circuit 20.22 vs ridge 15.96 on real FD001 (§A.3); the synthetic "PC beats ridge" does not reproduce |
+| "exact ≠ calibrated" | **RESOLVED — it was the endpoint convention** (§B.2). Real C-MAPSS, 12/12 runs: PICP 0.35–0.41 on bin centres, **0.93–0.98 on bin edges**, for one bin of extra width; PIT variance below 1/12 in 7 of 8 rows. Report `picp_edge`; demote the finding to a note |
+| Comparability of the 2026-08-04 real-data logs | **BROKEN** — they ran at `8816d97`, the PRE-σ-floor-fix commit (§B.9). Not comparable to anything measured after 2026-08-05 |
+| "the chain wins on structure" | **SUSPENDED** — §B.3, the advantage is timestep BLOCKING (+5.17 nats) not temporal order (+0.07); re-check on real data |
+| Diagnostic suites (AD / RUL / hygiene) | **DONE** 2026-08-05 evening — 38 tests + 4 strict xfail, 17 s, §B.1 |
 
 **One-line thesis that the evidence supports:** *parity on detection,
 exclusivity on explanation.* The circuit ties the best detectors and is the
@@ -174,7 +760,7 @@ trustworthy" framing and deserves its own paragraph.
 
 ---
 
-## 3. The bug class that has now cost three wrong answers — FIX THIS FIRST
+## 3. The bug class that has now cost five wrong answers — FIX THIS FIRST
 
 Three silent degeneracies have each produced a confident, wrong, *published-to-
 me* result. All three were invisible in the training loss and surfaced only in
@@ -200,10 +786,52 @@ to the list: **`nn.Module.to()` on a region-graph circuit is exponential in
 depth** (no memoisation over `children()`), silently turning a 0.2 s fit into
 400 s with correct results. Use `move_circuit_`.
 
+**Fifth (2026-08-05), and the first one that corrupted an *experiment* rather
+than a model: the leaf σ INIT floor and RUNTIME floor were gated by one flag**,
+so the `--floor legacy` control arm was a regime that had never existed (§A.1).
+The run looked completely normal — it produced a full table with plausible
+numbers. Fixed and pinned by `tests/test_leaf_sigma_floor.py`.
+
+The generalisable lesson, and the reason this one is worth a paragraph: **an
+A/B flag must switch exactly one thing, and a test should assert that the
+"off" branch reproduces a recorded number.** Both control arms here (`legacy`,
+and `c=1` in the leaf sweep — §A.4) turned out to differ from their treatment
+in more than one respect. Check the control, not just the treatment.
+
+A sixth, still open: the collapse *diagnostic* itself is blind in the arm that
+matters (§A.6) — `@floor` counts an absolute 1e-3 that a relative floor makes
+unreachable, so it reports 0 by construction.
+
+**A seventh, found 2026-08-05 evening and the same convenience-does-the-wrong-
+thing shape as `.to()`: the compiled evaluator SHADOWS the DAG.** After `fit`,
+`RegionGraphPC.log_prob` routes through `CompiledCircuit`, which holds its own
+parameter tensors. `write_back()` syncs compiled→DAG; nothing syncs
+DAG→compiled. So any post-fit edit to the DAG is silently a no-op and the
+scores keep looking correct. Call `pc.pc.use_recursive()` first.
+`tests/test_experiment_hygiene.py::test_dag_edits_do_not_reach_the_compiled_copy`
+pins it.
+
+**And the two guardrails do not cover what their names suggest** (§B.5):
+`assert_informative` passes a circuit that ignores whole channels, and
+`predict`'s degeneracy threshold is 1e-3·cap = 0.1 cycles against a target sd
+of 31.5. Both are total-collapse detectors, not quality checks.
+
+The tests that encode all seven shapes now exist and run in 17 s — see §B.1.
+Run them before a batch, not after.
+
 ---
 
 ## 4. Next actions, in priority order
 
+> **SUPERSEDED by §B.7.** This list is from earlier on 2026-08-05 and is kept
+> because its reasoning still holds; what changed is the ordering (the
+> calibration re-run now comes first) and action 3, which has already happened
+> (§B.6). Read §B.7 first, then this for context.
+
+0. **The 1-component-mixture arm** (§A.5) — three small edits, then one ~5 min
+   run. It is first only because it is cheap and because an open confound is
+   currently blocking any statement about leaf capacity. Do not let it displace
+   action 3.
 1. ~~**Degeneracy guardrail**~~ — **DONE** (§3).
 2. ~~**Conformalise the circuit's own predictive**~~ — **BUILT**
    (`poc/time_series/conformal.py`, `calibration` stage,
@@ -287,13 +915,33 @@ corrected gate), figures in `logs/overnight/figs/`. Pipeline runs land in
 | data acquisition, real-vs-injected table | `data/README.md` |
 | old single-purpose drivers | `run_ad.py`, `run_rul.py`, `run_explain.py`, `bench_scaling.py` |
 | old batch + one-page summary | `run_all_overnight.sh`, `summarize_overnight.py` |
+| **AD diagnostics (metric / generator / model / structure)** | `tests/test_ad_diagnostics.py` |
+| **RUL diagnostics (objective / H1-H5 / exactness / calibration)** | `tests/test_rul_diagnostics.py` |
+| **the four recurring bug shapes, one test each** | `tests/test_experiment_hygiene.py` |
 
 - τ must get a `CategoricalLeaf` (closed-form interval). `InputNode` has no
   closed-form CDF and raises if boxed.
+- **`InputNode.fit` has no σ floor** and is the *default* `leaf_factory` — see
+  §A.7. Fix before any non-RUL run.
+- **Leaf σ has two floors, init and runtime.** `use_relative_floor` switches the
+  runtime one only; the init rule is the same in both modes (§A.1). Do not
+  re-couple them.
+- **`c=1` in the leaf sweep is a different leaf *class*, not one component**
+  (§A.4) — `GaussianLeaf` (MAD init) vs `GaussianMixtureLeaf` (`std/n` init).
+- `np.linspace(0.1, 0.9, 1) == [0.1]`, so a 1-component `GaussianMixtureLeaf`
+  centres on the 10th percentile, not the median (§A.5).
+- `@floor` in `bench_rul_leaves` is **structurally 0** under `--floor relative`
+  (§A.6). Use σ min against the leaf's own floor instead.
 - `--tau-where root` is **degenerate**; `deep` is now the default everywhere.
   `root` is kept only as an ablation, and `predict` will now refuse it loudly
   when it collapses.
 - **Never call `.to(device)` on a circuit** — use `move_circuit_`. See §0.
+- **Never edit the DAG after `fit` without `pc.pc.use_recursive()` first** —
+  the compiled evaluator holds its own parameters and your edit is a silent
+  no-op (§B.5).
+- **`q05`/`q95` from `SurvivalPC.predict` are bin CENTRES**, and `picp` scores
+  them against a target in cycles. Use `q05_edge`/`q95_edge` for coverage of a
+  continuous target (§B.2).
 - `weight_jitter=0` silently collapses every region to one component.
 - Multi-partition region graphs give up structured decomposability, so
   `SquaredPC` refuses them (by design, with an explanation).

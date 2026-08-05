@@ -11,6 +11,14 @@ and the NASA asymmetric score are reported for comparability, but CRPS,
 interval coverage (PICP) and interval width (MPIW) are what the survival claim
 actually stands on.  A model can win RMSE while being badly miscalibrated, and
 that trade is the whole subject of the experiment.
+
+One caveat on PICP, and it is not a small one (hand-off §B.2): it compares
+interval ENDPOINTS to a continuous target, so it inherits whatever convention
+produced those endpoints.  `SurvivalPC.predict` emits bin CENTRES, which costs
+up to half a bin of coverage at each end for reasons that have nothing to do
+with the model.  Report `picp_edge` next to it, and use `pit_report` below to
+ask whether the DENSITY is calibrated — that question has no unit mismatch in
+it.
 """
 from __future__ import annotations
 
@@ -138,3 +146,48 @@ def calibration_error(pmf, y_bin, n_levels: int = 10) -> float:
     u = F[np.arange(len(y)), y]              # PIT values
     levels = np.linspace(0.05, 0.95, n_levels)
     return float(np.mean([abs((u <= q).mean() - q) for q in levels]))
+
+
+def pit_values(pmf, y_bin, seed: int = 0) -> np.ndarray:
+    """
+    RANDOMISED probability integral transform for a discrete predictive:
+    U = F(k-1) + u·p(k) with u ~ Uniform(0,1).  Under a correctly calibrated
+    predictive U is exactly Uniform(0, 1).
+
+    Why this and not PICP: it never compares a discretised quantity to a
+    continuous one.  PICP takes bin CENTRES as interval endpoints and scores
+    them against a target in cycles, so it charges every prediction up to half
+    a bin of spurious error — which is most of the recorded under-coverage
+    (hand-off §B.2).  The PIT has no such mismatch, so it is the instrument
+    that says whether the DENSITY is calibrated, as opposed to whether the
+    interval was read off correctly.
+    """
+    P = pmf.detach().cpu().numpy() if isinstance(pmf, torch.Tensor) else np.asarray(pmf)
+    y = _np(y_bin).astype(int)
+    rng = np.random.default_rng(seed)
+    F = P.cumsum(1)
+    rows = np.arange(len(y))
+    below = np.where(y > 0, F[rows, np.maximum(y - 1, 0)], 0.0)
+    return below + rng.random(len(y)) * P[rows, y]
+
+
+def pit_report(pmf, y_bin, seed: int = 0) -> Dict[str, float]:
+    """
+    The PIT split into the two things it can detect, because they have
+    different causes and different fixes:
+
+      pit_mean  vs 0.5     LOCATION — the predictive is shifted (in this
+                           project: the censoring bias, §B.4)
+      pit_var   vs 1/12    SHAPE — the predictive is the wrong WIDTH.
+                           var > 1/12 = overconfident (truth in the tails),
+                           var < 1/12 = too diffuse.
+      pit_ks               overall deviation from uniform, for reference.
+
+    Measured on the recorded configuration: mean 0.408, var 0.0841 against
+    1/12 = 0.0833.  A pure location error with the width already right.
+    """
+    u = pit_values(pmf, y_bin, seed=seed)
+    n = len(u)
+    ks = float(np.max(np.abs(np.sort(u) - np.arange(1, n + 1) / n))) if n else float("nan")
+    return {"pit_mean": float(u.mean()), "pit_var": float(u.var()),
+            "pit_ks": ks, "pit_var_target": 1.0 / 12.0}

@@ -1,0 +1,73 @@
+{
+  "task_rul": {
+    "kind": "rul",
+    "n_train": 6935,
+    "n_test": 5625,
+    "d": 300,
+    "window": 20,
+    "n_channels": 15,
+    "n_bins": 25,
+    "cap": 125.0,
+    "censored_frac": 0.6187455058097839,
+    "train_units": 100,
+    "test_units": 100,
+    "censored_units": 73,
+    "n_regimes": 1,
+    "seed": 2,
+    "per_regime_norm": false,
+    "test_windows": "all",
+    "official_test_fleet": true,
+    "dataset": "cmapss:FD001",
+    "subset": "FD001",
+    "dropped_constant_sensors": 6,
+    "source": "NASA C-MAPSS (real)"
+  },
+  "rul": {
+    "partial_evidence": {
+      "n_dead": 3,
+      "crps_full": 11.633007321065898,
+      "crps_exact_marginal": 11.72543859728745,
+      "crps_imputed": 13.910601143471709,
+      "rmse_full": 25.4948522885069,
+      "rmse_exact_marginal": 25.532035312284677,
+      "rmse_imputed": 30.541349603414208,
+      "picp_exact_marginal": 0.29013333333333335,
+      "picp_exact_marginal_edge": 0.8762666666666666,
+      "picp_imputed": 0.4343111111111111,
+      "picp_imputed_edge": 1.0,
+      "marginal_pit_mean": 0.3988971325043794,
+      "marginal_pit_var": 0.0947789715748766,
+      "marginal_pit_ks": 0.16794286665697103,
+      "marginal_pit_var_target": 0.08333333333333333
+    },
+    "survival": {
+      "0-20": {
+        "S(20)": 0.6976974010467529,
+        "S(40)": 0.5207926034927368,
+        "S(60)": 0.42248618602752686,
+        "n": 55
+      },
+      "20-50": {
+        "S(20)": 0.9056907296180725,
+        "S(40)": 0.8068657517433167,
+        "S(60)": 0.7243309617042542,
+        "n": 372
+      },
+      "50-90": {
+        "S(20)": 0.9800409078598022,
+        "S(40)": 0.938750147819519,
+        "S(60)": 0.8892712593078613,
+        "n": 836
+      },
+      "90-126": {
+        "S(20)": 0.9946900010108948,
+        "S(40)": 0.9776880741119385,
+        "S(60)": 0.9500267505645752,
+        "n": 4362
+      }
+    }
+  },
+  "_timing": {
+    "rul": 458.02
+  }
+}

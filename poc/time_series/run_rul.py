@@ -50,6 +50,7 @@ from .metrics import (
     mpiw,
     nasa_score,
     picp,
+    pit_report,
     rmse,
 )
 
@@ -72,9 +73,13 @@ def fit_circuit(task, args, seed: int, use_censored: bool) -> SurvivalPC:
 
 
 def eval_circuit(pc: SurvivalPC, task, alpha: float = 0.10) -> Dict[str, float]:
+    """Same columns as the pipeline's `_eval_survival`, deliberately: the two
+    drivers must stay comparable, and the endpoint pair plus the PIT are the
+    columns that decide whether the recorded under-coverage is the density or
+    the convention (hand-off §B.2)."""
     pred = pc.predict(task.X_test)
     true = task.rul_test
-    return {
+    out = {
         "rmse": rmse(pred["mean"], true),
         "mae": mae(pred["mean"], true),
         "nasa": nasa_score(pred["mean"], true),
@@ -82,8 +87,14 @@ def eval_circuit(pc: SurvivalPC, task, alpha: float = 0.10) -> Dict[str, float]:
         "picp": picp(pred["q05"], pred["q95"], true),
         "mpiw": mpiw(pred["q05"], pred["q95"]),
         "interval_score": crps_from_interval(pred["q05"], pred["q95"], true, alpha),
+        "picp_edge": picp(pred["q05_edge"], pred["q95_edge"], true),
+        "mpiw_edge": mpiw(pred["q05_edge"], pred["q95_edge"]),
+        "interval_score_edge": crps_from_interval(
+            pred["q05_edge"], pred["q95_edge"], true, alpha),
         "calib_err": calibration_error(pred["pmf"], task.tau_test),
     }
+    out.update(pit_report(pred["pmf"], task.tau_test))
+    return out
 
 
 def eval_baseline(model, task, alpha: float = 0.10) -> Dict[str, float]:

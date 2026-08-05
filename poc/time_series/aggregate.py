@@ -46,12 +46,18 @@ PREFERRED_COLUMNS = {
     "ad": ["auroc", "ap", "train_nll", "fit_s", "params"],
     "explain": ["loc_auroc", "prec_at_k", "deletion_auc",
                 "max_residual_nats", "mean_residual_nats"],
+    # picp/picp_edge and pit_var sit next to each other on purpose: the three
+    # together say whether an under-coverage number is the density or the
+    # endpoint convention, and no one of them says it alone (hand-off §B.2).
     "rul": ["rmse", "mae", "nasa", "crps", "interval_score", "picp", "mpiw",
+            "picp_edge", "mpiw_edge", "pit_mean", "pit_var",
             "calib_err", "pred_sd", "fit_s"],
     "rul_partial": ["crps_full", "crps_exact_marginal", "crps_imputed",
                     "rmse_full", "rmse_exact_marginal", "rmse_imputed",
-                    "picp_exact_marginal", "picp_imputed", "n_dead"],
-    "calibration": ["picp", "mpiw", "interval_score", "crps", "rmse", "mae"],
+                    "picp_exact_marginal", "picp_exact_marginal_edge",
+                    "picp_imputed", "picp_imputed_edge", "n_dead"],
+    "calibration": ["picp", "mpiw", "picp_edge", "mpiw_edge", "pit_mean",
+                    "pit_var", "interval_score", "crps", "rmse", "mae"],
     "scaling": ["d", "dag_leaves", "dag_params", "dag_build_s", "dag_fwd_s",
                 "tree_leaves", "tree_params", "tree_build_s"],
 }

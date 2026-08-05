@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import os
 import time
-from typing import Any, Callable, Dict, List, Optional, Sequence
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 import torch
@@ -75,6 +75,7 @@ from .metrics import (
     mpiw,
     nasa_score,
     picp,
+    pit_report,
     rmse,
 )
 from .ts_logging import RunLogger
@@ -405,20 +406,46 @@ def _fit_survival(cfg: Dict[str, Any], task, seed: int, log: RunLogger,
     return pc
 
 
-def _eval_survival(pc: SurvivalPC, task, alpha: float) -> Dict[str, float]:
+def _eval_survival(pc: SurvivalPC, task, alpha: float
+                   ) -> Tuple[Dict[str, float], Dict[str, torch.Tensor]]:
+    """
+    Returns (metrics, prediction) — the prediction so the caller can persist
+    it, because the one question this stage could not answer from its own logs
+    was "what would the coverage have been under a different endpoint
+    convention?" (hand-off §B.2).  Scalars only is a false economy.
+
+    Three interval columns, deliberately:
+
+      picp / mpiw            bin CENTRES — what every recorded number used
+      picp_edge / mpiw_edge  bin EDGES — the interval the pmf actually claims
+      pit_*                  the density's own calibration, with no
+                             discrete-vs-continuous mismatch in it at all
+
+    Read them together.  A large picp_edge − picp gap with pit_var near 1/12
+    means the model was fine and the interval was being read wrong; a low
+    picp_edge with pit_var well above 1/12 means the predictive really is
+    overconfident.  Reporting only the first column cannot distinguish these,
+    which is how "exact != calibrated" got as far as it did.
+    """
     pred = pc.predict(task.X_test)                    # raises if degenerate (§3)
     true = task.rul_test
     bw = task.cap / task.n_bins
-    return {
+    m = {
         "rmse": rmse(pred["mean"], true), "mae": mae(pred["mean"], true),
         "nasa": nasa_score(pred["mean"], true),
         "crps": crps_from_pmf(pred["pmf"], task.tau_test, bw),
         "picp": picp(pred["q05"], pred["q95"], true),
         "mpiw": mpiw(pred["q05"], pred["q95"]),
         "interval_score": crps_from_interval(pred["q05"], pred["q95"], true, alpha),
+        "picp_edge": picp(pred["q05_edge"], pred["q95_edge"], true),
+        "mpiw_edge": mpiw(pred["q05_edge"], pred["q95_edge"]),
+        "interval_score_edge": crps_from_interval(
+            pred["q05_edge"], pred["q95_edge"], true, alpha),
         "calib_err": calibration_error(pred["pmf"], task.tau_test),
         "pred_sd": float(pred["mean"].std()),
     }
+    m.update(pit_report(pred["pmf"], task.tau_test))
+    return m, pred
 
 
 def _test_protocol_views(task, protocols: Sequence[str]):
@@ -473,16 +500,33 @@ def stage_rul(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, Any]:
         if not use_c and censored_frac <= 0:
             continue                                   # nothing to drop
         try:
-            pc = _fit_survival(cfg, task, seed, log, use_c,
-                               tag="surv_censored" if use_c else "surv_dropped")
+            tag = "surv_censored" if use_c else "surv_dropped"
+            pc = _fit_survival(cfg, task, seed, log, use_c, tag=tag)
             for pname, view in views:
                 ptag = f" [{pname}]" if len(views) > 1 else ""
-                r = _eval_survival(pc, view, alpha)
+                r, pred = _eval_survival(pc, view, alpha)
                 log.result(_row(cfg, "rul", f"{label}{ptag}", **r,
                                 fit_s=pc.fit_seconds,
                                 params=pc.size()["parameters"],
                                 test_protocol=pname,
                                 censored_frac=censored_frac))
+                log.info(f"  {label}{ptag}: PICP {r['picp']:.3f} centres / "
+                         f"{r['picp_edge']:.3f} edges (nominal {1 - alpha:.2f}), "
+                         f"MPIW {r['mpiw']:.1f} / {r['mpiw_edge']:.1f}; "
+                         f"PIT mean {r['pit_mean']:.3f} var {r['pit_var']:.4f} "
+                         f"(1/12 = {1/12:.4f})")
+                # The whole predictive, not just its summaries.  Without this
+                # the endpoint question of §B.2 could not be re-asked without a
+                # full re-run — which is exactly what happened.
+                log.artifact_npz(
+                    f"rul_pred_{tag}_{pname}",
+                    pmf=pred["pmf"].numpy(), mean=pred["mean"].numpy(),
+                    q05=pred["q05"].numpy(), q95=pred["q95"].numpy(),
+                    q05_edge=pred["q05_edge"].numpy(),
+                    q95_edge=pred["q95_edge"].numpy(),
+                    rul_true=view.rul_test.numpy(),
+                    tau_true=view.tau_test.numpy(),
+                    bin_edges=np.linspace(0.0, view.cap, view.n_bins + 1))
             if use_c:
                 kept = pc
         except DegenerateModelError as exc:
@@ -552,8 +596,10 @@ def _partial_evidence(pc: SurvivalPC, task, n_dead: int, cfg, log) -> Dict[str, 
     joint = torch.stack(rows, dim=1)
     p = (joint - torch.logsumexp(joint, dim=1, keepdim=True)).exp()
     centers = pc.bin_centers()
+    edges = pc.bin_edges()
     cdf = p.cumsum(1)
-    q = lambda lv: centers[(cdf < lv).sum(1).clamp(max=task.n_bins - 1)]
+    q_idx = lambda lv: (cdf < lv).sum(1).clamp(max=task.n_bins - 1)
+    lo_i, hi_i = q_idx(0.05), q_idx(0.95)
 
     res = {
         "n_dead": len(dead),
@@ -563,8 +609,16 @@ def _partial_evidence(pc: SurvivalPC, task, n_dead: int, cfg, log) -> Dict[str, 
         "rmse_full": rmse(full["mean"], task.rul_test),
         "rmse_exact_marginal": rmse((p * centers).sum(1), task.rul_test),
         "rmse_imputed": rmse(imp["mean"], task.rul_test),
-        "picp_exact_marginal": picp(q(0.05), q(0.95), task.rul_test),
+        # centres and edges, as everywhere else (§B.2) — this is the row that
+        # recorded picp_exact_marginal 0.32 on real C-MAPSS
+        "picp_exact_marginal": picp(centers[lo_i], centers[hi_i], task.rul_test),
+        "picp_exact_marginal_edge": picp(edges[lo_i], edges[hi_i + 1],
+                                         task.rul_test),
         "picp_imputed": picp(imp["q05"], imp["q95"], task.rul_test),
+        "picp_imputed_edge": picp(imp["q05_edge"], imp["q95_edge"],
+                                  task.rul_test),
+        **{f"marginal_{k}": v for k, v in
+           pit_report(p, task.tau_test).items()},
     }
     # own stage name: its metrics are full/marginal/imputed triplets, which
     # would sit as empty cells in the main RUL table
@@ -650,10 +704,16 @@ def stage_calibration(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[st
     # that means nothing.
     for alpha in alphas:
         tag = f" · a={alpha:.2f}" if len(alphas) > 1 else ""
-        raw = _eval_survival(pc, task, alpha)
+        raw, _ = _eval_survival(pc, task, alpha)
         log.result(_row(cfg, "calibration",
                         f"SurvivalPC (raw exact predictive){tag}", alpha=alpha, **raw))
         out[f"raw@{alpha}"] = raw
+        # The comparison this stage exists for now has three arms, not two:
+        # raw-on-centres, raw-on-EDGES, and conformal.  If conformal only
+        # matches the edge arm it is buying nothing but the half-bin (§B.2).
+        log.info(f"  raw exact predictive{tag}: PICP {raw['picp']:.3f} centres / "
+                 f"{raw['picp_edge']:.3f} edges, MPIW {raw['mpiw']:.1f} / "
+                 f"{raw['mpiw_edge']:.1f}")
 
         for mode in ev["conformal_modes"]:
             cp = ConformalPredictive(pc, alpha=alpha, mode=mode).calibrate(X_cal, y_cal)

@@ -1,0 +1,50 @@
+[21:19:46] === run start · seed2 · seed 2 · hash e9fc70d878c9 ===
+[21:19:46] stages ['rul'] · device cpu · dataset cmapss:FD001
+[21:19:46] --- stage: rul ---
+[21:19:46]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[21:19:46]   task: {'kind': 'rul', 'n_train': 6935, 'n_test': 5625, 'd': 300, 'window': 20, 'n_channels': 15, 'n_bins': 25, 'cap': 125.0, 'censored_frac': 0.6187455058097839, 'train_units': 100, 'test_units': 100, 'censored_units': 73, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'test_windows': 'all', 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+    [surv] epoch   0  censored-NLL 52060.560
+    [surv] epoch   7  censored-NLL  318.911
+    [surv] epoch  14  censored-NLL  294.338
+    [surv] epoch  21  censored-NLL  292.101
+    survival fit (observed): 22/60 (37%) · 0.71 it/s · elapsed 00:30 · ETA 00:53
+    [surv] epoch  28  censored-NLL  293.545
+    [surv] epoch  35  censored-NLL  298.395
+    [surv] epoch  42  censored-NLL  298.235
+    survival fit (observed): 43/60 (72%) · 0.71 it/s · elapsed 01:00 · ETA 00:24
+    [surv] epoch  49  censored-NLL  297.971
+    [surv] epoch  56  censored-NLL  296.402
+    survival fit (observed): done 60/60 in 01:26
+[21:21:14]   surv_dropped_nll: first=52060.5601 last=297.9060 (60 epochs)
+[21:21:14]   surv_dropped: fit 87.7s · 43,356 params
+[21:21:39]   SurvivalPC (drop censored) [all]: PICP 0.403 centres / 0.972 edges (nominal 0.90), MPIW 70.3 / 75.3; PIT mean 0.551 var 0.0785 (1/12 = 0.0833)
+[21:21:40]   SurvivalPC (drop censored) [last]: PICP 0.820 centres / 0.950 edges (nominal 0.90), MPIW 80.0 / 85.0; PIT mean 0.384 var 0.0582 (1/12 = 0.0833)
+    [surv] epoch   0  censored-NLL 33468.403
+    [surv] epoch   7  censored-NLL  234.799
+    survival fit (censored): 8/60 (13%) · 0.24 it/s · elapsed 00:33 · ETA 03:40
+    [surv] epoch  14  censored-NLL  236.524
+    survival fit (censored): 16/60 (27%) · 0.24 it/s · elapsed 01:06 · ETA 03:03
+    [surv] epoch  21  censored-NLL  237.719
+    survival fit (censored): 24/60 (40%) · 0.24 it/s · elapsed 01:38 · ETA 02:28
+    [surv] epoch  28  censored-NLL  239.951
+    survival fit (censored): 32/60 (53%) · 0.25 it/s · elapsed 02:10 · ETA 01:54
+    [surv] epoch  35  censored-NLL  238.275
+    survival fit (censored): 40/60 (67%) · 0.25 it/s · elapsed 02:41 · ETA 01:20
+    [surv] epoch  42  censored-NLL  237.966
+    survival fit (censored): 48/60 (80%) · 0.25 it/s · elapsed 03:13 · ETA 00:48
+    [surv] epoch  49  censored-NLL  248.039
+    survival fit (censored): 56/60 (93%) · 0.25 it/s · elapsed 03:45 · ETA 00:16
+    [surv] epoch  56  censored-NLL  250.693
+    survival fit (censored): done 60/60 in 04:00
+[21:25:42]   surv_censored_nll: first=33468.4032 last=255.4794 (60 epochs)
+[21:25:42]   surv_censored: fit 242.5s · 43,356 params
+[21:26:04]   SurvivalPC (exact censored lik.) [all]: PICP 0.333 centres / 0.913 edges (nominal 0.90), MPIW 51.2 / 56.2; PIT mean 0.412 var 0.0923 (1/12 = 0.0833)
+[21:26:04]   SurvivalPC (exact censored lik.) [last]: PICP 0.720 centres / 0.860 edges (nominal 0.90), MPIW 70.2 / 75.2; PIT mean 0.236 var 0.0509 (1/12 = 0.0833)
+[21:27:18]   partial evidence (3 dead): CRPS exact-marginal 11.725 vs imputed 13.911 (full 11.633)
+[21:27:24]   exact survival S(t|x), grouped by TRUE remaining life:
+[21:27:24]     RUL   0-20  n=   55  S(20)=0.698  S(40)=0.521  S(60)=0.422
+[21:27:24]     RUL  20-50  n=  372  S(20)=0.906  S(40)=0.807  S(60)=0.724
+[21:27:24]     RUL  50-90  n=  836  S(20)=0.980  S(40)=0.939  S(60)=0.889
+[21:27:24]     RUL  90-126 n= 4362  S(20)=0.995  S(40)=0.978  S(60)=0.950
+[21:27:24] --- stage rul done in 458.0s ---
+[21:27:24] === run ok · 458.2s · peak RSS 3.996 GB ===

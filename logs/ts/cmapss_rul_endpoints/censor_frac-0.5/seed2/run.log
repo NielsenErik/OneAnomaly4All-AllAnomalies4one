@@ -1,0 +1,53 @@
+[20:55:29] === run start · seed2 · seed 2 · hash 8bfa9d8057f5 ===
+[20:55:29] stages ['rul'] · device cpu · dataset cmapss:FD001
+[20:55:29] --- stage: rul ---
+[20:55:29]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[20:55:29]   task: {'kind': 'rul', 'n_train': 7649, 'n_test': 5625, 'd': 300, 'window': 20, 'n_channels': 15, 'n_bins': 25, 'cap': 125.0, 'censored_frac': 0.37089812755584717, 'train_units': 100, 'test_units': 100, 'censored_units': 48, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'test_windows': 'all', 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)'}
+    [surv] epoch   0  censored-NLL 39512.439
+    [surv] epoch   7  censored-NLL  288.659
+    survival fit (observed): 13/60 (22%) · 0.43 it/s · elapsed 00:30 · ETA 01:50
+    [surv] epoch  14  censored-NLL  284.405
+    [surv] epoch  21  censored-NLL  285.007
+    survival fit (observed): 26/60 (43%) · 0.43 it/s · elapsed 01:00 · ETA 01:19
+    [surv] epoch  28  censored-NLL  285.965
+    [surv] epoch  35  censored-NLL  283.538
+    survival fit (observed): 39/60 (65%) · 0.43 it/s · elapsed 01:31 · ETA 00:49
+    [surv] epoch  42  censored-NLL  303.715
+    [surv] epoch  49  censored-NLL  286.917
+    survival fit (observed): 52/60 (87%) · 0.43 it/s · elapsed 02:01 · ETA 00:18
+    [surv] epoch  56  censored-NLL  284.122
+    survival fit (observed): done 60/60 in 02:20
+[20:57:51]   surv_dropped_nll: first=39512.4387 last=294.9543 (60 epochs)
+[20:57:51]   surv_dropped: fit 141.8s · 43,356 params
+[20:58:13]   SurvivalPC (drop censored) [all]: PICP 0.409 centres / 0.977 edges (nominal 0.90), MPIW 73.0 / 78.0; PIT mean 0.594 var 0.0731 (1/12 = 0.0833)
+[20:58:13]   SurvivalPC (drop censored) [last]: PICP 0.830 centres / 0.960 edges (nominal 0.90), MPIW 82.0 / 87.0; PIT mean 0.434 var 0.0605 (1/12 = 0.0833)
+    [surv] epoch   0  censored-NLL 28320.756
+    [surv] epoch   7  censored-NLL  244.454
+    survival fit (censored): 8/60 (13%) · 0.24 it/s · elapsed 00:32 · ETA 03:32
+    [surv] epoch  14  censored-NLL  241.901
+    survival fit (censored): 16/60 (27%) · 0.24 it/s · elapsed 01:05 · ETA 03:01
+    [surv] epoch  21  censored-NLL  260.178
+    survival fit (censored): 23/60 (38%) · 0.24 it/s · elapsed 01:37 · ETA 02:37
+    [surv] epoch  28  censored-NLL  264.912
+    survival fit (censored): 30/60 (50%) · 0.23 it/s · elapsed 02:10 · ETA 02:10
+    [surv] epoch  35  censored-NLL  266.485
+    survival fit (censored): 37/60 (62%) · 0.23 it/s · elapsed 02:42 · ETA 01:40
+    [surv] epoch  42  censored-NLL  263.973
+    survival fit (censored): 44/60 (73%) · 0.23 it/s · elapsed 03:12 · ETA 01:09
+    [surv] epoch  49  censored-NLL  280.908
+    survival fit (censored): 52/60 (87%) · 0.23 it/s · elapsed 03:44 · ETA 00:34
+    [surv] epoch  56  censored-NLL  265.989
+    survival fit (censored): 60/60 (100%) · 0.23 it/s · elapsed 04:17 · ETA 00:00
+    survival fit (censored): done 60/60 in 04:17
+[21:02:32]   surv_censored_nll: first=28320.7563 last=266.5279 (60 epochs)
+[21:02:33]   surv_censored: fit 259.1s · 43,356 params
+[21:02:54]   SurvivalPC (exact censored lik.) [all]: PICP 0.401 centres / 0.973 edges (nominal 0.90), MPIW 69.2 / 74.2; PIT mean 0.505 var 0.0782 (1/12 = 0.0833)
+[21:02:55]   SurvivalPC (exact censored lik.) [last]: PICP 0.830 centres / 0.950 edges (nominal 0.90), MPIW 82.7 / 87.7; PIT mean 0.344 var 0.0513 (1/12 = 0.0833)
+[21:04:08]   partial evidence (3 dead): CRPS exact-marginal 10.892 vs imputed 18.954 (full 10.920)
+[21:04:13]   exact survival S(t|x), grouped by TRUE remaining life:
+[21:04:13]     RUL   0-20  n=   55  S(20)=0.638  S(40)=0.429  S(60)=0.318
+[21:04:13]     RUL  20-50  n=  372  S(20)=0.870  S(40)=0.730  S(60)=0.621
+[21:04:13]     RUL  50-90  n=  836  S(20)=0.965  S(40)=0.893  S(60)=0.814
+[21:04:13]     RUL  90-126 n= 4362  S(20)=0.989  S(40)=0.954  S(60)=0.903
+[21:04:13] --- stage rul done in 523.7s ---
+[21:04:13] === run ok · 523.8s · peak RSS 3.996 GB ===

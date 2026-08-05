@@ -196,12 +196,22 @@ def test_region_units_do_not_stay_identical():
     assert not torch.allclose(outs[0], outs[1], atol=1e-6)
 
 
+def test_weight_jitter_zero_is_refused_by_default():
+    """Since 2026-08-05 the constructor refuses it outright rather than letting
+    it through with a documented warning in a gotcha list."""
+    d = 6
+    with pytest.raises(ValueError, match="weight_jitter"):
+        RegionGraphPC(_vt(d), n_sum_components=4, leaf_factory=GaussianLeaf,
+                      weight_jitter=0.0)
+
+
 def test_weight_jitter_zero_reproduces_the_collapse():
-    """Guard-rail: the failure mode is real, so it must stay reproducible."""
+    """Guard-rail: the failure mode is real, so it must stay reproducible —
+    through the explicit escape hatch, which is the only way to build it now."""
     d = 6
     x, X = torch.randn(8, d), torch.randn(64, d)
     pc = RegionGraphPC(_vt(d), n_sum_components=4, leaf_factory=GaussianLeaf,
-                       weight_jitter=0.0)
+                       weight_jitter=0.0, allow_zero_jitter=True)
     pc.fit_leaves(X)                       # leaves differ, weights do not
     _, outs = _region_unit_outputs(pc, d, x)
     assert torch.allclose(outs[0], outs[1], atol=1e-6)

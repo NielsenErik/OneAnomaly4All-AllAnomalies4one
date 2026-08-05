@@ -33,6 +33,8 @@ from src.probabilistic_circuits import (
     RegionNode,
     chain_region_graph,
     delta_window_transform,
+    permute_region_graph,
+    timestep_block_permutation,
     learned_region_graph,
     move_circuit_,
     GaussianLeaf,
@@ -54,6 +56,10 @@ VTREE_CHOICES = (
     # region graphs: n-ary curvature / spectral, and the HMM-shaped chain
     "orc_rg", "forman_rg", "spectral_rg", "orc_rg_multi", "forman_rg_multi",
     "chain", "chain_grouped", "chain_full",
+    # LAYOUT CONTROLS — the same chain circuit with the variable->position map
+    # broken.  Capacity, arity, depth and parameter count are identical, so a
+    # difference is attributable to the layout and nothing else (§B.3).
+    "chain_perm_blocks", "chain_perm_features",
 )
 
 
@@ -140,6 +146,16 @@ def build_window_vtree(
                                   channel_groups=channel_groups)
     if method == "chain_full":
         return chain_region_graph(window, n_channels, emission="chain")
+    if method in ("chain_perm_blocks", "chain_perm_features"):
+        base = chain_region_graph(window, n_channels, emission="factorized")
+        if method == "chain_perm_blocks":
+            # timestep ORDER destroyed, same-timestep channels still together
+            perm = timestep_block_permutation(window, n_channels, seed=seed)
+        else:
+            # blocking destroyed as well
+            perm = np.random.default_rng(seed).permutation(
+                window * n_channels).tolist()
+        return permute_region_graph(base, perm)
     if method.endswith("_rg") or method.endswith("_rg_multi"):
         base = method.replace("_rg_multi", "").replace("_rg", "")
         if X is None:
@@ -210,8 +226,36 @@ def attach_variable(base, idx: int, where: str = "root"):
     raise KeyError(f"unknown attachment {where!r} (use 'root' or 'deep')")
 
 
+def window_leaf(i: int, n_components: int, mixture_at_1: bool = False) -> nn.Module:
+    """
+    THE leaf choice for a sensor feature, in one place.
+
+    `n_components` has always selected three things at once — the leaf CLASS,
+    its initialisation RULE and the component COUNT — so "does a second
+    component help?" has never been answerable: c=1 gives a `GaussianLeaf`
+    seeded at MAD·1.4826, c=2 gives a `GaussianMixtureLeaf` seeded at std/n,
+    and the 25.65 -> 20.22 jump could be either (hand-off §A.4).
+
+    `mixture_at_1` is the fix, deliberately OPT-IN: it builds a 1-component
+    `GaussianMixtureLeaf`, which is mathematically a single Gaussian and so
+    isolates the class/init from the count.  Opt-in because switching the
+    default would move every recorded 1-component number, and the whole point
+    of the arm is to compare against them.  Read it as §A.5 says:
+
+        GMLeaf(n=1) ~ 20.2  ->  the win was the INITIALISATION, and the fix is
+                                to seed GaussianLeaf at std; mixture leaves are
+                                not needed at all
+        GMLeaf(n=1) ~ 25.6  ->  the win is real capacity from the second
+                                component, and mixture leaves earn their place
+    """
+    if n_components > 1 or (mixture_at_1 and n_components == 1):
+        return GaussianMixtureLeaf(i, n_components=n_components)
+    return GaussianLeaf(i)
+
+
 def mixed_leaf_factory(
-    tau_idx: int, n_bins: int, n_components: int = 1
+    tau_idx: int, n_bins: int, n_components: int = 1,
+    mixture_at_1: bool = False,
 ) -> "callable":
     """
     Per-feature leaf factory: Gaussian(-mixture) on the sensor window,
@@ -222,9 +266,7 @@ def mixed_leaf_factory(
     def factory(i: int) -> nn.Module:
         if i == tau_idx:
             return CategoricalLeaf(i, n_categories=n_bins)
-        if n_components > 1:
-            return GaussianMixtureLeaf(i, n_components=n_components)
-        return GaussianLeaf(i)
+        return window_leaf(i, n_components, mixture_at_1)
     return factory
 
 
@@ -283,12 +325,14 @@ class WindowPC:
         device: Optional[str] = None,
         weight_jitter: float = 0.5,
         evaluator: str = "layered",
+        mixture_at_1: bool = False,
     ):
         self.window, self.n_channels = window, n_channels
         self.d = window * n_channels
         self.vtree_method = vtree_method
         self.K = n_sum_components
         self.leaf_components = leaf_components
+        self.mixture_at_1 = mixture_at_1
         self.channel_groups = channel_groups
         self.use_sos = use_sos
         self.delta = delta
@@ -312,8 +356,8 @@ class WindowPC:
         return delta_window_transform(X, self.window, self.n_channels)
 
     def _leaf_factory(self):
-        c = self.leaf_components
-        return (lambda i: GaussianMixtureLeaf(i, n_components=c)) if c > 1 else GaussianLeaf
+        c, m = self.leaf_components, self.mixture_at_1
+        return lambda i: window_leaf(i, c, m)
 
     def fit(self, X: torch.Tensor, epochs: int = 60, lr: float = 0.05,
             batch_size: int = 256, verbose: bool = False,
@@ -383,23 +427,70 @@ class WindowPC:
     # ── degeneracy guardrail ─────────────────────────────────────────────
 
     @torch.no_grad()
-    def assert_informative(self, X: torch.Tensor, min_sd: float = 1e-3) -> float:
+    def channel_sensitivity(self, X: torch.Tensor, shift: float = 3.0
+                            ) -> np.ndarray:
         """
-        Refuse a circuit whose score is effectively constant in x.
+        Mean |Δ −log p| when one whole channel is shifted by `shift` sd.
+
+        The PARTIAL-collapse detector.  `assert_informative` below only rejects
+        a density that is constant in x, and a circuit reading 2 of 6 channels
+        is not constant — it has an ordinary NLL curve, an ordinary score
+        spread, and no per-channel claim it makes is worth anything.  That is
+        the partial version of degeneracies #1 and #2 and nothing looked for it
+        until 2026-08-05.
+        """
+        base = float(self.score(X).mean())
+        out = np.zeros(self.n_channels)
+        for c in range(self.n_channels):
+            Xp = X.clone()
+            Xp[:, [t * self.n_channels + c for t in range(self.window)]] += shift
+            out[c] = abs(float(self.score(Xp).mean()) - base)
+        return out
+
+    @torch.no_grad()
+    def assert_informative(self, X: torch.Tensor, min_sd: float = 1e-3,
+                           check_channels: bool = True,
+                           min_channel_frac: float = 0.10) -> float:
+        """
+        Refuse a circuit that is provably carrying no information — in either
+        of the two ways it can happen.
+
+        1. the score is constant in x (total collapse), and
+        2. the score ignores whole CHANNELS (partial collapse) — measured
+           against the median channel's influence rather than an absolute nat
+           threshold, because the nat scale moves with window length, channel
+           count and fit quality.  A fixed constant here would be the same
+           literal-instead-of-state mistake that made the `@floor` diagnostic
+           structurally unable to fire (hand-off §A.6).
 
         Every silent degeneracy this project has hit (see DegenerateModelError)
-        showed up here and nowhere else: the training loss looked fine while
-        the model had collapsed to a product of marginals or worse.  Cheap to
-        check, so it is checked on every fitted model rather than trusted.
+        showed up in one of these two and nowhere else: the training loss
+        looked fine while the model had collapsed to a product of marginals or
+        worse.  Cheap, so it is checked on every fitted model rather than
+        trusted.
         """
-        s = self.score(X[: min(len(X), 512)])
+        Xs = X[: min(len(X), 512)]
+        s = self.score(Xs)
         sd = float(s.std())
         if not np.isfinite(sd) or sd < min_sd:
             raise DegenerateModelError(
                 f"degenerate density: -log p(x) has sd {sd:.3e} over "
-                f"{min(len(X), 512)} inputs, i.e. the score barely depends on x. "
+                f"{len(Xs)} inputs, i.e. the score barely depends on x. "
                 "Check weight_jitter (must be > 0), leaf jitter and the vtree "
                 "before trusting any number from this model.")
+
+        if check_channels and self.n_channels > 2:
+            sens = self.channel_sensitivity(Xs[: min(len(Xs), 128)])
+            med = float(np.median(sens))
+            blind = [c for c, v in enumerate(sens) if v < min_channel_frac * med]
+            if blind and med > 0:
+                raise DegenerateModelError(
+                    f"partially degenerate density: channels {blind} move "
+                    f"-log p(x) by under {min_channel_frac:.0%} of the median "
+                    f"channel under a 3-sd shift "
+                    f"(sensitivities {np.round(sens, 2).tolist()}). The score "
+                    "still varies with x, so a constant-score check passes and "
+                    "every per-channel claim about these channels is empty.")
         return sd
 
     @torch.no_grad()
@@ -577,6 +668,7 @@ class SurvivalPC:
         vtree_method: str = "time",
         n_sum_components: int = 8,
         leaf_components: int = 1,
+        mixture_at_1: bool = False,
         tau_where: str = "deep",
         channel_groups: Optional[Sequence[Sequence[int]]] = None,
         delta: bool = False,
@@ -591,6 +683,7 @@ class SurvivalPC:
         self.n_bins, self.cap = n_bins, cap
         self.vtree_method, self.K = vtree_method, n_sum_components
         self.leaf_components = leaf_components
+        self.mixture_at_1 = mixture_at_1
         self.tau_where = tau_where
         self.channel_groups = channel_groups
         self.delta = delta
@@ -601,6 +694,7 @@ class SurvivalPC:
         self.compiled = None
         self.pc: Optional[RegionGraphPC] = None
         self.history: List[float] = []
+        self.target_sd = 0.0
 
     # ── construction / training ──────────────────────────────────────────
 
@@ -650,10 +744,15 @@ class SurvivalPC:
         self.pc = RegionGraphPC(
             vt, n_sum_components=self.K,
             leaf_factory=mixed_leaf_factory(self.tau_idx, self.n_bins,
-                                            self.leaf_components),
+                                            self.leaf_components,
+                                            self.mixture_at_1),
             weight_jitter=self.weight_jitter,
             seed=self.seed)
         self.pc.validate()
+        # what "constant" means has to be relative to the target, not the cap
+        # (hand-off §B.5); recorded here so `predict` has a reference
+        self.target_sd = float(
+            (tau.detach().cpu().float() + 0.5) .mul(self.cap / self.n_bins).std())
         self.pc.fit_leaves(torch.cat(
             [base_in, tau.detach().cpu().reshape(-1, 1).to(base_in.dtype)], dim=1))
         move_circuit_(self.pc, self.device)   # DAG-safe; .to() is exponential here
@@ -760,13 +859,16 @@ class SurvivalPC:
             out.append(-self.pc.log_marginal(zb, [self.tau_idx]).cpu())
         return torch.cat(out)
 
+    def bin_edges(self) -> torch.Tensor:
+        return torch.linspace(0, self.cap, self.n_bins + 1)
+
     def bin_centers(self) -> torch.Tensor:
-        edges = torch.linspace(0, self.cap, self.n_bins + 1)
+        edges = self.bin_edges()
         return 0.5 * (edges[:-1] + edges[1:])
 
     @torch.no_grad()
     def predict(self, X: torch.Tensor, check_degenerate: bool = True,
-                min_sd: float = 1e-3) -> Dict[str, torch.Tensor]:
+                min_sd_frac: float = 0.05) -> Dict[str, torch.Tensor]:
         """
         Point + distributional RUL predictions in CYCLES.
 
@@ -789,20 +891,56 @@ class SurvivalPC:
 
         if check_degenerate and len(mean) > 1:
             sd = float(mean.std())
-            if not np.isfinite(sd) or sd < min_sd * max(self.cap, 1.0):
+            # The threshold is a fraction of the TARGET's own spread, not of
+            # the cap.  It used to be 1e-3*cap = 0.13 cycles against a target
+            # whose sd is ~31 cycles — 315x too loose, so a predictive with 8%
+            # of the target's spread sailed through (hand-off §B.5).  `cap/4`
+            # is the fallback when no training spread was recorded: RUL is
+            # capped-uniform-ish, so sd ~ cap/4 is the right order.
+            ref = float(getattr(self, "target_sd", 0.0)) or max(self.cap, 1.0) / 4.0
+            if not np.isfinite(sd) or sd < min_sd_frac * ref:
                 raise DegenerateModelError(
-                    f"degenerate predictive: E[tau|x] has sd {sd:.2e} over "
-                    f"{len(mean)} inputs — p(tau|x) is effectively independent "
-                    "of x. Check tau_where (use 'deep'; 'root' caps the "
-                    "coupling at a KxK latent and collapses easily), "
-                    "weight_jitter (must be > 0) and leaf jitter before "
-                    "trusting any result from this model.")
+                    f"degenerate predictive: E[tau|x] has sd {sd:.3g} cycles "
+                    f"over {len(mean)} inputs, under {min_sd_frac:.0%} of the "
+                    f"target's own spread ({ref:.3g}) — p(tau|x) barely "
+                    "depends on x. Check tau_where (use 'deep'; 'root' caps "
+                    "the coupling at a KxK latent and collapses at most K, "
+                    "non-monotonically), weight_jitter (must be > 0) and leaf "
+                    "jitter before trusting any result from this model.")
 
-        def q(level: float) -> torch.Tensor:
-            idx = (cdf < level).sum(1).clamp(max=self.n_bins - 1)
-            return centers[idx]
+        # ── quantiles, in two conventions ─────────────────────────────────
+        # `q_idx(level)` is the discrete quantile: the first bin whose
+        # cumulative mass reaches `level`.  What you then REPORT for that bin
+        # is a choice, and it is not a cosmetic one:
+        #
+        #   centres  q05/q95   the bin's midpoint.  Right for a point summary
+        #                      and for comparing against another discretised
+        #                      quantity.  WRONG as the endpoint of an interval
+        #                      that has to cover a continuous target: it gives
+        #                      away half a bin at each end, for reasons that
+        #                      have nothing to do with the model.
+        #   edges    q05_edge  the OUTER edges of the same bins — the lower
+        #            q95_edge  edge of the low bin, the upper edge of the high
+        #                      one.  This is the interval whose coverage the
+        #                      pmf actually claims.
+        #
+        # Measured (hand-off §B.2, bins=25 cap=130): PICP 0.616 on centres vs
+        # 0.929 on edges, for one extra bin width of MPIW, with the PIT
+        # variance already at 1/12 — i.e. most of the recorded under-coverage
+        # was the convention, not the density.  BOTH are returned and neither
+        # is renamed: `q05`/`q95` keep their meaning so every number recorded
+        # against them stays comparable, which is the same one-thing-at-a-time
+        # rule that the sigma-floor flag broke (§A.1).
+        edges = self.bin_edges().to(p.device)
+
+        def q_idx(level: float) -> torch.Tensor:
+            return (cdf < level).sum(1).clamp(max=self.n_bins - 1)
+
+        lo_i, hi_i = q_idx(0.05), q_idx(0.95)
         return {"pmf": p, "mean": mean, "mode": mode,
-                "q05": q(0.05), "q50": q(0.50), "q95": q(0.95)}
+                "q05": centers[lo_i], "q50": centers[q_idx(0.50)],
+                "q95": centers[hi_i],
+                "q05_edge": edges[lo_i], "q95_edge": edges[hi_i + 1]}
 
     def size(self) -> Dict[str, int]:
         return self.pc.size()

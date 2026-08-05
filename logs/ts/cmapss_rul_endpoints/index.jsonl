@@ -1,0 +1,12 @@
+{"experiment": "cmapss_rul", "variant": "censor_frac-0.2", "seed": 0, "run_dir": "censor_frac-0.2/seed0", "status": "ok", "wall_s": 587.3, "config_hash": "f192dcbfaddc", "finished": "2026-08-05T19:37:28"}
+{"experiment": "cmapss_rul", "variant": "censor_frac-0.2", "seed": 1, "run_dir": "censor_frac-0.2/seed1", "status": "ok", "wall_s": 682.0, "config_hash": "f192dcbfaddc", "finished": "2026-08-05T19:48:50"}
+{"experiment": "cmapss_rul", "variant": "censor_frac-0.2", "seed": 2, "run_dir": "censor_frac-0.2/seed2", "status": "ok", "wall_s": 811.0, "config_hash": "f192dcbfaddc", "finished": "2026-08-05T20:02:21"}
+{"experiment": "cmapss_rul", "variant": "censor_frac-0.35", "seed": 0, "run_dir": "censor_frac-0.35/seed0", "status": "ok", "wall_s": 794.0, "config_hash": "7fc1dfab8f06", "finished": "2026-08-05T20:15:35"}
+{"experiment": "cmapss_rul", "variant": "censor_frac-0.35", "seed": 1, "run_dir": "censor_frac-0.35/seed1", "status": "ok", "wall_s": 768.3, "config_hash": "7fc1dfab8f06", "finished": "2026-08-05T20:28:24"}
+{"experiment": "cmapss_rul", "variant": "censor_frac-0.35", "seed": 2, "run_dir": "censor_frac-0.35/seed2", "status": "ok", "wall_s": 534.5, "config_hash": "7fc1dfab8f06", "finished": "2026-08-05T20:37:18"}
+{"experiment": "cmapss_rul", "variant": "censor_frac-0.5", "seed": 0, "run_dir": "censor_frac-0.5/seed0", "status": "ok", "wall_s": 559.3, "config_hash": "8bfa9d8057f5", "finished": "2026-08-05T20:46:37"}
+{"experiment": "cmapss_rul", "variant": "censor_frac-0.5", "seed": 1, "run_dir": "censor_frac-0.5/seed1", "status": "ok", "wall_s": 531.5, "config_hash": "8bfa9d8057f5", "finished": "2026-08-05T20:55:29"}
+{"experiment": "cmapss_rul", "variant": "censor_frac-0.5", "seed": 2, "run_dir": "censor_frac-0.5/seed2", "status": "ok", "wall_s": 523.8, "config_hash": "8bfa9d8057f5", "finished": "2026-08-05T21:04:13"}
+{"experiment": "cmapss_rul", "variant": "censor_frac-0.7", "seed": 0, "run_dir": "censor_frac-0.7/seed0", "status": "ok", "wall_s": 468.1, "config_hash": "e9fc70d878c9", "finished": "2026-08-05T21:12:01"}
+{"experiment": "cmapss_rul", "variant": "censor_frac-0.7", "seed": 1, "run_dir": "censor_frac-0.7/seed1", "status": "ok", "wall_s": 464.7, "config_hash": "e9fc70d878c9", "finished": "2026-08-05T21:19:46"}
+{"experiment": "cmapss_rul", "variant": "censor_frac-0.7", "seed": 2, "run_dir": "censor_frac-0.7/seed2", "status": "ok", "wall_s": 458.2, "config_hash": "e9fc70d878c9", "finished": "2026-08-05T21:27:24"}
