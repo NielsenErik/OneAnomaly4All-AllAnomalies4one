@@ -295,6 +295,21 @@ ANOMALY_KINDS = ("spike", "offset", "drift", "decouple", "desync", "organic")
 # standard MTS benchmarks.
 
 
+def _pick(rng: np.random.Generator, C: int, lo: int, hi: int) -> np.ndarray:
+    """
+    Draw between `lo` and `hi` DISTINCT channels out of C, clamped to C.
+
+    The clamp is what makes the injectors usable on the univariate telemetry
+    sources (OPSSAT, SMAP/MSL at `dims="first"`): asking for two channels out
+    of one raises inside `rng.choice`, and did.  Clamping narrows the anomaly
+    rather than failing — `decouple` on one channel still destroys that
+    channel's temporal structure, which is the property the kind is named for.
+    """
+    hi = max(min(hi, C + 1), 2)               # `hi` is exclusive
+    lo = max(min(lo, hi - 1), 1)
+    return rng.choice(C, size=rng.integers(lo, hi), replace=False)
+
+
 def _inject(x: np.ndarray, kind: str, rng: np.random.Generator,
             strength: float, donor: Optional[np.ndarray] = None
             ) -> Tuple[np.ndarray, List[int]]:
@@ -302,21 +317,21 @@ def _inject(x: np.ndarray, kind: str, rng: np.random.Generator,
     T, C = x.shape
     x = x.copy()
     if kind == "spike":                       # point anomaly, 1–2 channels
-        ch = rng.choice(C, size=rng.integers(1, 3), replace=False)
+        ch = _pick(rng, C, 1, 3)
         t = rng.integers(0, T)
         x[t, ch] += strength * rng.choice([-1.0, 1.0]) * 4.0
     elif kind == "offset":                    # contextual step in a few channels
-        ch = rng.choice(C, size=rng.integers(2, max(3, C // 3)), replace=False)
+        ch = _pick(rng, C, 2, max(3, C // 3))
         t = rng.integers(0, max(T // 2, 1))
         x[t:, ch] += strength * rng.choice([-1.0, 1.0]) * 1.5
     elif kind == "drift":                     # collective ramp across a group
-        ch = rng.choice(C, size=rng.integers(2, max(3, C // 2)), replace=False)
+        ch = _pick(rng, C, 2, max(3, C // 2))
         ramp = np.linspace(0, strength * 2.0, T)[:, None]
         x[:, ch] += ramp
     elif kind == "decouple":
         # permute a channel along TIME: its marginal over the window is
         # unchanged (same multiset of values), its temporal structure is gone
-        ch = rng.choice(C, size=rng.integers(1, 3), replace=False)
+        ch = _pick(rng, C, 1, 3)
         for c in ch:
             x[:, c] = x[rng.permutation(T), c]
     elif kind == "desync":
@@ -324,7 +339,7 @@ def _inject(x: np.ndarray, kind: str, rng: np.random.Generator,
         # the marginal stays in-distribution, the cross-channel coupling breaks
         if donor is None:
             raise ValueError("desync needs a donor window")
-        ch = rng.choice(C, size=rng.integers(1, max(2, C // 4)), replace=False)
+        ch = _pick(rng, C, 1, max(2, C // 4))
         x[:, ch] = donor.reshape(T, C)[:, ch]
     else:
         raise KeyError(kind)
@@ -520,6 +535,24 @@ def make_rul_task(
     n_tr = int(n_units * train_units)
     tr_units, te_units = perm[:n_tr], perm[n_tr:]
 
+    # The test side is failure-observed only, so a uniform split can empty it
+    # on a fleet with GENUINE censoring (batteries, bearings: most units never
+    # reach end-of-life).  Repair by SWAPPING, not by re-drawing: a fleet whose
+    # uniform split already put a failure in the test set keeps exactly the
+    # split it had before, so every number measured under the old behaviour
+    # stays reproducible.  Only the degenerate case moves.
+    observed = lambda u: not fleet.censored[u]
+    rebalanced = 0
+    if any(observed(u) for u in range(n_units)) and not any(observed(u) for u in te_units):
+        # leave at least one failure on the training side — a train fleet with
+        # no uncensored unit has no anchor for the censored term
+        spare = [i for i, u in enumerate(tr_units) if observed(u)][1:]
+        censored_te = [j for j, u in enumerate(te_units) if not observed(u)]
+        for i, j in zip(spare, censored_te):
+            tr_units[i], te_units[j] = te_units[j].copy(), tr_units[i].copy()
+            rebalanced += 1
+            break
+
     std = Standardizer(per_regime=True).fit(fleet, tr_units)
     edges = np.linspace(0, cap, n_bins + 1)
 
@@ -574,7 +607,8 @@ def make_rul_task(
         channel_groups=fleet.channel_groups,
         meta={"train_units": len(tr_units), "test_units": len(te_units),
               "censored_units": int(sum(fleet.censored[u] for u in tr_units)),
-              "n_regimes": fleet.n_regimes, "seed": seed},
+              "n_regimes": fleet.n_regimes, "seed": seed,
+              "split_rebalanced": rebalanced},
         unit_train=torch.from_numpy(utr.astype(np.int64)),
         unit_test=torch.from_numpy(ute.astype(np.int64)),
         rul_train=torch.from_numpy(rawtr.astype(np.float32)),

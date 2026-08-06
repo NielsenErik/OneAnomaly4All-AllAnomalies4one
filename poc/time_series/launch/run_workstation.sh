@@ -24,6 +24,9 @@
 # Add FORCE=1 to redo completed runs.
 #
 # Tiers
+#   0  diagnostics + smoke, always, fatal        <- ~20 s; the checks that would
+#                                                   have caught all six silent
+#                                                   degeneracies.  Not skippable.
 #   1  real C-MAPSS detection + explanation      <- the credibility gap, and the
 #                                                   contribution.  Run this first.
 #   2  real C-MAPSS calibration + RUL            <- exact-vs-calibrated, prognosis
@@ -59,8 +62,22 @@ if [ -n "${BENCH_DEVICE:-}" ]; then
   echo "set DEVICE=... from the line above and re-launch."
 fi
 
-# ── tier 0: wiring check, always ───────────────────────────────────────────
-banner "tier 0 — smoke test (wiring only; these numbers mean nothing)"
+# ── tier 0: the pre-batch checks, always ───────────────────────────────────
+# Diagnostics BEFORE smoke, because they are the cheaper failure.  Every one of
+# the six silent degeneracies this project has paid for would have been caught
+# by a check of this shape, and 20 s here is against runs that take a night.
+# A failure means the batch would have produced numbers that look reasonable
+# and are wrong, so it is fatal on purpose — not a warning to scroll past.
+banner "tier 0a — diagnostic suites (metric / generator / model / structure validity)"
+"$PY" -m pytest tests/test_ad_diagnostics.py tests/test_rul_diagnostics.py \
+      tests/test_experiment_hygiene.py tests/test_datasets_catalog.py -q \
+      > "$CONSOLE_DIR/diagnostics_${STAMP}.log" 2>&1 \
+  && echo "diagnostics OK" \
+  || { echo "DIAGNOSTICS FAILED — see $CONSOLE_DIR/diagnostics_${STAMP}.log"; \
+       echo "an XPASS here is also a stop: an open item closed and the record is stale."; \
+       exit 1; }
+
+banner "tier 0b — smoke test (wiring only; these numbers mean nothing)"
 "$PY" -m poc.time_series.runner config/ts/smoke.yaml --device "$DEVICE" \
       --log-root "$OUT/smoke" --force $EXTRA \
       > "$CONSOLE_DIR/smoke_${STAMP}.log" 2>&1 \

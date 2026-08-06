@@ -315,7 +315,12 @@ def test_labeled_injection_can_be_layered_on_top(opssat_csv):
     task = build_ad_task(load_fleets(spec, seed=0), spec, seed=0)
     assert task.meta["injected_on_top"] is True
     assert {"spike", "offset", "drift", "decouple", "desync"} & set(task.kind_test)
-    assert task.meta["localisation_truth"] is True   # injected truth is per-channel
+    # ...but NOT localisation truth.  OPSSAT is univariate, so every injected
+    # window "affects" its only channel: the answer is a constant, and scoring
+    # attribution against it would report a constant as perfect.  Injection
+    # buys per-channel truth only where there are channels to choose between.
+    assert task.meta["localisation_truth"] is False
+    assert all(a == [0] for a in task.affected_test if a)
 
 
 def test_censoring_is_refused_on_telemetry(opssat_csv):
@@ -414,8 +419,12 @@ def test_pcoe_unknown_preset_is_rejected(pcoe_dir):
     ("opssat_csv", {"source": "opssat"}),
     ("smap_msl_dir", {"source": "smapmsl"}),
     ("phm08_dir", {"source": "phm08"}),
-    ("ims_dir", {"source": "ims"}),
-    ("pcoe_dir", {"source": "pcoe", "preset": "capacitor", "time_col": "time"}),
+    # cap must sit well below the shortest life or the health proxy calls
+    # every window degraded; these two fixtures are 40-60 steps long, against
+    # a source default sized for real runs
+    ("ims_dir", {"source": "ims", "cap": 15}),
+    ("pcoe_dir", {"source": "pcoe", "preset": "capacitor", "time_col": "time",
+                  "cap": 15}),
 ])
 def test_no_window_leaks_between_train_and_test(fixture_name, spec, request):
     """
