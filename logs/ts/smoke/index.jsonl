@@ -15,3 +15,6 @@
 {"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "failed", "wall_s": 2.5, "config_hash": "9d3d53fdd2e9", "finished": "2026-08-06T10:07:49"}
 {"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "failed", "wall_s": 2.5, "config_hash": "9d3d53fdd2e9", "finished": "2026-08-06T10:18:39"}
 {"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "failed", "wall_s": 2.5, "config_hash": "7cde01cb311d", "finished": "2026-08-06T10:58:13"}
+{"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "failed", "wall_s": 2.4, "config_hash": "9d3d53fdd2e9", "finished": "2026-08-06T14:48:38"}
+{"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 10.7, "config_hash": "b1595b7e9aa3", "finished": "2026-08-06T15:03:45"}
+{"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 10.4, "config_hash": "b1595b7e9aa3", "finished": "2026-08-06T15:04:16"}

@@ -1,0 +1,1101 @@
+==============================================================================
+ experiment: capacity_sweep   (config/ts/capacity_sweep.yaml)
+ K and leaf-components sweep at fixed structure/epochs on real C-MAPSS FD001.
+ output:     logs/ts/capacity_sweep
+==============================================================================
+
+12 variant(s) × 3 seed(s) = 36 run(s)
+
+  K-2_leaf_components-1                  dataset=cmapss:FD001     stages=ad
+  K-2_leaf_components-3                  dataset=cmapss:FD001     stages=ad
+  K-4_leaf_components-1                  dataset=cmapss:FD001     stages=ad
+  K-4_leaf_components-3                  dataset=cmapss:FD001     stages=ad
+  K-6_leaf_components-1                  dataset=cmapss:FD001     stages=ad
+  K-6_leaf_components-3                  dataset=cmapss:FD001     stages=ad
+  K-8_leaf_components-1                  dataset=cmapss:FD001     stages=ad
+  K-8_leaf_components-3                  dataset=cmapss:FD001     stages=ad
+  K-12_leaf_components-1                 dataset=cmapss:FD001     stages=ad
+  K-12_leaf_components-3                 dataset=cmapss:FD001     stages=ad
+  K-16_leaf_components-1                 dataset=cmapss:FD001     stages=ad
+  K-16_leaf_components-3                 dataset=cmapss:FD001     stages=ad
+
+
+>>> [1/36] K-2_leaf_components-1 · seed 0 · logs/ts/capacity_sweep/K-2_leaf_components-1/seed0
+[15:55:38] === run start · seed0 · seed 0 · hash 4b9047890e87 ===
+[15:55:38] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:55:38] --- stage: ad ---
+[15:55:39]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.6s)
+[15:55:39]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:55:39]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 32139.009
+    [pc] epoch   6  nll  178.960
+    [pc] epoch  12  nll  176.513
+    [pc] epoch  18  nll  177.847
+    [pc] epoch  24  nll  175.139
+    [pc] epoch  30  nll  176.006
+    [pc] epoch  36  nll  177.047
+    [pc] epoch  42  nll  181.149
+    [pc] epoch  48  nll  182.566
+[15:55:49]   pc_train_nll: first=32139.0090 last=179.1975 (50 epochs)
+[15:55:49]   pc: fit 10.0s · 1,428 params · score sd 59.724 · device cuda · layered · 26,386 win/s
+[15:55:51]   typed decomposition (mean worst-channel surprise):
+[15:55:51]        normal  n= 4001  marginal    27.05  conditional    27.02  structural    20.31
+[15:55:51]      decouple  n=  105  marginal    28.17  conditional    28.15  structural    19.69
+[15:55:51]        desync  n=  111  marginal    27.39  conditional    27.91  structural    18.40
+[15:55:51]         drift  n=  102  marginal 268005.12  conditional 268052.97  structural    57.01
+[15:55:51]        offset  n=  113  marginal 114334.22  conditional 114366.88  structural    42.30
+[15:55:51]       organic  n=   46  marginal   109.58  conditional   109.14  structural     0.11
+[15:55:51]         spike  n=  130  marginal  9389.66  conditional  9393.91  structural    21.11
+[15:55:51] --- stage ad done in 13.1s ---
+[15:55:51] === run ok · 13.1s · peak RSS 1.567 GB ===
+
+>>> [2/36] K-2_leaf_components-1 · seed 1 · logs/ts/capacity_sweep/K-2_leaf_components-1/seed1 · mean 0.2 min/run · ETA 8 min for the remaining 35
+[15:55:51] === run start · seed1 · seed 1 · hash 4b9047890e87 ===
+[15:55:51] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:55:51] --- stage: ad ---
+[15:55:51]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:55:51]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:55:51]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 32992.065
+    [pc] epoch   6  nll  175.428
+    [pc] epoch  12  nll  178.447
+    [pc] epoch  18  nll  175.378
+    [pc] epoch  24  nll  175.057
+    [pc] epoch  30  nll  178.623
+    [pc] epoch  36  nll  178.027
+    [pc] epoch  42  nll  175.970
+    [pc] epoch  48  nll  175.682
+[15:56:00]   pc_train_nll: first=32992.0648 last=177.0961 (50 epochs)
+[15:56:00]   pc: fit 9.2s · 1,428 params · score sd 57.577 · device cuda · layered · 28,661 win/s
+[15:56:03]   typed decomposition (mean worst-channel surprise):
+[15:56:03]        normal  n= 4042  marginal    26.86  conditional    26.73  structural    15.23
+[15:56:03]      decouple  n=  102  marginal    26.65  conditional    26.52  structural     9.86
+[15:56:03]        desync  n=  102  marginal    28.43  conditional    28.29  structural    11.17
+[15:56:03]         drift  n=  102  marginal 293426.97  conditional 293468.91  structural    47.96
+[15:56:03]        offset  n=  103  marginal 89386.79  conditional 89419.55  structural    42.74
+[15:56:03]       organic  n=   46  marginal   108.09  conditional   107.52  structural     0.06
+[15:56:03]         spike  n=  111  marginal 14042.36  conditional 14046.42  structural    19.88
+[15:56:03] --- stage ad done in 11.8s ---
+[15:56:03] === run ok · 11.8s · peak RSS 1.572 GB ===
+
+>>> [3/36] K-2_leaf_components-1 · seed 2 · logs/ts/capacity_sweep/K-2_leaf_components-1/seed2 · mean 0.2 min/run · ETA 7 min for the remaining 34
+[15:56:03] === run start · seed2 · seed 2 · hash 4b9047890e87 ===
+[15:56:03] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:56:03] --- stage: ad ---
+[15:56:03]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:56:03]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:56:03]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 33506.352
+    [pc] epoch   6  nll  176.692
+    [pc] epoch  12  nll  176.196
+    [pc] epoch  18  nll  174.265
+    [pc] epoch  24  nll  174.976
+    [pc] epoch  30  nll  179.590
+    [pc] epoch  36  nll  174.755
+    [pc] epoch  42  nll  180.873
+    [pc] epoch  48  nll  180.284
+[15:56:12]   pc_train_nll: first=33506.3525 last=183.7585 (50 epochs)
+[15:56:12]   pc: fit 9.3s · 1,428 params · score sd 61.044 · device cuda · layered · 28,593 win/s
+[15:56:15]   typed decomposition (mean worst-channel surprise):
+[15:56:15]        normal  n= 4025  marginal    27.07  conditional    27.07  structural    21.05
+[15:56:15]      decouple  n=   94  marginal    27.45  conditional    27.34  structural    23.24
+[15:56:15]        desync  n=  125  marginal    27.84  conditional    28.05  structural    14.80
+[15:56:15]         drift  n=  102  marginal 280607.34  conditional 280648.34  structural    51.31
+[15:56:15]        offset  n=  105  marginal 170389.77  conditional 170432.70  structural    53.40
+[15:56:15]       organic  n=   46  marginal   113.49  conditional   113.05  structural     0.13
+[15:56:15]         spike  n=  111  marginal 12160.49  conditional 12164.28  structural    20.93
+[15:56:15] --- stage ad done in 11.8s ---
+[15:56:15] === run ok · 11.8s · peak RSS 1.577 GB ===
+
+>>> [4/36] K-2_leaf_components-3 · seed 0 · logs/ts/capacity_sweep/K-2_leaf_components-3/seed0 · mean 0.2 min/run · ETA 7 min for the remaining 33
+[15:56:15] === run start · seed0 · seed 0 · hash f4cda6cd5f0f ===
+[15:56:15] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:56:15] --- stage: ad ---
+[15:56:15]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:56:15]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:56:15]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  256.717
+    [pc] epoch   6  nll  132.192
+    [pc] epoch  12  nll  126.517
+    [pc] epoch  18  nll  124.724
+    [pc] epoch  24  nll  124.544
+    [pc] epoch  30  nll  129.256
+    [pc] epoch  36  nll  131.366
+    [pc] epoch  42  nll  132.468
+    [pc] epoch  48  nll  138.935
+[15:56:25]   pc_train_nll: first=256.7166 last=134.2287 (50 epochs)
+[15:56:25]   pc: fit 9.9s · 5,628 params · score sd 31.725 · device cuda · layered · 26,716 win/s
+[15:56:27]   typed decomposition (mean worst-channel surprise):
+[15:56:27]        normal  n= 4001  marginal    24.17  conditional    24.70  structural     7.17
+[15:56:27]      decouple  n=  105  marginal    25.20  conditional    25.65  structural     6.48
+[15:56:27]        desync  n=  111  marginal    23.72  conditional    32.97  structural    18.52
+[15:56:27]         drift  n=  102  marginal   294.11  conditional   345.37  structural    75.49
+[15:56:27]        offset  n=  113  marginal   185.59  conditional   223.79  structural    64.78
+[15:56:27]       organic  n=   46  marginal   123.59  conditional   137.46  structural    32.66
+[15:56:27]         spike  n=  130  marginal    57.68  conditional    60.59  structural     9.60
+[15:56:27] --- stage ad done in 12.4s ---
+[15:56:27] === run ok · 12.5s · peak RSS 1.577 GB ===
+
+>>> [5/36] K-2_leaf_components-3 · seed 1 · logs/ts/capacity_sweep/K-2_leaf_components-3/seed1 · mean 0.2 min/run · ETA 7 min for the remaining 32
+[15:56:27] === run start · seed1 · seed 1 · hash f4cda6cd5f0f ===
+[15:56:27] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:56:27] --- stage: ad ---
+[15:56:27]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:56:27]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:56:27]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  258.461
+    [pc] epoch   6  nll  134.557
+    [pc] epoch  12  nll  128.369
+    [pc] epoch  18  nll  125.681
+    [pc] epoch  24  nll  127.473
+    [pc] epoch  30  nll  124.196
+    [pc] epoch  36  nll  135.814
+    [pc] epoch  42  nll  146.344
+    [pc] epoch  48  nll  135.401
+[15:56:37]   pc_train_nll: first=258.4614 last=139.5233 (50 epochs)
+[15:56:37]   pc: fit 9.9s · 5,628 params · score sd 33.581 · device cuda · layered · 26,678 win/s
+[15:56:40]   typed decomposition (mean worst-channel surprise):
+[15:56:40]        normal  n= 4042  marginal    24.33  conditional    24.68  structural     7.69
+[15:56:40]      decouple  n=  102  marginal    24.23  conditional    24.69  structural     7.02
+[15:56:40]        desync  n=  102  marginal    24.87  conditional    35.16  structural    19.18
+[15:56:40]         drift  n=  102  marginal   298.72  conditional   355.09  structural    71.23
+[15:56:40]        offset  n=  103  marginal   179.88  conditional   218.00  structural    61.98
+[15:56:40]       organic  n=   46  marginal   124.34  conditional   137.09  structural    32.96
+[15:56:40]         spike  n=  111  marginal    59.23  conditional    62.71  structural    11.14
+[15:56:40] --- stage ad done in 12.5s ---
+[15:56:40] === run ok · 12.5s · peak RSS 1.577 GB ===
+
+>>> [6/36] K-2_leaf_components-3 · seed 2 · logs/ts/capacity_sweep/K-2_leaf_components-3/seed2 · mean 0.2 min/run · ETA 6 min for the remaining 31
+[15:56:40] === run start · seed2 · seed 2 · hash f4cda6cd5f0f ===
+[15:56:40] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:56:40] --- stage: ad ---
+[15:56:40]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:56:40]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:56:40]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  258.689
+    [pc] epoch   6  nll  132.475
+    [pc] epoch  12  nll  126.844
+    [pc] epoch  18  nll  125.361
+    [pc] epoch  24  nll  126.246
+    [pc] epoch  30  nll  126.776
+    [pc] epoch  36  nll  127.636
+    [pc] epoch  42  nll  131.915
+    [pc] epoch  48  nll  143.336
+[15:56:50]   pc_train_nll: first=258.6891 last=151.3362 (50 epochs)
+[15:56:50]   pc: fit 9.9s · 5,628 params · score sd 35.749 · device cuda · layered · 26,640 win/s
+[15:56:52]   typed decomposition (mean worst-channel surprise):
+[15:56:52]        normal  n= 4025  marginal    24.26  conditional    24.81  structural    11.42
+[15:56:52]      decouple  n=   94  marginal    24.19  conditional    24.44  structural    12.21
+[15:56:52]        desync  n=  125  marginal    24.06  conditional    32.61  structural    19.66
+[15:56:52]         drift  n=  102  marginal   284.56  conditional   310.98  structural    42.03
+[15:56:52]        offset  n=  105  marginal   222.98  conditional   253.82  structural    58.86
+[15:56:52]       organic  n=   46  marginal   124.76  conditional   135.08  structural    34.15
+[15:56:52]         spike  n=  111  marginal    57.49  conditional    61.49  structural    13.33
+[15:56:52] --- stage ad done in 12.5s ---
+[15:56:52] === run ok · 12.5s · peak RSS 1.577 GB ===
+
+>>> [7/36] K-4_leaf_components-1 · seed 0 · logs/ts/capacity_sweep/K-4_leaf_components-1/seed0 · mean 0.2 min/run · ETA 6 min for the remaining 30
+[15:56:52] === run start · seed0 · seed 0 · hash b5078816342c ===
+[15:56:52] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:56:52] --- stage: ad ---
+[15:56:52]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:56:52]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:56:52]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 31235.654
+    [pc] epoch   6  nll  173.842
+    [pc] epoch  12  nll  172.267
+    [pc] epoch  18  nll  173.171
+    [pc] epoch  24  nll  176.552
+    [pc] epoch  30  nll  170.652
+    [pc] epoch  36  nll  176.549
+    [pc] epoch  42  nll  174.327
+    [pc] epoch  48  nll  179.589
+[15:57:03]   pc_train_nll: first=31235.6540 last=182.9838 (50 epochs)
+[15:57:03]   pc: fit 11.3s · 3,888 params · score sd 61.123 · device cuda · layered · 23,430 win/s
+[15:57:06]   typed decomposition (mean worst-channel surprise):
+[15:57:06]        normal  n= 4001  marginal    27.33  conditional    27.29  structural    21.16
+[15:57:06]      decouple  n=  105  marginal    28.52  conditional    28.46  structural    20.65
+[15:57:06]        desync  n=  111  marginal    27.66  conditional    28.10  structural    19.24
+[15:57:06]         drift  n=  102  marginal 156632.45  conditional 156688.56  structural    65.27
+[15:57:06]        offset  n=  113  marginal 68501.42  conditional 68536.09  structural    45.03
+[15:57:06]       organic  n=   46  marginal   110.36  conditional   109.90  structural    13.71
+[15:57:06]         spike  n=  130  marginal  9354.22  conditional  9359.74  structural    23.11
+[15:57:06] --- stage ad done in 13.8s ---
+[15:57:06] === run ok · 13.9s · peak RSS 1.58 GB ===
+
+>>> [8/36] K-4_leaf_components-1 · seed 1 · logs/ts/capacity_sweep/K-4_leaf_components-1/seed1 · mean 0.2 min/run · ETA 6 min for the remaining 29
+[15:57:06] === run start · seed1 · seed 1 · hash b5078816342c ===
+[15:57:06] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:57:06] --- stage: ad ---
+[15:57:06]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:57:06]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:57:06]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 32300.685
+    [pc] epoch   6  nll  172.658
+    [pc] epoch  12  nll  172.684
+    [pc] epoch  18  nll  179.178
+    [pc] epoch  24  nll  180.782
+    [pc] epoch  30  nll  175.756
+    [pc] epoch  36  nll  175.987
+    [pc] epoch  42  nll  179.406
+    [pc] epoch  48  nll  176.668
+[15:57:17]   pc_train_nll: first=32300.6849 last=178.3045 (50 epochs)
+[15:57:17]   pc: fit 11.2s · 3,888 params · score sd 57.807 · device cuda · layered · 23,537 win/s
+[15:57:20]   typed decomposition (mean worst-channel surprise):
+[15:57:20]        normal  n= 4042  marginal    26.88  conditional    26.74  structural    15.20
+[15:57:20]      decouple  n=  102  marginal    26.63  conditional    26.51  structural    10.10
+[15:57:20]        desync  n=  102  marginal    28.44  conditional    28.30  structural    11.40
+[15:57:20]         drift  n=  102  marginal 196766.83  conditional 196815.05  structural    53.88
+[15:57:20]        offset  n=  103  marginal 61564.34  conditional 61586.54  structural    32.57
+[15:57:20]       organic  n=   46  marginal   108.55  conditional   108.00  structural    26.44
+[15:57:20]         spike  n=  111  marginal 14707.49  conditional 14711.87  structural    20.29
+[15:57:20] --- stage ad done in 13.8s ---
+[15:57:20] === run ok · 13.8s · peak RSS 1.58 GB ===
+
+>>> [9/36] K-4_leaf_components-1 · seed 2 · logs/ts/capacity_sweep/K-4_leaf_components-1/seed2 · mean 0.2 min/run · ETA 6 min for the remaining 28
+[15:57:20] === run start · seed2 · seed 2 · hash b5078816342c ===
+[15:57:20] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:57:20] --- stage: ad ---
+[15:57:20]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:57:20]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:57:20]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 32028.111
+    [pc] epoch   6  nll  176.074
+    [pc] epoch  12  nll  175.232
+    [pc] epoch  18  nll  179.702
+    [pc] epoch  24  nll  178.621
+    [pc] epoch  30  nll  178.231
+    [pc] epoch  36  nll  182.200
+    [pc] epoch  42  nll  177.291
+    [pc] epoch  48  nll  182.695
+[15:57:31]   pc_train_nll: first=32028.1114 last=185.7294 (50 epochs)
+[15:57:31]   pc: fit 11.2s · 3,888 params · score sd 61.214 · device cuda · layered · 23,564 win/s
+[15:57:33]   typed decomposition (mean worst-channel surprise):
+[15:57:33]        normal  n= 4025  marginal    27.15  conditional    27.03  structural    19.01
+[15:57:33]      decouple  n=   94  marginal    27.53  conditional    27.36  structural    20.89
+[15:57:33]        desync  n=  125  marginal    27.86  conditional    28.02  structural    13.24
+[15:57:33]         drift  n=  102  marginal 164814.77  conditional 164848.94  structural    43.69
+[15:57:33]        offset  n=  105  marginal 104603.03  conditional 104654.95  structural    59.86
+[15:57:33]       organic  n=   46  marginal   112.25  conditional   111.71  structural    16.91
+[15:57:33]         spike  n=  111  marginal 11949.16  conditional 11952.95  structural    19.24
+[15:57:33] --- stage ad done in 13.7s ---
+[15:57:33] === run ok · 13.7s · peak RSS 1.58 GB ===
+
+>>> [10/36] K-4_leaf_components-3 · seed 0 · logs/ts/capacity_sweep/K-4_leaf_components-3/seed0 · mean 0.2 min/run · ETA 6 min for the remaining 27
+[15:57:33] === run start · seed0 · seed 0 · hash bae4b315bd16 ===
+[15:57:33] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:57:33] --- stage: ad ---
+[15:57:33]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:57:33]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:57:33]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  247.725
+    [pc] epoch   6  nll  115.904
+    [pc] epoch  12  nll  109.381
+    [pc] epoch  18  nll  108.021
+    [pc] epoch  24  nll  109.694
+    [pc] epoch  30  nll  123.886
+    [pc] epoch  36  nll  126.439
+    [pc] epoch  42  nll  123.247
+    [pc] epoch  48  nll  111.633
+[15:57:42]   pc_train_nll: first=247.7253 last=112.6503 (50 epochs)
+[15:57:42]   pc: fit 9.0s · 12,288 params · score sd 27.273 · device cuda · layered · 29,520 win/s
+[15:57:45]   typed decomposition (mean worst-channel surprise):
+[15:57:45]        normal  n= 4001  marginal    23.71  conditional    24.28  structural    13.17
+[15:57:45]      decouple  n=  105  marginal    24.56  conditional    24.97  structural    12.96
+[15:57:45]        desync  n=  111  marginal    23.35  conditional    32.80  structural    22.75
+[15:57:45]         drift  n=  102  marginal   269.73  conditional   333.33  structural    84.82
+[15:57:45]        offset  n=  113  marginal   173.76  conditional   223.27  structural    74.67
+[15:57:45]       organic  n=   46  marginal   114.99  conditional   137.51  structural    54.51
+[15:57:45]         spike  n=  130  marginal    53.96  conditional    60.18  structural    16.45
+[15:57:45] --- stage ad done in 11.5s ---
+[15:57:45] === run ok · 11.5s · peak RSS 1.58 GB ===
+
+>>> [11/36] K-4_leaf_components-3 · seed 1 · logs/ts/capacity_sweep/K-4_leaf_components-3/seed1 · mean 0.2 min/run · ETA 6 min for the remaining 26
+[15:57:45] === run start · seed1 · seed 1 · hash bae4b315bd16 ===
+[15:57:45] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:57:45] --- stage: ad ---
+[15:57:45]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:57:45]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:57:45]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  248.044
+    [pc] epoch   6  nll  114.213
+    [pc] epoch  12  nll  104.756
+    [pc] epoch  18  nll  100.537
+    [pc] epoch  24  nll  110.969
+    [pc] epoch  30  nll  112.897
+    [pc] epoch  36  nll  117.773
+    [pc] epoch  42  nll  112.010
+    [pc] epoch  48  nll  111.815
+[15:57:58]   pc_train_nll: first=248.0437 last=109.4871 (50 epochs)
+[15:57:58]   pc: fit 12.7s · 12,288 params · score sd 29.492 · device cuda · layered · 20,814 win/s
+[15:58:00]   typed decomposition (mean worst-channel surprise):
+[15:58:00]        normal  n= 4042  marginal    23.55  conditional    23.97  structural     9.41
+[15:58:00]      decouple  n=  102  marginal    23.47  conditional    24.00  structural    10.34
+[15:58:00]        desync  n=  102  marginal    24.03  conditional    34.69  structural    20.19
+[15:58:00]         drift  n=  102  marginal   261.31  conditional   328.35  structural    84.54
+[15:58:00]        offset  n=  103  marginal   167.76  conditional   217.39  structural    74.47
+[15:58:00]       organic  n=   46  marginal   116.78  conditional   139.09  structural    54.97
+[15:58:00]         spike  n=  111  marginal    56.61  conditional    62.79  structural    15.59
+[15:58:00] --- stage ad done in 15.2s ---
+[15:58:00] === run ok · 15.2s · peak RSS 1.58 GB ===
+
+>>> [12/36] K-4_leaf_components-3 · seed 2 · logs/ts/capacity_sweep/K-4_leaf_components-3/seed2 · mean 0.2 min/run · ETA 5 min for the remaining 25
+[15:58:00] === run start · seed2 · seed 2 · hash bae4b315bd16 ===
+[15:58:00] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:58:00] --- stage: ad ---
+[15:58:00]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:58:00]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:58:00]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  249.551
+    [pc] epoch   6  nll  114.127
+    [pc] epoch  12  nll  108.369
+    [pc] epoch  18  nll  110.010
+    [pc] epoch  24  nll  109.504
+    [pc] epoch  30  nll  112.997
+    [pc] epoch  36  nll  115.678
+    [pc] epoch  42  nll  126.119
+    [pc] epoch  48  nll  121.393
+[15:58:13]   pc_train_nll: first=249.5514 last=127.1872 (50 epochs)
+[15:58:13]   pc: fit 12.6s · 12,288 params · score sd 29.680 · device cuda · layered · 21,003 win/s
+[15:58:15]   typed decomposition (mean worst-channel surprise):
+[15:58:15]        normal  n= 4025  marginal    23.82  conditional    24.31  structural     7.51
+[15:58:15]      decouple  n=   94  marginal    23.78  conditional    23.53  structural     6.51
+[15:58:15]        desync  n=  125  marginal    23.60  conditional    34.16  structural    18.53
+[15:58:15]         drift  n=  102  marginal   249.51  conditional   297.49  structural    61.99
+[15:58:15]        offset  n=  105  marginal   207.88  conditional   253.92  structural    75.70
+[15:58:15]       organic  n=   46  marginal   122.32  conditional   138.85  structural    49.32
+[15:58:15]         spike  n=  111  marginal    55.55  conditional    60.20  structural    10.71
+[15:58:15] --- stage ad done in 15.1s ---
+[15:58:15] === run ok · 15.2s · peak RSS 1.58 GB ===
+
+>>> [13/36] K-6_leaf_components-1 · seed 0 · logs/ts/capacity_sweep/K-6_leaf_components-1/seed0 · mean 0.2 min/run · ETA 5 min for the remaining 24
+[15:58:15] === run start · seed0 · seed 0 · hash 993d699adf48 ===
+[15:58:15] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:58:15] --- stage: ad ---
+[15:58:15]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:58:15]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:58:15]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 30937.996
+    [pc] epoch   6  nll  171.866
+    [pc] epoch  12  nll  170.909
+    [pc] epoch  18  nll  170.130
+    [pc] epoch  24  nll  176.733
+    [pc] epoch  30  nll  178.518
+    [pc] epoch  36  nll  178.845
+    [pc] epoch  42  nll  178.520
+    [pc] epoch  48  nll  179.907
+[15:58:29]   pc_train_nll: first=30937.9963 last=177.8831 (50 epochs)
+[15:58:29]   pc: fit 13.4s · 8,244 params · score sd 59.328 · device cuda · layered · 19,773 win/s
+[15:58:31]   typed decomposition (mean worst-channel surprise):
+[15:58:31]        normal  n= 4001  marginal    27.15  conditional    27.07  structural    20.90
+[15:58:31]      decouple  n=  105  marginal    28.19  conditional    28.09  structural    20.43
+[15:58:31]        desync  n=  111  marginal    27.46  conditional    27.86  structural    18.72
+[15:58:31]         drift  n=  102  marginal 146396.12  conditional 146428.78  structural    42.15
+[15:58:31]        offset  n=  113  marginal 64883.23  conditional 64910.82  structural    37.74
+[15:58:31]       organic  n=   46  marginal   107.57  conditional   107.07  structural    11.29
+[15:58:31]         spike  n=  130  marginal  9231.22  conditional  9236.19  structural    22.37
+[15:58:31] --- stage ad done in 16.2s ---
+[15:58:31] === run ok · 16.2s · peak RSS 1.586 GB ===
+
+>>> [14/36] K-6_leaf_components-1 · seed 1 · logs/ts/capacity_sweep/K-6_leaf_components-1/seed1 · mean 0.2 min/run · ETA 5 min for the remaining 23
+[15:58:31] === run start · seed1 · seed 1 · hash 993d699adf48 ===
+[15:58:31] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:58:31] --- stage: ad ---
+[15:58:32]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:58:32]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:58:32]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 31926.827
+    [pc] epoch   6  nll  172.644
+    [pc] epoch  12  nll  169.635
+    [pc] epoch  18  nll  177.902
+    [pc] epoch  24  nll  176.283
+    [pc] epoch  30  nll  176.005
+    [pc] epoch  36  nll  175.547
+    [pc] epoch  42  nll  175.860
+    [pc] epoch  48  nll  181.343
+[15:58:45]   pc_train_nll: first=31926.8269 last=195.3974 (50 epochs)
+[15:58:45]   pc: fit 13.5s · 8,244 params · score sd 60.120 · device cuda · layered · 19,663 win/s
+[15:58:48]   typed decomposition (mean worst-channel surprise):
+[15:58:48]        normal  n= 4042  marginal    27.09  conditional    27.06  structural    15.68
+[15:58:48]      decouple  n=  102  marginal    26.89  conditional    26.81  structural    10.12
+[15:58:48]        desync  n=  102  marginal    28.82  conditional    28.69  structural    11.85
+[15:58:48]         drift  n=  102  marginal 162754.92  conditional 162787.88  structural    38.81
+[15:58:48]        offset  n=  103  marginal 49959.09  conditional 49977.18  structural    29.83
+[15:58:48]       organic  n=   46  marginal   112.22  conditional   111.70  structural    25.86
+[15:58:48]         spike  n=  111  marginal 14013.67  conditional 14018.60  structural    21.00
+[15:58:48] --- stage ad done in 16.3s ---
+[15:58:48] === run ok · 16.3s · peak RSS 1.587 GB ===
+
+>>> [15/36] K-6_leaf_components-1 · seed 2 · logs/ts/capacity_sweep/K-6_leaf_components-1/seed2 · mean 0.2 min/run · ETA 5 min for the remaining 22
+[15:58:48] === run start · seed2 · seed 2 · hash 993d699adf48 ===
+[15:58:48] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:58:48] --- stage: ad ---
+[15:58:48]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:58:48]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:58:48]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 32010.972
+    [pc] epoch   6  nll  180.069
+    [pc] epoch  12  nll  178.575
+    [pc] epoch  18  nll  175.222
+    [pc] epoch  24  nll  177.505
+    [pc] epoch  30  nll  177.227
+    [pc] epoch  36  nll  177.779
+    [pc] epoch  42  nll  175.699
+    [pc] epoch  48  nll  176.145
+[15:59:01]   pc_train_nll: first=32010.9723 last=173.0920 (50 epochs)
+[15:59:01]   pc: fit 13.4s · 8,244 params · score sd 61.148 · device cuda · layered · 19,734 win/s
+[15:59:04]   typed decomposition (mean worst-channel surprise):
+[15:59:04]        normal  n= 4025  marginal    27.10  conditional    26.99  structural    19.67
+[15:59:04]      decouple  n=   94  marginal    27.48  conditional    27.32  structural    21.53
+[15:59:04]        desync  n=  125  marginal    27.88  conditional    28.04  structural    13.77
+[15:59:04]         drift  n=  102  marginal 163286.70  conditional 163315.69  structural    39.07
+[15:59:04]        offset  n=  105  marginal 98042.90  conditional 98078.27  structural    43.44
+[15:59:04]       organic  n=   46  marginal   113.67  conditional   113.17  structural    22.90
+[15:59:04]         spike  n=  111  marginal 11992.31  conditional 11996.85  structural    20.57
+[15:59:04] --- stage ad done in 16.2s ---
+[15:59:04] === run ok · 16.2s · peak RSS 1.592 GB ===
+
+>>> [16/36] K-6_leaf_components-3 · seed 0 · logs/ts/capacity_sweep/K-6_leaf_components-3/seed0 · mean 0.2 min/run · ETA 5 min for the remaining 21
+[15:59:04] === run start · seed0 · seed 0 · hash 7484e1ec99f6 ===
+[15:59:04] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:59:04] --- stage: ad ---
+[15:59:04]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:59:04]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:59:04]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  244.815
+    [pc] epoch   6  nll  112.927
+    [pc] epoch  12  nll  104.361
+    [pc] epoch  18  nll  104.015
+    [pc] epoch  24  nll  105.526
+    [pc] epoch  30  nll  111.256
+    [pc] epoch  36  nll  114.486
+    [pc] epoch  42  nll  107.092
+    [pc] epoch  48  nll  113.776
+[15:59:19]   pc_train_nll: first=244.8147 last=114.2659 (50 epochs)
+[15:59:20]   pc: fit 15.4s · 20,844 params · score sd 27.939 · device cuda · layered · 17,153 win/s
+[15:59:22]   typed decomposition (mean worst-channel surprise):
+[15:59:22]        normal  n= 4001  marginal    23.80  conditional    24.43  structural     9.88
+[15:59:22]      decouple  n=  105  marginal    24.72  conditional    25.03  structural     9.43
+[15:59:22]        desync  n=  111  marginal    23.49  conditional    32.49  structural    19.88
+[15:59:22]         drift  n=  102  marginal   256.46  conditional   307.53  structural    71.30
+[15:59:22]        offset  n=  113  marginal   171.86  conditional   212.34  structural    65.05
+[15:59:22]       organic  n=   46  marginal   118.28  conditional   132.51  structural    53.57
+[15:59:22]         spike  n=  130  marginal    53.50  conditional    58.79  structural    13.33
+[15:59:22] --- stage ad done in 18.3s ---
+[15:59:22] === run ok · 18.3s · peak RSS 1.592 GB ===
+
+>>> [17/36] K-6_leaf_components-3 · seed 1 · logs/ts/capacity_sweep/K-6_leaf_components-3/seed1 · mean 0.2 min/run · ETA 5 min for the remaining 20
+[15:59:22] === run start · seed1 · seed 1 · hash 7484e1ec99f6 ===
+[15:59:22] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:59:22] --- stage: ad ---
+[15:59:22]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:59:22]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:59:22]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  245.625
+    [pc] epoch   6  nll  110.574
+    [pc] epoch  12  nll  102.054
+    [pc] epoch  18  nll  101.398
+    [pc] epoch  24  nll  105.901
+    [pc] epoch  30  nll  113.506
+    [pc] epoch  36  nll  123.588
+    [pc] epoch  42  nll  105.655
+    [pc] epoch  48  nll  103.641
+[15:59:38]   pc_train_nll: first=245.6249 last=102.6491 (50 epochs)
+[15:59:38]   pc: fit 15.2s · 20,844 params · score sd 26.870 · device cuda · layered · 17,369 win/s
+[15:59:40]   typed decomposition (mean worst-channel surprise):
+[15:59:40]        normal  n= 4042  marginal    23.61  conditional    24.29  structural     6.47
+[15:59:40]      decouple  n=  102  marginal    23.61  conditional    24.76  structural     6.99
+[15:59:40]        desync  n=  102  marginal    24.22  conditional    36.05  structural    19.89
+[15:59:40]         drift  n=  102  marginal   255.02  conditional   316.14  structural    76.22
+[15:59:40]        offset  n=  103  marginal   158.51  conditional   202.40  structural    67.39
+[15:59:40]       organic  n=   46  marginal   116.56  conditional   130.62  structural    56.88
+[15:59:40]         spike  n=  111  marginal    54.49  conditional    60.49  structural    12.76
+[15:59:40] --- stage ad done in 18.1s ---
+[15:59:40] === run ok · 18.1s · peak RSS 1.592 GB ===
+
+>>> [18/36] K-6_leaf_components-3 · seed 2 · logs/ts/capacity_sweep/K-6_leaf_components-3/seed2 · mean 0.2 min/run · ETA 5 min for the remaining 19
+[15:59:40] === run start · seed2 · seed 2 · hash 7484e1ec99f6 ===
+[15:59:40] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:59:40] --- stage: ad ---
+[15:59:40]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:59:40]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:59:40]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  246.205
+    [pc] epoch   6  nll  111.475
+    [pc] epoch  12  nll  104.443
+    [pc] epoch  18  nll  110.316
+    [pc] epoch  24  nll  114.693
+    [pc] epoch  30  nll  116.193
+    [pc] epoch  36  nll  120.920
+    [pc] epoch  42  nll  113.173
+    [pc] epoch  48  nll  112.435
+[15:59:56]   pc_train_nll: first=246.2054 last=113.7160 (50 epochs)
+[15:59:56]   pc: fit 15.4s · 20,844 params · score sd 28.436 · device cuda · layered · 17,173 win/s
+[15:59:59]   typed decomposition (mean worst-channel surprise):
+[15:59:59]        normal  n= 4025  marginal    23.65  conditional    24.09  structural    12.76
+[15:59:59]      decouple  n=   94  marginal    23.63  conditional    23.53  structural    13.08
+[15:59:59]        desync  n=  125  marginal    23.36  conditional    35.20  structural    22.87
+[15:59:59]         drift  n=  102  marginal   242.11  conditional   291.12  structural    64.39
+[15:59:59]        offset  n=  105  marginal   194.20  conditional   243.59  structural    77.58
+[15:59:59]       organic  n=   46  marginal   119.17  conditional   133.82  structural    57.76
+[15:59:59]         spike  n=  111  marginal    53.57  conditional    60.19  structural    16.78
+[15:59:59] --- stage ad done in 18.3s ---
+[15:59:59] === run ok · 18.3s · peak RSS 1.592 GB ===
+
+>>> [19/36] K-8_leaf_components-1 · seed 0 · logs/ts/capacity_sweep/K-8_leaf_components-1/seed0 · mean 0.2 min/run · ETA 4 min for the remaining 18
+[15:59:59] === run start · seed0 · seed 0 · hash 2a90e0bd4464 ===
+[15:59:59] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:59:59] --- stage: ad ---
+[15:59:59]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:59:59]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:59:59]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 30881.114
+    [pc] epoch   6  nll  174.734
+    [pc] epoch  12  nll  175.442
+    [pc] epoch  18  nll  186.927
+    [pc] epoch  24  nll  176.242
+    [pc] epoch  30  nll  175.419
+    [pc] epoch  36  nll  177.398
+    [pc] epoch  42  nll  173.919
+    [pc] epoch  48  nll  174.199
+[16:00:14]   pc_train_nll: first=30881.1138 last=180.7326 (50 epochs)
+[16:00:14]   pc: fit 15.5s · 15,360 params · score sd 62.576 · device cuda · layered · 17,040 win/s
+[16:00:17]   typed decomposition (mean worst-channel surprise):
+[16:00:17]        normal  n= 4001  marginal    27.30  conditional    27.36  structural    21.56
+[16:00:17]      decouple  n=  105  marginal    28.33  conditional    28.32  structural    21.76
+[16:00:17]        desync  n=  111  marginal    27.64  conditional    28.14  structural    19.09
+[16:00:17]         drift  n=  102  marginal 144390.61  conditional 144424.56  structural    44.74
+[16:00:17]        offset  n=  113  marginal 63718.75  conditional 63745.27  structural    38.19
+[16:00:17]       organic  n=   46  marginal   115.41  conditional   115.48  structural    33.58
+[16:00:17]         spike  n=  130  marginal  9152.30  conditional  9157.38  structural    23.19
+[16:00:17] --- stage ad done in 18.4s ---
+[16:00:17] === run ok · 18.4s · peak RSS 1.599 GB ===
+
+>>> [20/36] K-8_leaf_components-1 · seed 1 · logs/ts/capacity_sweep/K-8_leaf_components-1/seed1 · mean 0.2 min/run · ETA 4 min for the remaining 17
+[16:00:17] === run start · seed1 · seed 1 · hash 2a90e0bd4464 ===
+[16:00:17] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:00:17] --- stage: ad ---
+[16:00:17]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:00:17]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:00:17]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 31888.978
+    [pc] epoch   6  nll  174.880
+    [pc] epoch  12  nll  178.318
+    [pc] epoch  18  nll  172.699
+    [pc] epoch  24  nll  172.757
+    [pc] epoch  30  nll  179.532
+    [pc] epoch  36  nll  175.577
+    [pc] epoch  42  nll  174.201
+    [pc] epoch  48  nll  173.432
+[16:00:33]   pc_train_nll: first=31888.9779 last=180.3254 (50 epochs)
+[16:00:33]   pc: fit 15.8s · 15,360 params · score sd 59.588 · device cuda · layered · 16,713 win/s
+[16:00:35]   typed decomposition (mean worst-channel surprise):
+[16:00:35]        normal  n= 4042  marginal    26.97  conditional    26.84  structural    15.33
+[16:00:35]      decouple  n=  102  marginal    26.88  conditional    26.77  structural    10.15
+[16:00:35]        desync  n=  102  marginal    28.61  conditional    28.49  structural    11.53
+[16:00:35]         drift  n=  102  marginal 159967.39  conditional 159999.20  structural    37.55
+[16:00:35]        offset  n=  103  marginal 48878.38  conditional 48899.98  structural    33.08
+[16:00:35]       organic  n=   46  marginal   112.06  conditional   111.58  structural    37.29
+[16:00:35]         spike  n=  111  marginal 13707.75  conditional 13712.95  structural    20.87
+[16:00:35] --- stage ad done in 18.4s ---
+[16:00:36] === run ok · 18.4s · peak RSS 1.602 GB ===
+
+>>> [21/36] K-8_leaf_components-1 · seed 2 · logs/ts/capacity_sweep/K-8_leaf_components-1/seed2 · mean 0.2 min/run · ETA 4 min for the remaining 16
+[16:00:36] === run start · seed2 · seed 2 · hash 2a90e0bd4464 ===
+[16:00:36] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:00:36] --- stage: ad ---
+[16:00:36]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:00:36]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:00:36]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 31858.692
+    [pc] epoch   6  nll  176.365
+    [pc] epoch  12  nll  173.093
+    [pc] epoch  18  nll  172.732
+    [pc] epoch  24  nll  176.960
+    [pc] epoch  30  nll  171.651
+    [pc] epoch  36  nll  175.354
+    [pc] epoch  42  nll  177.558
+    [pc] epoch  48  nll  177.670
+[16:00:51]   pc_train_nll: first=31858.6921 last=176.4668 (50 epochs)
+[16:00:51]   pc: fit 15.5s · 15,360 params · score sd 58.436 · device cuda · layered · 17,039 win/s
+[16:00:54]   typed decomposition (mean worst-channel surprise):
+[16:00:54]        normal  n= 4025  marginal    26.85  conditional    26.80  structural    20.78
+[16:00:54]      decouple  n=   94  marginal    27.20  conditional    27.09  structural    22.96
+[16:00:54]        desync  n=  125  marginal    27.67  conditional    28.13  structural    15.38
+[16:00:54]         drift  n=  102  marginal 161388.67  conditional 161424.84  structural    47.03
+[16:00:54]        offset  n=  105  marginal 96999.73  conditional 97039.25  structural    49.16
+[16:00:54]       organic  n=   46  marginal   114.56  conditional   114.21  structural    33.80
+[16:00:54]         spike  n=  111  marginal 11865.44  conditional 11870.22  structural    21.71
+[16:00:54] --- stage ad done in 18.4s ---
+[16:00:54] === run ok · 18.4s · peak RSS 1.603 GB ===
+
+>>> [22/36] K-8_leaf_components-3 · seed 0 · logs/ts/capacity_sweep/K-8_leaf_components-3/seed0 · mean 0.3 min/run · ETA 4 min for the remaining 15
+[16:00:54] === run start · seed0 · seed 0 · hash d26294ce367c ===
+[16:00:54] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:00:54] --- stage: ad ---
+[16:00:54]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:00:54]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:00:54]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  243.443
+    [pc] epoch   6  nll  109.565
+    [pc] epoch  12  nll   98.692
+    [pc] epoch  18  nll   98.513
+    [pc] epoch  24  nll   95.828
+    [pc] epoch  30  nll  106.473
+    [pc] epoch  36  nll  109.048
+    [pc] epoch  42  nll  106.760
+    [pc] epoch  48  nll   92.171
+[16:01:12]   pc_train_nll: first=243.4433 last=91.6719 (50 epochs)
+[16:01:12]   pc: fit 18.1s · 32,160 params · score sd 26.488 · device cuda · layered · 14,613 win/s
+[16:01:15]   typed decomposition (mean worst-channel surprise):
+[16:01:15]        normal  n= 4001  marginal    23.47  conditional    24.01  structural     7.42
+[16:01:15]      decouple  n=  105  marginal    24.26  conditional    24.19  structural     6.29
+[16:01:15]        desync  n=  111  marginal    23.26  conditional    33.05  structural    19.33
+[16:01:15]         drift  n=  102  marginal   245.56  conditional   315.12  structural    85.90
+[16:01:15]        offset  n=  113  marginal   161.87  conditional   211.79  structural    72.25
+[16:01:15]       organic  n=   46  marginal   112.73  conditional   131.06  structural    51.63
+[16:01:15]         spike  n=  130  marginal    49.43  conditional    56.11  structural    12.91
+[16:01:15] --- stage ad done in 21.0s ---
+[16:01:15] === run ok · 21.0s · peak RSS 1.603 GB ===
+
+>>> [23/36] K-8_leaf_components-3 · seed 1 · logs/ts/capacity_sweep/K-8_leaf_components-3/seed1 · mean 0.3 min/run · ETA 4 min for the remaining 14
+[16:01:15] === run start · seed1 · seed 1 · hash d26294ce367c ===
+[16:01:15] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:01:15] --- stage: ad ---
+[16:01:15]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:01:15]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:01:15]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  243.927
+    [pc] epoch   6  nll  107.059
+    [pc] epoch  12  nll   97.296
+    [pc] epoch  18  nll   99.321
+    [pc] epoch  24  nll  102.639
+    [pc] epoch  30  nll  110.859
+    [pc] epoch  36  nll  115.985
+    [pc] epoch  42  nll  108.613
+    [pc] epoch  48  nll   99.556
+[16:01:33]   pc_train_nll: first=243.9273 last=99.0557 (50 epochs)
+[16:01:33]   pc: fit 18.2s · 32,160 params · score sd 26.891 · device cuda · layered · 14,543 win/s
+[16:01:36]   typed decomposition (mean worst-channel surprise):
+[16:01:36]        normal  n= 4042  marginal    23.51  conditional    24.09  structural     6.34
+[16:01:36]      decouple  n=  102  marginal    23.46  conditional    23.94  structural     6.59
+[16:01:36]        desync  n=  102  marginal    23.95  conditional    35.46  structural    19.76
+[16:01:36]         drift  n=  102  marginal   257.67  conditional   319.56  structural    74.99
+[16:01:36]        offset  n=  103  marginal   154.02  conditional   202.07  structural    70.01
+[16:01:36]       organic  n=   46  marginal   114.50  conditional   129.85  structural    57.29
+[16:01:36]         spike  n=  111  marginal    53.37  conditional    58.65  structural    11.04
+[16:01:36] --- stage ad done in 21.1s ---
+[16:01:36] === run ok · 21.1s · peak RSS 1.603 GB ===
+
+>>> [24/36] K-8_leaf_components-3 · seed 2 · logs/ts/capacity_sweep/K-8_leaf_components-3/seed2 · mean 0.3 min/run · ETA 3 min for the remaining 13
+[16:01:36] === run start · seed2 · seed 2 · hash d26294ce367c ===
+[16:01:36] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:01:36] --- stage: ad ---
+[16:01:36]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:01:36]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:01:36]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  245.452
+    [pc] epoch   6  nll  108.680
+    [pc] epoch  12  nll   98.752
+    [pc] epoch  18  nll  103.627
+    [pc] epoch  24  nll  106.087
+    [pc] epoch  30  nll  111.528
+    [pc] epoch  36  nll  125.156
+    [pc] epoch  42  nll  112.118
+    [pc] epoch  48  nll  100.705
+[16:01:54]   pc_train_nll: first=245.4516 last=100.2898 (50 epochs)
+[16:01:54]   pc: fit 18.1s · 32,160 params · score sd 27.626 · device cuda · layered · 14,628 win/s
+[16:01:57]   typed decomposition (mean worst-channel surprise):
+[16:01:57]        normal  n= 4025  marginal    23.62  conditional    24.04  structural     6.10
+[16:01:57]      decouple  n=   94  marginal    23.53  conditional    23.38  structural     4.96
+[16:01:57]        desync  n=  125  marginal    23.32  conditional    34.69  structural    18.99
+[16:01:57]         drift  n=  102  marginal   254.72  conditional   311.35  structural    68.87
+[16:01:57]        offset  n=  105  marginal   204.09  conditional   256.05  structural    80.31
+[16:01:57]       organic  n=   46  marginal   116.04  conditional   130.65  structural    51.78
+[16:01:57]         spike  n=  111  marginal    53.37  conditional    59.03  structural    10.65
+[16:01:57] --- stage ad done in 21.0s ---
+[16:01:57] === run ok · 21.0s · peak RSS 1.603 GB ===
+
+>>> [25/36] K-12_leaf_components-1 · seed 0 · logs/ts/capacity_sweep/K-12_leaf_components-1/seed0 · mean 0.3 min/run · ETA 3 min for the remaining 12
+[16:01:57] === run start · seed0 · seed 0 · hash 89e1c7cf8018 ===
+[16:01:57] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:01:57] --- stage: ad ---
+[16:01:57]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:01:57]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:01:57]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 30786.592
+    [pc] epoch   6  nll  171.377
+    [pc] epoch  12  nll  170.923
+    [pc] epoch  18  nll  172.005
+    [pc] epoch  24  nll  175.437
+    [pc] epoch  30  nll  178.756
+    [pc] epoch  36  nll  178.822
+    [pc] epoch  42  nll  175.819
+    [pc] epoch  48  nll  176.333
+[16:02:18]   pc_train_nll: first=30786.5921 last=172.9860 (50 epochs)
+[16:02:18]   pc: fit 20.5s · 41,328 params · score sd 59.677 · device cuda · layered · 12,909 win/s
+[16:02:21]   typed decomposition (mean worst-channel surprise):
+[16:02:21]        normal  n= 4001  marginal    27.10  conditional    27.36  structural    22.69
+[16:02:21]      decouple  n=  105  marginal    28.22  conditional    28.36  structural    22.30
+[16:02:21]        desync  n=  111  marginal    27.40  conditional    28.02  structural    20.11
+[16:02:21]         drift  n=  102  marginal 142474.59  conditional 142508.17  structural    43.60
+[16:02:21]        offset  n=  113  marginal 63305.79  conditional 63334.09  structural    39.01
+[16:02:21]       organic  n=   46  marginal   108.33  conditional   108.01  structural    17.56
+[16:02:21]         spike  n=  130  marginal  9091.88  conditional  9097.47  structural    24.70
+[16:02:21] --- stage ad done in 23.5s ---
+[16:02:21] === run ok · 23.5s · peak RSS 1.621 GB ===
+
+>>> [26/36] K-12_leaf_components-1 · seed 1 · logs/ts/capacity_sweep/K-12_leaf_components-1/seed1 · mean 0.3 min/run · ETA 3 min for the remaining 11
+[16:02:21] === run start · seed1 · seed 1 · hash 89e1c7cf8018 ===
+[16:02:21] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:02:21] --- stage: ad ---
+[16:02:21]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:02:21]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:02:21]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 31625.437
+    [pc] epoch   6  nll  174.217
+    [pc] epoch  12  nll  172.671
+    [pc] epoch  18  nll  174.098
+    [pc] epoch  24  nll  177.019
+    [pc] epoch  30  nll  176.285
+    [pc] epoch  36  nll  173.525
+    [pc] epoch  42  nll  173.365
+    [pc] epoch  48  nll  184.486
+[16:02:41]   pc_train_nll: first=31625.4373 last=190.3966 (50 epochs)
+[16:02:41]   pc: fit 20.4s · 41,328 params · score sd 58.994 · device cuda · layered · 12,945 win/s
+[16:02:44]   typed decomposition (mean worst-channel surprise):
+[16:02:44]        normal  n= 4042  marginal    26.89  conditional    26.87  structural    20.07
+[16:02:44]      decouple  n=  102  marginal    26.72  conditional    26.69  structural    13.63
+[16:02:44]        desync  n=  102  marginal    28.51  conditional    28.53  structural    15.52
+[16:02:44]         drift  n=  102  marginal 159839.83  conditional 159877.94  structural    44.97
+[16:02:44]        offset  n=  103  marginal 49361.38  conditional 49382.41  structural    34.45
+[16:02:44]       organic  n=   46  marginal   109.86  conditional   109.53  structural    40.03
+[16:02:44]         spike  n=  111  marginal 14122.87  conditional 14128.92  structural    26.60
+[16:02:44] --- stage ad done in 23.4s ---
+[16:02:44] === run ok · 23.4s · peak RSS 1.631 GB ===
+
+>>> [27/36] K-12_leaf_components-1 · seed 2 · logs/ts/capacity_sweep/K-12_leaf_components-1/seed2 · mean 0.3 min/run · ETA 3 min for the remaining 10
+[16:02:44] === run start · seed2 · seed 2 · hash 89e1c7cf8018 ===
+[16:02:44] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:02:44] --- stage: ad ---
+[16:02:44]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:02:44]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:02:44]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 31735.866
+    [pc] epoch   6  nll  170.558
+    [pc] epoch  12  nll  170.942
+    [pc] epoch  18  nll  183.192
+    [pc] epoch  24  nll  175.941
+    [pc] epoch  30  nll  173.347
+    [pc] epoch  36  nll  178.067
+    [pc] epoch  42  nll  177.706
+    [pc] epoch  48  nll  172.114
+[16:03:04]   pc_train_nll: first=31735.8664 last=171.7133 (50 epochs)
+[16:03:05]   pc: fit 20.4s · 41,328 params · score sd 58.505 · device cuda · layered · 12,991 win/s
+[16:03:07]   typed decomposition (mean worst-channel surprise):
+[16:03:07]        normal  n= 4025  marginal    26.84  conditional    26.78  structural    21.28
+[16:03:07]      decouple  n=   94  marginal    27.19  conditional    27.11  structural    23.57
+[16:03:07]        desync  n=  125  marginal    27.67  conditional    28.09  structural    15.78
+[16:03:07]         drift  n=  102  marginal 148941.38  conditional 148972.25  structural    41.80
+[16:03:07]        offset  n=  105  marginal 93078.25  conditional 93115.53  structural    47.04
+[16:03:07]       organic  n=   46  marginal   114.78  conditional   114.43  structural    53.00
+[16:03:07]         spike  n=  111  marginal 11870.41  conditional 11875.00  structural    21.99
+[16:03:07] --- stage ad done in 23.3s ---
+[16:03:07] === run ok · 23.4s · peak RSS 1.634 GB ===
+
+>>> [28/36] K-12_leaf_components-3 · seed 0 · logs/ts/capacity_sweep/K-12_leaf_components-3/seed0 · mean 0.3 min/run · ETA 2 min for the remaining 9
+[16:03:07] === run start · seed0 · seed 0 · hash 6061735e5faa ===
+[16:03:07] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:03:07] --- stage: ad ---
+[16:03:07]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:03:07]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:03:07]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  241.865
+    [pc] epoch   6  nll  110.655
+    [pc] epoch  12  nll   96.428
+    [pc] epoch  18  nll  102.074
+    [pc] epoch  24  nll  111.853
+    [pc] epoch  30  nll  111.658
+    [pc] epoch  36  nll   90.895
+    [pc] epoch  42  nll   90.902
+    [pc] epoch  48  nll   91.147
+[16:03:28]   pc_train_nll: first=241.8651 last=91.8212 (50 epochs)
+[16:03:28]   pc: fit 21.0s · 66,528 params · score sd 24.743 · device cuda · layered · 12,608 win/s
+[16:03:31]   typed decomposition (mean worst-channel surprise):
+[16:03:31]        normal  n= 4001  marginal    23.42  conditional    23.82  structural     7.52
+[16:03:31]      decouple  n=  105  marginal    24.19  conditional    24.30  structural     7.12
+[16:03:31]        desync  n=  111  marginal    23.22  conditional    33.09  structural    20.19
+[16:03:31]         drift  n=  102  marginal   238.98  conditional   308.98  structural    86.67
+[16:03:31]        offset  n=  113  marginal   160.80  conditional   213.44  structural    74.88
+[16:03:31]       organic  n=   46  marginal   111.67  conditional   133.22  structural    56.21
+[16:03:31]         spike  n=  130  marginal    51.05  conditional    57.81  structural    12.27
+[16:03:31] --- stage ad done in 24.1s ---
+[16:03:31] === run ok · 24.1s · peak RSS 1.634 GB ===
+
+>>> [29/36] K-12_leaf_components-3 · seed 1 · logs/ts/capacity_sweep/K-12_leaf_components-3/seed1 · mean 0.3 min/run · ETA 2 min for the remaining 8
+[16:03:31] === run start · seed1 · seed 1 · hash 6061735e5faa ===
+[16:03:31] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:03:31] --- stage: ad ---
+[16:03:32]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:03:32]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:03:32]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  242.956
+    [pc] epoch   6  nll  107.818
+    [pc] epoch  12  nll   92.971
+    [pc] epoch  18  nll   92.891
+    [pc] epoch  24  nll   93.293
+    [pc] epoch  30  nll   97.887
+    [pc] epoch  36  nll  100.364
+    [pc] epoch  42  nll   86.486
+    [pc] epoch  48  nll   85.520
+[16:03:56]   pc_train_nll: first=242.9565 last=85.0767 (50 epochs)
+[16:03:56]   pc: fit 24.5s · 66,528 params · score sd 23.679 · device cuda · layered · 10,775 win/s
+[16:03:59]   typed decomposition (mean worst-channel surprise):
+[16:03:59]        normal  n= 4042  marginal    23.29  conditional    23.53  structural     6.67
+[16:03:59]      decouple  n=  102  marginal    23.32  conditional    23.88  structural     6.97
+[16:03:59]        desync  n=  102  marginal    23.73  conditional    36.01  structural    21.34
+[16:03:59]         drift  n=  102  marginal   262.14  conditional   327.27  structural    77.41
+[16:03:59]        offset  n=  103  marginal   155.71  conditional   205.90  structural    71.17
+[16:03:59]       organic  n=   46  marginal   112.81  conditional   132.88  structural    52.60
+[16:03:59]         spike  n=  111  marginal    56.56  conditional    63.46  structural    12.50
+[16:03:59] --- stage ad done in 27.6s ---
+[16:03:59] === run ok · 27.6s · peak RSS 1.64 GB ===
+
+>>> [30/36] K-12_leaf_components-3 · seed 2 · logs/ts/capacity_sweep/K-12_leaf_components-3/seed2 · mean 0.3 min/run · ETA 2 min for the remaining 7
+[16:03:59] === run start · seed2 · seed 2 · hash 6061735e5faa ===
+[16:03:59] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:03:59] --- stage: ad ---
+[16:03:59]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:03:59]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:03:59]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  244.585
+    [pc] epoch   6  nll  104.891
+    [pc] epoch  12  nll   96.343
+    [pc] epoch  18  nll  101.006
+    [pc] epoch  24  nll   95.862
+    [pc] epoch  30  nll   99.719
+    [pc] epoch  36  nll   99.182
+    [pc] epoch  42  nll   97.541
+    [pc] epoch  48  nll   95.381
+[16:04:24]   pc_train_nll: first=244.5847 last=90.7467 (50 epochs)
+[16:04:24]   pc: fit 24.5s · 66,528 params · score sd 25.912 · device cuda · layered · 10,815 win/s
+[16:04:27]   typed decomposition (mean worst-channel surprise):
+[16:04:27]        normal  n= 4025  marginal    23.47  conditional    23.67  structural     7.12
+[16:04:27]      decouple  n=   94  marginal    23.37  conditional    23.07  structural     5.87
+[16:04:27]        desync  n=  125  marginal    23.11  conditional    35.65  structural    20.76
+[16:04:27]         drift  n=  102  marginal   246.47  conditional   295.07  structural    61.90
+[16:04:27]        offset  n=  105  marginal   197.11  conditional   247.57  structural    78.49
+[16:04:27]       organic  n=   46  marginal   113.94  conditional   129.35  structural    46.12
+[16:04:27]         spike  n=  111  marginal    50.57  conditional    59.21  structural    13.62
+[16:04:27] --- stage ad done in 27.5s ---
+[16:04:27] === run ok · 27.5s · peak RSS 1.64 GB ===
+
+>>> [31/36] K-16_leaf_components-1 · seed 0 · logs/ts/capacity_sweep/K-16_leaf_components-1/seed0 · mean 0.3 min/run · ETA 2 min for the remaining 6
+[16:04:27] === run start · seed0 · seed 0 · hash 0cc824ed4290 ===
+[16:04:27] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:04:27] --- stage: ad ---
+[16:04:27]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:04:27]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:04:27]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 30755.503
+    [pc] epoch   6  nll  178.412
+    [pc] epoch  12  nll  181.810
+    [pc] epoch  18  nll  174.523
+    [pc] epoch  24  nll  175.320
+    [pc] epoch  30  nll  174.196
+    [pc] epoch  36  nll  178.269
+    [pc] epoch  42  nll  175.480
+    [pc] epoch  48  nll  175.404
+[16:04:55]   pc_train_nll: first=30755.5028 last=176.8869 (50 epochs)
+[16:04:55]   pc: fit 27.8s · 88,704 params · score sd 58.125 · device cuda · layered · 9,501 win/s
+[16:04:58]   typed decomposition (mean worst-channel surprise):
+[16:04:58]        normal  n= 4001  marginal    26.89  conditional    27.04  structural    22.36
+[16:04:58]      decouple  n=  105  marginal    27.85  conditional    27.93  structural    22.14
+[16:04:58]        desync  n=  111  marginal    27.16  conditional    27.72  structural    19.64
+[16:04:58]         drift  n=  102  marginal 143252.36  conditional 143290.55  structural    48.72
+[16:04:58]        offset  n=  113  marginal 64021.57  conditional 64053.18  structural    42.59
+[16:04:58]       organic  n=   46  marginal   106.30  conditional   105.99  structural    13.36
+[16:04:58]         spike  n=  130  marginal  9133.94  conditional  9139.71  structural    24.32
+[16:04:58] --- stage ad done in 31.0s ---
+[16:04:58] === run ok · 31.0s · peak RSS 1.67 GB ===
+
+>>> [32/36] K-16_leaf_components-1 · seed 1 · logs/ts/capacity_sweep/K-16_leaf_components-1/seed1 · mean 0.3 min/run · ETA 2 min for the remaining 5
+[16:04:58] === run start · seed1 · seed 1 · hash 0cc824ed4290 ===
+[16:04:58] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:04:58] --- stage: ad ---
+[16:04:58]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:04:58]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:04:58]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 31626.401
+    [pc] epoch   6  nll  177.158
+    [pc] epoch  12  nll  178.616
+    [pc] epoch  18  nll  177.158
+    [pc] epoch  24  nll  181.669
+    [pc] epoch  30  nll  193.668
+    [pc] epoch  36  nll  176.291
+    [pc] epoch  42  nll  175.798
+    [pc] epoch  48  nll  173.839
+[16:05:25]   pc_train_nll: first=31626.4008 last=176.2627 (50 epochs)
+[16:05:25]   pc: fit 27.7s · 88,704 params · score sd 57.426 · device cuda · layered · 9,562 win/s
+[16:05:28]   typed decomposition (mean worst-channel surprise):
+[16:05:28]        normal  n= 4042  marginal    26.69  conditional    26.66  structural    18.66
+[16:05:28]      decouple  n=  102  marginal    26.54  conditional    26.53  structural    12.74
+[16:05:28]        desync  n=  102  marginal    28.13  conditional    28.14  structural    14.08
+[16:05:28]         drift  n=  102  marginal 163541.80  conditional 163581.00  structural    45.74
+[16:05:28]        offset  n=  103  marginal 50392.10  conditional 50416.11  structural    36.01
+[16:05:28]       organic  n=   46  marginal   108.81  conditional   108.50  structural    33.92
+[16:05:28]         spike  n=  111  marginal 14003.07  conditional 14008.39  structural    24.12
+[16:05:28] --- stage ad done in 30.8s ---
+[16:05:28] === run ok · 30.8s · peak RSS 1.673 GB ===
+
+>>> [33/36] K-16_leaf_components-1 · seed 2 · logs/ts/capacity_sweep/K-16_leaf_components-1/seed2 · mean 0.3 min/run · ETA 1 min for the remaining 4
+[16:05:28] === run start · seed2 · seed 2 · hash 0cc824ed4290 ===
+[16:05:28] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:05:28] --- stage: ad ---
+[16:05:29]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.2s)
+[16:05:29]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:05:29]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 31747.395
+    [pc] epoch   6  nll  171.518
+    [pc] epoch  12  nll  173.132
+    [pc] epoch  18  nll  168.882
+    [pc] epoch  24  nll  175.283
+    [pc] epoch  30  nll  176.138
+    [pc] epoch  36  nll  179.729
+    [pc] epoch  42  nll  178.360
+    [pc] epoch  48  nll  176.660
+[16:05:56]   pc_train_nll: first=31747.3949 last=175.9947 (50 epochs)
+[16:05:56]   pc: fit 27.4s · 88,704 params · score sd 60.472 · device cuda · layered · 9,666 win/s
+[16:05:59]   typed decomposition (mean worst-channel surprise):
+[16:05:59]        normal  n= 4025  marginal    26.95  conditional    27.15  structural    23.36
+[16:05:59]      decouple  n=   94  marginal    27.32  conditional    27.32  structural    25.84
+[16:05:59]        desync  n=  125  marginal    27.66  conditional    28.00  structural    16.63
+[16:05:59]         drift  n=  102  marginal 147859.33  conditional 147890.70  structural    43.33
+[16:05:59]        offset  n=  105  marginal 92342.18  conditional 92380.68  structural    48.28
+[16:05:59]       organic  n=   46  marginal   111.50  conditional   111.14  structural    43.13
+[16:05:59]         spike  n=  111  marginal 11727.72  conditional 11732.81  structural    23.92
+[16:05:59] --- stage ad done in 30.6s ---
+[16:05:59] === run ok · 30.6s · peak RSS 1.673 GB ===
+
+>>> [34/36] K-16_leaf_components-3 · seed 0 · logs/ts/capacity_sweep/K-16_leaf_components-3/seed0 · mean 0.3 min/run · ETA 1 min for the remaining 3
+[16:05:59] === run start · seed0 · seed 0 · hash 6238a48a0d20 ===
+[16:05:59] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:05:59] --- stage: ad ---
+[16:05:59]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:05:59]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:05:59]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  241.615
+    [pc] epoch   6  nll  110.366
+    [pc] epoch  12  nll   94.092
+    [pc] epoch  18  nll   97.685
+    [pc] epoch  24  nll  101.080
+    [pc] epoch  30  nll  103.180
+    [pc] epoch  36  nll   93.505
+    [pc] epoch  42  nll   95.816
+    [pc] epoch  48  nll   83.964
+[16:06:23]   pc_train_nll: first=241.6149 last=82.9279 (50 epochs)
+[16:06:23]   pc: fit 23.5s · 122,304 params · score sd 24.581 · device cuda · layered · 11,272 win/s
+[16:06:26]   typed decomposition (mean worst-channel surprise):
+[16:06:26]        normal  n= 4001  marginal    23.34  conditional    23.41  structural     8.16
+[16:06:26]      decouple  n=  105  marginal    24.08  conditional    23.61  structural     8.66
+[16:06:26]        desync  n=  111  marginal    23.16  conditional    33.47  structural    21.74
+[16:06:26]         drift  n=  102  marginal   233.20  conditional   301.89  structural    85.19
+[16:06:26]        offset  n=  113  marginal   155.16  conditional   211.24  structural    76.50
+[16:06:26]       organic  n=   46  marginal   110.87  conditional   130.73  structural    58.54
+[16:06:26]         spike  n=  130  marginal    46.41  conditional    54.87  structural    14.15
+[16:06:26] --- stage ad done in 26.8s ---
+[16:06:26] === run ok · 26.8s · peak RSS 1.674 GB ===
+
+>>> [35/36] K-16_leaf_components-3 · seed 1 · logs/ts/capacity_sweep/K-16_leaf_components-3/seed1 · mean 0.3 min/run · ETA 1 min for the remaining 2
+[16:06:26] === run start · seed1 · seed 1 · hash 6238a48a0d20 ===
+[16:06:26] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:06:26] --- stage: ad ---
+[16:06:26]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:06:26]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:06:26]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  242.513
+    [pc] epoch   6  nll  107.160
+    [pc] epoch  12  nll   89.253
+    [pc] epoch  18  nll   96.274
+    [pc] epoch  24  nll   98.558
+    [pc] epoch  30  nll   96.686
+    [pc] epoch  36  nll   92.166
+    [pc] epoch  42  nll   94.926
+    [pc] epoch  48  nll   87.297
+[16:06:57]   pc_train_nll: first=242.5133 last=85.1449 (50 epochs)
+[16:06:57]   pc: fit 30.9s · 122,304 params · score sd 23.737 · device cuda · layered · 8,573 win/s
+[16:07:00]   typed decomposition (mean worst-channel surprise):
+[16:07:00]        normal  n= 4042  marginal    23.39  conditional    23.50  structural     8.18
+[16:07:00]      decouple  n=  102  marginal    23.37  conditional    23.51  structural     8.38
+[16:07:00]        desync  n=  102  marginal    23.78  conditional    35.91  structural    21.85
+[16:07:00]         drift  n=  102  marginal   250.57  conditional   315.23  structural    77.84
+[16:07:00]        offset  n=  103  marginal   150.89  conditional   199.12  structural    68.94
+[16:07:00]       organic  n=   46  marginal   111.82  conditional   128.50  structural    50.88
+[16:07:00]         spike  n=  111  marginal    50.22  conditional    58.02  structural    15.33
+[16:07:00] --- stage ad done in 34.1s ---
+[16:07:00] === run ok · 34.2s · peak RSS 1.679 GB ===
+
+>>> [36/36] K-16_leaf_components-3 · seed 2 · logs/ts/capacity_sweep/K-16_leaf_components-3/seed2 · mean 0.3 min/run · ETA 0 min for the remaining 1
+[16:07:00] === run start · seed2 · seed 2 · hash 6238a48a0d20 ===
+[16:07:00] stages ['ad'] · device cuda · dataset cmapss:FD001
+[16:07:00] --- stage: ad ---
+[16:07:00]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:07:00]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1265190988779068, 'kind_counts': {'normal': 4025, 'offset': 105, 'drift': 102, 'spike': 111, 'decouple': 94, 'desync': 125, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:07:00]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  243.911
+    [pc] epoch   6  nll  105.781
+    [pc] epoch  12  nll   96.004
+    [pc] epoch  18  nll   97.994
+    [pc] epoch  24  nll   98.319
+    [pc] epoch  30  nll  101.824
+    [pc] epoch  36  nll   92.312
+    [pc] epoch  42  nll   91.180
+    [pc] epoch  48  nll   78.522
+[16:07:33]   pc_train_nll: first=243.9109 last=78.3997 (50 epochs)
+[16:07:33]   pc: fit 32.7s · 122,304 params · score sd 24.932 · device cuda · layered · 8,076 win/s
+[16:07:36]   typed decomposition (mean worst-channel surprise):
+[16:07:36]        normal  n= 4025  marginal    23.29  conditional    23.38  structural     9.25
+[16:07:36]      decouple  n=   94  marginal    23.24  conditional    23.09  structural     8.79
+[16:07:36]        desync  n=  125  marginal    23.03  conditional    36.05  structural    22.75
+[16:07:36]         drift  n=  102  marginal   243.49  conditional   314.36  structural    84.95
+[16:07:36]        offset  n=  105  marginal   187.45  conditional   253.71  structural    94.01
+[16:07:36]       organic  n=   46  marginal   112.26  conditional   131.24  structural    50.83
+[16:07:36]         spike  n=  111  marginal    49.37  conditional    56.55  structural    13.86
+[16:07:36] --- stage ad done in 36.1s ---
+[16:07:36] === run ok · 36.1s · peak RSS 1.679 GB ===
+
+==============================================================================
+ batch finished in 12.0 min — 36 ok, 0 skipped, 0 failed
+==============================================================================
+
+=== ad (mean ± sd over seeds) ===
+
+method                       variant                               auroc                 ap          train_nll              fit_s             params    auroc[decouple]      auroc[desync]       auroc[drift]  seeds
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+RegionGraphPC [chain, K=16]  K-16_leaf_components-3        0.8370±0.0042      0.6873±0.0052     80.9679±3.7485     29.0217±4.9052   1.223e+05±0e+00       0.5239±0.0509      0.6914±0.0348      0.9975±0.0016      3
+RegionGraphPC [chain, K=12]  K-12_leaf_components-3        0.8327±0.0089      0.6814±0.0131     88.5496±3.5807     23.3276±2.0348  66528.0000±0.0000      0.5109±0.0474      0.6820±0.0397      0.9972±0.0017      3
+RegionGraphPC [chain, K=4]   K-4_leaf_components-3         0.8277±0.0122      0.6664±0.0183    117.3848±4.5653     11.4203±2.1314  12288.0000±0.0000      0.5091±0.0447      0.6631±0.0289      0.9962±0.0023      3
+RegionGraphPC [chain, K=8]   K-8_leaf_components-3         0.8265±0.0068      0.6665±0.0108     97.2798±4.8810     18.1230±0.0565  32160.0000±0.0000      0.5021±0.0446      0.6708±0.0320      0.9959±0.0028      3
+RegionGraphPC [chain, K=6]   K-6_leaf_components-3         0.8258±0.0031      0.6653±0.0061    111.9362±8.1581     15.3499±0.1059  20844.0000±0.0000      0.5042±0.0330      0.6601±0.0421      0.9957±0.0030      3
+RegionGraphPC [chain, K=2]   K-2_leaf_components-3         0.8128±0.0086      0.6372±0.0145    139.8168±3.0207      9.9145±0.0142   5628.0000±0.0000      0.4974±0.0405      0.6386±0.0515      0.9921±0.0051      3
+PC · structural-only score   K-8_leaf_components-3         0.7791±0.0027      0.5906±0.0061                  —                  —                  —      0.4732±0.0266      0.7457±0.0073      0.9611±0.0015      3
+PC · structural-only score   K-12_leaf_components-3        0.7790±0.0089      0.5882±0.0087                  —                  —                  —      0.4860±0.0326      0.7579±0.0212      0.9650±0.0023      3
+PC · structural-only score   K-16_leaf_components-3        0.7765±0.0131      0.6037±0.0148                  —                  —                  —      0.5022±0.0129      0.7471±0.0268      0.9662±0.0033      3
+PC · structural-only score   K-6_leaf_components-3         0.7653±0.0096      0.5857±0.0051                  —                  —                  —      0.4998±0.0201      0.7041±0.0360      0.9581±0.0061      3
+PC · structural-only score   K-4_leaf_components-3         0.7629±0.0137      0.5697±0.0187                  —                  —                  —      0.4995±0.0252      0.6921±0.0114      0.9610±0.0178      3
+RegionGraphPC [chain, K=8]   K-8_leaf_components-1         0.7528±0.0081      0.5037±0.0118    189.4360±1.9045     15.6238±0.1750  15360.0000±0.0000      0.5059±0.0142      0.5430±0.0232      0.9496±0.0056      3
+RegionGraphPC [chain, K=12]  K-12_leaf_components-1        0.7522±0.0075      0.5039±0.0111    189.7643±9.0904     20.4273±0.0644  41328.0000±0.0000      0.5039±0.0165      0.5432±0.0221      0.9489±0.0060      3
+RegionGraphPC [chain, K=2]   K-2_leaf_components-1         0.7509±0.0061      0.5015±0.0083    189.0310±2.6982      9.5011±0.4533   1428.0000±0.0000      0.5039±0.0150      0.5416±0.0195      0.9479±0.0078      3
+RegionGraphPC [chain, K=6]   K-6_leaf_components-1         0.7506±0.0068      0.5008±0.0084    198.8117±15.7291     13.4108±0.0380   8244.0000±0.0000      0.5037±0.0167      0.5413±0.0191      0.9477±0.0072      3
+RegionGraphPC [chain, K=16]  K-16_leaf_components-1        0.7505±0.0067      0.5010±0.0080    189.5520±2.9541     27.6223±0.2401  88704.0000±0.0000      0.5059±0.0139      0.5398±0.0192      0.9475±0.0073      3
+RegionGraphPC [chain, K=4]   K-4_leaf_components-1         0.7502±0.0065      0.5006±0.0082    190.1728±0.6480     11.2506±0.0341   3888.0000±0.0000      0.5039±0.0153      0.5411±0.0185      0.9474±0.0079      3
+PC · structural-only score   K-2_leaf_components-3         0.7302±0.0022      0.5071±0.0318                  —                  —                  —      0.4959±0.0178      0.7162±0.0308      0.9276±0.0173      3
+PC · structural-only score   K-8_leaf_components-1         0.5820±0.0030      0.1896±0.0087                  —                  —                  —      0.4933±0.0355      0.5105±0.0013      0.6484±0.0062      3
+PC · structural-only score   K-12_leaf_components-1        0.5772±0.0137      0.1854±0.0073                  —                  —                  —      0.4962±0.0397      0.5070±0.0050      0.6399±0.0033      3
+PC · structural-only score   K-16_leaf_components-1        0.5753±0.0091      0.1823±0.0058                  —                  —                  —      0.4946±0.0381      0.5090±0.0047      0.6527±0.0133      3
+PC · structural-only score   K-4_leaf_components-1         0.5742±0.0026      0.2042±0.0069                  —                  —                  —      0.4964±0.0383      0.5113±0.0069      0.6574±0.0053      3
+PC · structural-only score   K-6_leaf_components-1         0.5721±0.0127      0.1804±0.0083                  —                  —                  —      0.4905±0.0379      0.5090±0.0044      0.6552±0.0123      3
+PC · structural-only score   K-2_leaf_components-1         0.5350±0.0079      0.1767±0.0051                  —                  —                  —      0.4853±0.0422      0.5265±0.0131      0.6442±0.0025      3
+
+wrote logs/ts/capacity_sweep/summary.csv, summary.json, summary.md
+

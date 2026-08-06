@@ -18,73 +18,78 @@
     },
     "train_units": 100,
     "test_units": 100,
-    "n_regimes": 3,
+    "n_regimes": 1,
     "seed": 2,
-    "per_regime_norm": true,
+    "per_regime_norm": false,
     "official_test_fleet": true,
     "dataset": "cmapss:FD001",
     "cap": 125.0,
     "subset": "FD001",
     "dropped_constant_sensors": 6,
-    "source": "NASA C-MAPSS (real)"
+    "source": "NASA C-MAPSS (real)",
+    "source_name": "cmapss",
+    "source_kind": "fleet"
   },
+  "dataset_caveats": [
+    "Ships no anomaly annotations: detection anomalies are injected."
+  ],
   "ad": {
     "circuit": {
-      "auroc": 0.8441136550078305,
-      "ap": 0.7084198164906479,
-      "auroc[decouple]": 0.5002960222016651,
-      "auroc[desync]": 0.7126201242236024,
-      "auroc[drift]": 0.9983704786262331,
-      "auroc[offset]": 0.9994344868382136,
+      "auroc": 0.8440836112206087,
+      "ap": 0.7227497730948168,
+      "auroc[decouple]": 0.4937280296022202,
+      "auroc[desync]": 0.7154732919254658,
+      "auroc[drift]": 0.9989648033126294,
+      "auroc[offset]": 0.9992901508429459,
       "auroc[organic]": 1.0,
-      "auroc[spike]": 0.9300766605114431
+      "auroc[spike]": 0.9318583179452745
     },
     "typed": {
       "normal": {
-        "marginal": 23.34328269958496,
-        "conditional": 22.6763916015625,
-        "structural": 1.7154514789581299,
+        "marginal": 23.301610946655273,
+        "conditional": 22.664926528930664,
+        "structural": 1.7629996538162231,
         "n": 4025
       },
       "decouple": {
-        "marginal": 23.012054443359375,
-        "conditional": 22.320615768432617,
-        "structural": 1.746421456336975,
+        "marginal": 23.01419448852539,
+        "conditional": 22.231403350830078,
+        "structural": 1.7483054399490356,
         "n": 94
       },
       "desync": {
-        "marginal": 23.220611572265625,
-        "conditional": 36.21937561035156,
-        "structural": 19.69658660888672,
+        "marginal": 23.188871383666992,
+        "conditional": 34.478965759277344,
+        "structural": 18.536270141601562,
         "n": 125
       },
       "drift": {
-        "marginal": 471.8717041015625,
-        "conditional": 491.6421813964844,
-        "structural": 43.931514739990234,
+        "marginal": 147445.78125,
+        "conditional": 147464.546875,
+        "structural": 40.382137298583984,
         "n": 102
       },
       "offset": {
-        "marginal": 339.91595458984375,
-        "conditional": 365.623291015625,
-        "structural": 51.35463333129883,
+        "marginal": 90995.765625,
+        "conditional": 91021.046875,
+        "structural": 48.29225158691406,
         "n": 105
       },
       "organic": {
-        "marginal": 119.19708251953125,
-        "conditional": 111.45555877685547,
-        "structural": 0.6898915767669678,
+        "marginal": 119.37529754638672,
+        "conditional": 113.63599395751953,
+        "structural": 0.47622013092041016,
         "n": 46
       },
       "spike": {
-        "marginal": 70.51702117919922,
-        "conditional": 70.44292449951172,
-        "structural": 2.461555242538452,
+        "marginal": 11776.3896484375,
+        "conditional": 11776.5986328125,
+        "structural": 2.361996650695801,
         "n": 111
       }
     }
   },
   "_timing": {
-    "ad": 600.04
+    "ad": 647.14
   }
 }

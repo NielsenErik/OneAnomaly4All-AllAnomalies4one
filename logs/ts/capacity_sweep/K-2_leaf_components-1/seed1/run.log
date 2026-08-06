@@ -24,3 +24,30 @@
 [16:37:10]         spike  n=  111  marginal    53.46  conditional    56.03  structural    19.64
 [16:37:10] --- stage ad done in 8.8s ---
 [16:37:10] === run ok · 8.8s · peak RSS 1.567 GB ===
+[15:55:51] === run start · seed1 · seed 1 · hash 4b9047890e87 ===
+[15:55:51] stages ['ad'] · device cuda · dataset cmapss:FD001
+[15:55:51] --- stage: ad ---
+[15:55:51]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:55:51]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:55:51]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 32992.065
+    [pc] epoch   6  nll  175.428
+    [pc] epoch  12  nll  178.447
+    [pc] epoch  18  nll  175.378
+    [pc] epoch  24  nll  175.057
+    [pc] epoch  30  nll  178.623
+    [pc] epoch  36  nll  178.027
+    [pc] epoch  42  nll  175.970
+    [pc] epoch  48  nll  175.682
+[15:56:00]   pc_train_nll: first=32992.0648 last=177.0961 (50 epochs)
+[15:56:00]   pc: fit 9.2s · 1,428 params · score sd 57.577 · device cuda · layered · 28,661 win/s
+[15:56:03]   typed decomposition (mean worst-channel surprise):
+[15:56:03]        normal  n= 4042  marginal    26.86  conditional    26.73  structural    15.23
+[15:56:03]      decouple  n=  102  marginal    26.65  conditional    26.52  structural     9.86
+[15:56:03]        desync  n=  102  marginal    28.43  conditional    28.29  structural    11.17
+[15:56:03]         drift  n=  102  marginal 293426.97  conditional 293468.91  structural    47.96
+[15:56:03]        offset  n=  103  marginal 89386.79  conditional 89419.55  structural    42.74
+[15:56:03]       organic  n=   46  marginal   108.09  conditional   107.52  structural     0.06
+[15:56:03]         spike  n=  111  marginal 14042.36  conditional 14046.42  structural    19.88
+[15:56:03] --- stage ad done in 11.8s ---
+[15:56:03] === run ok · 11.8s · peak RSS 1.572 GB ===

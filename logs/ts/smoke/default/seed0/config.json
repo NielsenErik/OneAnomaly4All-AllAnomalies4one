@@ -1,8 +1,8 @@
 {
   "seed": 0,
-  "config_hash": "7cde01cb311d",
+  "config_hash": "b1595b7e9aa3",
   "name": "smoke",
-  "device": "cuda",
+  "device": "auto",
   "evaluator": "layered",
   "stages": [
     "ad",
@@ -96,7 +96,7 @@
     "weight_jitter": 0.5,
     "tau_where": "deep",
     "rul_K": null,
-    "rul_epochs": 6
+    "rul_epochs": 25
   },
   "eval": {
     "fast_baselines": true,

@@ -4,7 +4,7 @@
   "seeds": [
     0
   ],
-  "device": "cuda",
+  "device": "auto",
   "evaluator": "layered",
   "log_root": "logs/ts/smoke",
   "stages": [
@@ -99,7 +99,7 @@
     "weight_jitter": 0.5,
     "tau_where": "deep",
     "rul_K": null,
-    "rul_epochs": 6
+    "rul_epochs": 25
   },
   "eval": {
     "fast_baselines": true,
