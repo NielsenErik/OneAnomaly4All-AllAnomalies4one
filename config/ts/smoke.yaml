@@ -32,7 +32,19 @@ model:
   vtree: chain
   K: 4
   epochs: 6
-  rul_epochs: 6
+  # NOT 6.  The tau coupling needs more epochs than the density does, and the
+  # `predict` guardrail refuses a predictive whose E[tau|x] varies by less than
+  # 5% of the target's own spread.  At K=4/deep/6 epochs it lands at sd 0.73
+  # against a spread of 41.5 and the whole batch aborts at tier 0b — a true
+  # positive about a model that is meaningless on purpose, which is not a thing
+  # a wiring check should be asserting.  25 is the value
+  # tests/test_rul_diagnostics.py::_fit already uses at the same K=4 and
+  # tau_where='deep' on a task of this size, where it measures sd 19.3; the
+  # guardrail's own wiring is covered there by
+  # test_the_degeneracy_guardrail_catches_the_root_collapse, so smoke does not
+  # need to double as that check.  Do not lower it without re-running the
+  # rul stage.
+  rul_epochs: 25
 
 eval:
   fast_baselines: true       # skip IForest / GMM / conv-AE / Deep SVDD
