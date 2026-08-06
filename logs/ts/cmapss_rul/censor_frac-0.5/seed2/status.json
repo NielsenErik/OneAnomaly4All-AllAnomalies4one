@@ -1,9 +1,11 @@
 {
-  "status": "ok",
+  "status": "failed",
   "seed": 2,
-  "config_hash": "567d23594466",
-  "updated": "2026-08-04T15:50:54",
-  "wall_s": 52.63,
-  "peak_rss_gb": 1.872,
-  "peak_gpu_gb": 2.384
+  "config_hash": "d614fc110a4d",
+  "updated": "2026-08-06T12:55:25",
+  "wall_s": 51.88,
+  "peak_rss_gb": 1.891,
+  "peak_gpu_gb": 0.577,
+  "error": "DegenerateModelError: degenerate predictive: E[tau|x] has sd 0.734 cycles over 5625 inputs, under 5% of the target's own spread (37.4) \u2014 p(tau|x) barely depends on x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses at most K, non-monotonically), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/runner.py\", line 183, in main\n    run_stages(v, seed, log)\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 822, in run_stages\n    results[stage] = STAGE_FNS[stage](cfg, seed, log)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 572, in stage_rul\n    out[\"partial_evidence\"] = _partial_evidence(kept, task, int(ev[\"n_dead\"]),\n                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/pipeline.py\", line 593, in _partial_evidence\n    imp = pc.predict(X_imp)\n          ^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/utils/_contextlib.py\", line 124, in decorate_context\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/circuits.py\", line 902, in predict\n    raise DegenerateModelError(\npoc.time_series.circuits.DegenerateModelError: degenerate predictive: E[tau|x] has sd 0.734 cycles over 5625 inputs, under 5% of the target's own spread (37.4) \u2014 p(tau|x) barely depends on x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses at most K, non-monotonically), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.\n"
 }

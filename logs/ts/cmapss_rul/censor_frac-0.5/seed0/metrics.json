@@ -12,56 +12,68 @@
     "train_units": 100,
     "test_units": 100,
     "censored_units": 50,
-    "n_regimes": 3,
+    "n_regimes": 1,
     "seed": 0,
-    "per_regime_norm": true,
+    "per_regime_norm": false,
     "test_windows": "all",
     "official_test_fleet": true,
     "dataset": "cmapss:FD001",
     "subset": "FD001",
     "dropped_constant_sensors": 6,
-    "source": "NASA C-MAPSS (real)"
+    "source": "NASA C-MAPSS (real)",
+    "source_name": "cmapss",
+    "source_kind": "fleet",
+    "simulated_censoring": 0.5
   },
+  "dataset_caveats": [
+    "Ships no anomaly annotations: detection anomalies are injected."
+  ],
   "rul": {
     "partial_evidence": {
       "n_dead": 3,
-      "crps_full": 8.088537317418789,
-      "crps_exact_marginal": 8.26522678122887,
-      "crps_imputed": 10.96085379671317,
-      "rmse_full": 19.148552019177497,
-      "rmse_exact_marginal": 19.479423209718583,
-      "rmse_imputed": 24.341275751833507,
-      "picp_exact_marginal": 0.3509333333333333,
-      "picp_imputed": 0.3560888888888889
+      "crps_full": 10.884090757040475,
+      "crps_exact_marginal": 10.910669878669388,
+      "crps_imputed": 15.32269361881772,
+      "rmse_full": 24.887244611085148,
+      "rmse_exact_marginal": 24.783219102734193,
+      "rmse_imputed": 33.66325624938241,
+      "picp_exact_marginal": 0.35324444444444447,
+      "picp_exact_marginal_edge": 0.9310222222222222,
+      "picp_imputed": 0.4341333333333333,
+      "picp_imputed_edge": 1.0,
+      "marginal_pit_mean": 0.45846967229460067,
+      "marginal_pit_var": 0.08981387222627372,
+      "marginal_pit_ks": 0.07088429601821622,
+      "marginal_pit_var_target": 0.08333333333333333
     },
     "survival": {
       "0-20": {
-        "S(20)": 0.3813715875148773,
-        "S(40)": 0.118613600730896,
-        "S(60)": 0.053225137293338776,
+        "S(20)": 0.6699374318122864,
+        "S(40)": 0.4563022255897522,
+        "S(60)": 0.33206161856651306,
         "n": 55
       },
       "20-50": {
-        "S(20)": 0.9058657288551331,
-        "S(40)": 0.6784951090812683,
-        "S(60)": 0.44589895009994507,
+        "S(20)": 0.8879678249359131,
+        "S(40)": 0.7590161561965942,
+        "S(60)": 0.6440969705581665,
         "n": 372
       },
       "50-90": {
-        "S(20)": 0.9946136474609375,
-        "S(40)": 0.9478758573532104,
-        "S(60)": 0.8490838408470154,
+        "S(20)": 0.9719977378845215,
+        "S(40)": 0.9126535058021545,
+        "S(60)": 0.835419237613678,
         "n": 836
       },
       "90-126": {
-        "S(20)": 0.9996998906135559,
-        "S(40)": 0.9951509833335876,
-        "S(60)": 0.9744551181793213,
+        "S(20)": 0.9916660785675049,
+        "S(40)": 0.9648052453994751,
+        "S(60)": 0.9183931946754456,
         "n": 4362
       }
     }
   },
   "_timing": {
-    "rul": 53.51
+    "rul": 53.34
   }
 }

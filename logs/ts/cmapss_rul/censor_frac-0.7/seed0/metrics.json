@@ -12,56 +12,68 @@
     "train_units": 100,
     "test_units": 100,
     "censored_units": 63,
-    "n_regimes": 3,
+    "n_regimes": 1,
     "seed": 0,
-    "per_regime_norm": true,
+    "per_regime_norm": false,
     "test_windows": "all",
     "official_test_fleet": true,
     "dataset": "cmapss:FD001",
     "subset": "FD001",
     "dropped_constant_sensors": 6,
-    "source": "NASA C-MAPSS (real)"
+    "source": "NASA C-MAPSS (real)",
+    "source_name": "cmapss",
+    "source_kind": "fleet",
+    "simulated_censoring": 0.7
   },
+  "dataset_caveats": [
+    "Ships no anomaly annotations: detection anomalies are injected."
+  ],
   "rul": {
     "partial_evidence": {
       "n_dead": 3,
-      "crps_full": 8.560852195183346,
-      "crps_exact_marginal": 8.641398701760046,
-      "crps_imputed": 16.001336848449426,
-      "rmse_full": 19.793002348345684,
-      "rmse_exact_marginal": 19.93510613555926,
-      "rmse_imputed": 34.23288810319994,
+      "crps_full": 11.168972518689825,
+      "crps_exact_marginal": 10.885865621156379,
+      "crps_imputed": 18.91745248618568,
+      "rmse_full": 24.97525870803612,
+      "rmse_exact_marginal": 24.234080142833644,
+      "rmse_imputed": 39.69942141026669,
       "picp_exact_marginal": 0.32,
-      "picp_imputed": 0.43075555555555556
+      "picp_exact_marginal_edge": 0.9006222222222222,
+      "picp_imputed": 0.4343111111111111,
+      "picp_imputed_edge": 1.0,
+      "marginal_pit_mean": 0.4275398914427832,
+      "marginal_pit_var": 0.09208145238173684,
+      "marginal_pit_ks": 0.1159014302475278,
+      "marginal_pit_var_target": 0.08333333333333333
     },
     "survival": {
       "0-20": {
-        "S(20)": 0.47612860798835754,
-        "S(40)": 0.1546703577041626,
-        "S(60)": 0.07374134659767151,
+        "S(20)": 0.7078478932380676,
+        "S(40)": 0.5107337832450867,
+        "S(60)": 0.39204615354537964,
         "n": 55
       },
       "20-50": {
-        "S(20)": 0.9293935894966125,
-        "S(40)": 0.751065731048584,
-        "S(60)": 0.4979539215564728,
+        "S(20)": 0.9013571739196777,
+        "S(40)": 0.7894270420074463,
+        "S(60)": 0.6843755841255188,
         "n": 372
       },
       "50-90": {
-        "S(20)": 0.9980101585388184,
-        "S(40)": 0.9634371399879456,
-        "S(60)": 0.875286877155304,
+        "S(20)": 0.9760576486587524,
+        "S(40)": 0.9271252155303955,
+        "S(60)": 0.8606278300285339,
         "n": 836
       },
       "90-126": {
-        "S(20)": 0.999889612197876,
-        "S(40)": 0.9964658617973328,
-        "S(60)": 0.9838985800743103,
+        "S(20)": 0.9930065870285034,
+        "S(40)": 0.9719454050064087,
+        "S(60)": 0.9348151087760925,
         "n": 4362
       }
     }
   },
   "_timing": {
-    "rul": 47.59
+    "rul": 47.57
   }
 }
