@@ -18,7 +18,7 @@
     },
     "train_units": 249,
     "test_units": 248,
-    "n_regimes": 3,
+    "n_regimes": 6,
     "seed": 1,
     "per_regime_norm": true,
     "official_test_fleet": true,
@@ -26,77 +26,82 @@
     "cap": 125.0,
     "subset": "FD004",
     "dropped_constant_sensors": 0,
-    "source": "NASA C-MAPSS (real)"
+    "source": "NASA C-MAPSS (real)",
+    "source_name": "cmapss",
+    "source_kind": "fleet"
   },
+  "dataset_caveats": [
+    "Ships no anomaly annotations: detection anomalies are injected."
+  ],
   "explain": {
     "per_kind": {
       "PC conditional (exact)": {
-        "spike": 0.5009456392521344,
-        "offset": 0.5023620559334845,
-        "drift": 0.500533130885765,
-        "decouple": 0.5189139344262295,
-        "desync": 0.4713643790849673
+        "spike": 0.9655382038257863,
+        "offset": 0.9392526455026455,
+        "drift": 0.9319383785996997,
+        "decouple": 0.5699795081967213,
+        "desync": 0.5069035947712418
       },
       "PC marginal (exact)": {
-        "spike": 0.49094888144385607,
-        "offset": 0.521655328798186,
-        "drift": 0.4820910672853828,
-        "decouple": 0.5312909836065574,
-        "desync": 0.04703159041394336
+        "spike": 0.9555684642818545,
+        "offset": 0.9845238095238096,
+        "drift": 0.973130203357445,
+        "decouple": 0.5206147540983607,
+        "desync": 0.4740332244008715
       },
       "PC structural (exact)": {
-        "spike": 0.5145763536150437,
-        "offset": 0.48257275132275135,
-        "drift": 0.5159214207724854,
-        "decouple": 0.4985450819672131,
-        "desync": 0.8230119825708061
+        "spike": 0.7362612125797039,
+        "offset": 0.6639077853363567,
+        "drift": 0.7150308789409036,
+        "decouple": 0.5926639344262296,
+        "desync": 0.5988834422657952
       },
       "PC Shapley (exact conditionals)": {
-        "spike": 0.4979601210418243,
-        "offset": 0.5194822373393801,
-        "drift": 0.4880088201173741,
-        "decouple": 0.5059426229508197,
-        "desync": 0.08211465141612201
+        "spike": 0.954811952880147,
+        "offset": 0.9206160241874528,
+        "drift": 0.9126390405350076,
+        "decouple": 0.5724795081967213,
+        "desync": 0.5008714596949891
       },
       "Gaussian conditional (exact)": {
-        "spike": 0.4501242840159948,
-        "offset": 0.5023148148148148,
-        "drift": 0.5060435717210318,
-        "decouple": 0.46901639344262297,
-        "desync": 0.4803513071895425
+        "spike": 0.9646195828379985,
+        "offset": 0.8553949357520786,
+        "drift": 0.8703681588644738,
+        "decouple": 0.6174590163934426,
+        "desync": 0.7434776688453159
       },
       "AE reconstruction (per channel)": {
-        "spike": 0.4721982059872474,
-        "offset": 0.5128212396069539,
-        "drift": 0.5051990923979801,
-        "decouple": 0.4483811475409836,
-        "desync": 0.4636437908496732
+        "spike": 0.8424024640657084,
+        "offset": 0.7359882842025699,
+        "drift": 0.7487162208270779,
+        "decouple": 0.5091393442622951,
+        "desync": 0.606181917211329
       },
       "AE sampling-SHAP (32/ch)": {
-        "spike": 0.5194936777261429,
-        "offset": 0.49141156462585034,
-        "drift": 0.4976115736317729,
-        "decouple": 0.4758811475409836,
-        "desync": 0.2968613834422658
+        "spike": 0.8265832702907165,
+        "offset": 0.8074074074074075,
+        "drift": 0.8129776852736454,
+        "decouple": 0.5066803278688524,
+        "desync": 0.4667619825708061
       },
       "z-score (per channel)": {
-        "spike": 0.49740624662271693,
-        "offset": 0.533234126984127,
-        "drift": 0.48475672171420775,
-        "decouple": 0.5296311475409836,
-        "desync": 0.006175108932461874
+        "spike": 0.9925564681724846,
+        "offset": 0.9666477702191988,
+        "drift": 0.9701361403029889,
+        "decouple": 0.519077868852459,
+        "desync": 0.45206290849673203
       }
     },
     "completeness": {
-      "max_residual_nats": 4398046511104.0,
-      "mean_residual_nats": 297426485248.0
+      "max_residual_nats": 0.0001220703125,
+      "mean_residual_nats": 3.9869919419288635e-06
     },
     "cost_s": {
-      "pc_exact": 2.8544976711273193,
-      "sampling_shap": 4.554082155227661
+      "pc_exact": 0.873753547668457,
+      "sampling_shap": 2.774484395980835
     }
   },
   "_timing": {
-    "explain": 77.04
+    "explain": 46.68
   }
 }

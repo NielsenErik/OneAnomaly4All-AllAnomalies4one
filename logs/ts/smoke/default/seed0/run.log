@@ -1375,3 +1375,258 @@
 [15:08:14]   conformal[pit] a=0.10: PICP 0.585 (nominal 0.90), MPIW 111.9 (raw PICP 0.579, MPIW 110.2)
 [15:08:14] --- stage calibration done in 0.8s ---
 [15:08:14] === run ok · 7.6s · peak RSS 1.83 GB ===
+[10:07:47] === run start · seed0 · seed 0 · hash 9d3d53fdd2e9 ===
+[10:07:47] stages ['ad', 'explain', 'rul', 'calibration'] · device cuda · dataset synthetic
+[10:07:47] --- stage: ad ---
+[10:07:47]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[10:07:47]   task: {'kind': 'ad', 'n_train': 544, 'n_test': 396, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.14646464586257935, 'kind_counts': {'drift': 6, 'normal': 338, 'decouple': 10, 'offset': 7, 'organic': 23, 'spike': 7, 'desync': 5}, 'train_units': 14, 'test_units': 10, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic', 'censored_units': 9, 'simulated_censoring': 0.35}
+[10:07:47]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+    [pc] epoch   0  nll   64.565
+    [pc] epoch   1  nll   62.919
+    [pc] epoch   2  nll   60.187
+    [pc] epoch   3  nll   56.772
+    [pc] epoch   4  nll   53.527
+    [pc] epoch   5  nll   50.761
+[10:07:47]   pc_train_nll: first=64.5645 last=50.7615 (6 epochs)
+[10:07:47]   pc: fit 0.7s · 752 params · score sd 7.435 · device cuda · layered · 4,452 win/s
+[10:07:48]   typed decomposition (mean worst-channel surprise):
+[10:07:48]        normal  n=  338  marginal    11.73  conditional    10.61  structural     2.26
+[10:07:48]      decouple  n=   10  marginal    12.93  conditional    12.03  structural     2.28
+[10:07:48]        desync  n=    5  marginal     9.41  conditional    11.73  structural     4.35
+[10:07:48]         drift  n=    6  marginal    16.52  conditional    15.36  structural     5.71
+[10:07:48]        offset  n=    7  marginal    20.53  conditional    18.27  structural     6.38
+[10:07:48]       organic  n=   23  marginal    41.65  conditional    51.16  structural    19.14
+[10:07:48]         spike  n=    7  marginal    25.46  conditional    26.45  structural     3.77
+[10:07:48] --- stage ad done in 1.4s ---
+[10:07:48] --- stage: explain ---
+[10:07:48]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[10:07:48]   task: {'kind': 'ad', 'n_train': 544, 'n_test': 396, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.14646464586257935, 'kind_counts': {'drift': 6, 'normal': 338, 'decouple': 10, 'offset': 7, 'organic': 23, 'spike': 7, 'desync': 5}, 'train_units': 14, 'test_units': 10, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic', 'censored_units': 9, 'simulated_censoring': 0.35}
+[10:07:48]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+[10:07:48]   explain: capped test set to 200 windows
+    [pc] epoch   0  nll   64.565
+    [pc] epoch   1  nll   62.919
+    [pc] epoch   2  nll   60.187
+    [pc] epoch   3  nll   56.772
+    [pc] epoch   4  nll   53.527
+    [pc] epoch   5  nll   50.761
+[10:07:48]   pc_train_nll: first=64.5645 last=50.7615 (6 epochs)
+[10:07:48]   pc: fit 0.1s · 752 params · score sd 7.435 · device cuda · layered · 41,203 win/s
+[10:07:48]   attribution cost: PC exact (all views) 0.0s · AE sampling-SHAP (one view) 0.0s
+[10:07:48]   completeness: max residual 3.81e-06 nats, mean 9.54e-07
+[10:07:48]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[10:07:48]   worked examples (median-scoring window of each kind):
+[10:07:48]    [normal]
+[10:07:48]   anomaly score 48.1 nats
+[10:07:48]       ch1  out of range         marginal   14.11  structural    1.53  worst at t=2
+[10:07:48]       ch7  out of range         marginal    6.72  structural   -1.73  worst at t=5
+[10:07:48]       ch0  out of range         marginal    7.04  structural   -2.64  worst at t=4
+[10:07:49]    [spike]
+[10:07:49]   anomaly score 72.3 nats   [injected: spike, channels [6]]
+[10:07:49]       ch6  out of range         marginal   28.66  structural   -2.57  worst at t=4  <- CORRECT
+[10:07:49]       ch0  out of range         marginal    6.71  structural    2.29  worst at t=0  <- miss
+[10:07:49]       ch7  out of range         marginal    6.62  structural    1.80  worst at t=2  <- miss
+[10:07:49]    [offset]
+[10:07:49]   anomaly score 71.3 nats   [injected: offset, channels [5, 6]]
+[10:07:49]       ch6  broken relationship  marginal   13.24  structural    9.09  worst at t=4  <- CORRECT
+[10:07:49]       ch5  out of range         marginal   21.41  structural   -3.66  worst at t=5  <- CORRECT
+[10:07:49]       ch7  out of range         marginal   10.11  structural   -2.88  worst at t=5  <- miss
+[10:07:49]    [drift]
+[10:07:49]   anomaly score 61.4 nats   [injected: drift, channels [1, 2, 4]]
+[10:07:49]       ch1  out of range         marginal    8.78  structural    3.60  worst at t=5  <- CORRECT
+[10:07:49]       ch4  out of range         marginal   14.02  structural   -3.61  worst at t=5  <- CORRECT
+[10:07:49]       ch2  out of range         marginal    7.21  structural    1.98  worst at t=5  <- CORRECT
+[10:07:49]    [decouple]
+[10:07:49]   anomaly score 50.2 nats   [injected: decouple, channels [2, 6]]
+[10:07:49]       ch6  out of range         marginal   10.39  structural   -2.75  worst at t=3  <- CORRECT
+[10:07:49]       ch1  out of range         marginal    7.35  structural    0.21  worst at t=4  <- miss
+[10:07:49]       ch2  out of range         marginal   10.43  structural   -3.78  worst at t=2  <- CORRECT
+[10:07:49]    [desync]
+[10:07:49]   anomaly score 45.9 nats   [injected: desync, channels [3]]
+[10:07:49]       ch7  out of range         marginal    6.88  structural    3.28  worst at t=1  <- miss
+[10:07:49]       ch0  out of range         marginal    6.56  structural   -0.43  worst at t=3  <- miss
+[10:07:49]       ch4  out of range         marginal    7.01  structural   -1.03  worst at t=2  <- miss
+[10:07:49] --- stage explain done in 0.9s ---
+[10:07:49] --- stage: rul ---
+[10:07:49]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[10:07:49]   task: {'kind': 'rul', 'n_train': 653, 'n_test': 249, 'd': 48, 'window': 6, 'n_channels': 8, 'n_bins': 12, 'cap': 130.0, 'censored_frac': 0.21745789051055908, 'train_units': 14, 'test_units': 10, 'censored_units': 9, 'n_regimes': 2, 'seed': 0, 'split_rebalanced': 0, 'dataset': 'synthetic', 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic', 'simulated_censoring': 0.35}
+[10:07:49]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+    [surv] epoch   0  censored-NLL   71.273
+    [surv] epoch   1  censored-NLL   70.504
+    [surv] epoch   2  censored-NLL   69.846
+    [surv] epoch   3  censored-NLL   69.024
+    [surv] epoch   4  censored-NLL   68.132
+    [surv] epoch   5  censored-NLL   67.362
+[10:07:49]   surv_dropped_nll: first=71.2732 last=67.3618 (6 epochs)
+[10:07:49]   surv_dropped: fit 0.1s · 864 params
+[10:07:49]   !! SurvivalPC (drop censored): degenerate predictive: E[tau|x] has sd 0.732 cycles over 249 inputs, under 5% of the target's own spread (41.5) — p(tau|x) barely depends on x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses at most K, non-monotonically), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.
+[10:07:49] !!! FAILED after 2.5s: DegenerateModelError: degenerate predictive: E[tau|x] has sd 0.732 cycles over 249 inputs, under 5% of the target's own spread (41.5) — p(tau|x) barely depends on x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses at most K, non-monotonically), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.
+[10:18:37] === run start · seed0 · seed 0 · hash 9d3d53fdd2e9 ===
+[10:18:37] stages ['ad', 'explain', 'rul', 'calibration'] · device cuda · dataset synthetic
+[10:18:37] --- stage: ad ---
+[10:18:37]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[10:18:37]   task: {'kind': 'ad', 'n_train': 544, 'n_test': 396, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.14646464586257935, 'kind_counts': {'drift': 6, 'normal': 338, 'decouple': 10, 'offset': 7, 'organic': 23, 'spike': 7, 'desync': 5}, 'train_units': 14, 'test_units': 10, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic', 'censored_units': 9, 'simulated_censoring': 0.35}
+[10:18:37]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+    [pc] epoch   0  nll   64.565
+    [pc] epoch   1  nll   62.919
+    [pc] epoch   2  nll   60.187
+    [pc] epoch   3  nll   56.772
+    [pc] epoch   4  nll   53.527
+    [pc] epoch   5  nll   50.761
+[10:18:37]   pc_train_nll: first=64.5645 last=50.7615 (6 epochs)
+[10:18:37]   pc: fit 0.7s · 752 params · score sd 7.435 · device cuda · layered · 4,353 win/s
+[10:18:38]   typed decomposition (mean worst-channel surprise):
+[10:18:38]        normal  n=  338  marginal    11.73  conditional    10.61  structural     2.26
+[10:18:38]      decouple  n=   10  marginal    12.93  conditional    12.03  structural     2.28
+[10:18:38]        desync  n=    5  marginal     9.41  conditional    11.73  structural     4.35
+[10:18:38]         drift  n=    6  marginal    16.52  conditional    15.36  structural     5.71
+[10:18:38]        offset  n=    7  marginal    20.53  conditional    18.27  structural     6.38
+[10:18:38]       organic  n=   23  marginal    41.65  conditional    51.16  structural    19.14
+[10:18:38]         spike  n=    7  marginal    25.46  conditional    26.45  structural     3.77
+[10:18:38] --- stage ad done in 1.4s ---
+[10:18:38] --- stage: explain ---
+[10:18:38]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[10:18:38]   task: {'kind': 'ad', 'n_train': 544, 'n_test': 396, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.14646464586257935, 'kind_counts': {'drift': 6, 'normal': 338, 'decouple': 10, 'offset': 7, 'organic': 23, 'spike': 7, 'desync': 5}, 'train_units': 14, 'test_units': 10, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic', 'censored_units': 9, 'simulated_censoring': 0.35}
+[10:18:38]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+[10:18:38]   explain: capped test set to 200 windows
+    [pc] epoch   0  nll   64.565
+    [pc] epoch   1  nll   62.919
+    [pc] epoch   2  nll   60.187
+    [pc] epoch   3  nll   56.772
+    [pc] epoch   4  nll   53.527
+    [pc] epoch   5  nll   50.761
+[10:18:38]   pc_train_nll: first=64.5645 last=50.7615 (6 epochs)
+[10:18:38]   pc: fit 0.1s · 752 params · score sd 7.435 · device cuda · layered · 40,235 win/s
+[10:18:38]   attribution cost: PC exact (all views) 0.0s · AE sampling-SHAP (one view) 0.0s
+[10:18:38]   completeness: max residual 3.81e-06 nats, mean 9.54e-07
+[10:18:38]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[10:18:38]   worked examples (median-scoring window of each kind):
+[10:18:39]    [normal]
+[10:18:39]   anomaly score 48.1 nats
+[10:18:39]       ch1  out of range         marginal   14.11  structural    1.53  worst at t=2
+[10:18:39]       ch7  out of range         marginal    6.72  structural   -1.73  worst at t=5
+[10:18:39]       ch0  out of range         marginal    7.04  structural   -2.64  worst at t=4
+[10:18:39]    [spike]
+[10:18:39]   anomaly score 72.3 nats   [injected: spike, channels [6]]
+[10:18:39]       ch6  out of range         marginal   28.66  structural   -2.57  worst at t=4  <- CORRECT
+[10:18:39]       ch0  out of range         marginal    6.71  structural    2.29  worst at t=0  <- miss
+[10:18:39]       ch7  out of range         marginal    6.62  structural    1.80  worst at t=2  <- miss
+[10:18:39]    [offset]
+[10:18:39]   anomaly score 71.3 nats   [injected: offset, channels [5, 6]]
+[10:18:39]       ch6  broken relationship  marginal   13.24  structural    9.09  worst at t=4  <- CORRECT
+[10:18:39]       ch5  out of range         marginal   21.41  structural   -3.66  worst at t=5  <- CORRECT
+[10:18:39]       ch7  out of range         marginal   10.11  structural   -2.88  worst at t=5  <- miss
+[10:18:39]    [drift]
+[10:18:39]   anomaly score 61.4 nats   [injected: drift, channels [1, 2, 4]]
+[10:18:39]       ch1  out of range         marginal    8.78  structural    3.60  worst at t=5  <- CORRECT
+[10:18:39]       ch4  out of range         marginal   14.02  structural   -3.61  worst at t=5  <- CORRECT
+[10:18:39]       ch2  out of range         marginal    7.21  structural    1.98  worst at t=5  <- CORRECT
+[10:18:39]    [decouple]
+[10:18:39]   anomaly score 50.2 nats   [injected: decouple, channels [2, 6]]
+[10:18:39]       ch6  out of range         marginal   10.39  structural   -2.75  worst at t=3  <- CORRECT
+[10:18:39]       ch1  out of range         marginal    7.35  structural    0.21  worst at t=4  <- miss
+[10:18:39]       ch2  out of range         marginal   10.43  structural   -3.78  worst at t=2  <- CORRECT
+[10:18:39]    [desync]
+[10:18:39]   anomaly score 45.9 nats   [injected: desync, channels [3]]
+[10:18:39]       ch7  out of range         marginal    6.88  structural    3.28  worst at t=1  <- miss
+[10:18:39]       ch0  out of range         marginal    6.56  structural   -0.43  worst at t=3  <- miss
+[10:18:39]       ch4  out of range         marginal    7.01  structural   -1.03  worst at t=2  <- miss
+[10:18:39] --- stage explain done in 0.9s ---
+[10:18:39] --- stage: rul ---
+[10:18:39]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[10:18:39]   task: {'kind': 'rul', 'n_train': 653, 'n_test': 249, 'd': 48, 'window': 6, 'n_channels': 8, 'n_bins': 12, 'cap': 130.0, 'censored_frac': 0.21745789051055908, 'train_units': 14, 'test_units': 10, 'censored_units': 9, 'n_regimes': 2, 'seed': 0, 'split_rebalanced': 0, 'dataset': 'synthetic', 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic', 'simulated_censoring': 0.35}
+[10:18:39]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+    [surv] epoch   0  censored-NLL   71.273
+    [surv] epoch   1  censored-NLL   70.504
+    [surv] epoch   2  censored-NLL   69.846
+    [surv] epoch   3  censored-NLL   69.024
+    [surv] epoch   4  censored-NLL   68.132
+    [surv] epoch   5  censored-NLL   67.362
+[10:18:39]   surv_dropped_nll: first=71.2732 last=67.3618 (6 epochs)
+[10:18:39]   surv_dropped: fit 0.1s · 864 params
+[10:18:39]   !! SurvivalPC (drop censored): degenerate predictive: E[tau|x] has sd 0.732 cycles over 249 inputs, under 5% of the target's own spread (41.5) — p(tau|x) barely depends on x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses at most K, non-monotonically), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.
+[10:18:39] !!! FAILED after 2.5s: DegenerateModelError: degenerate predictive: E[tau|x] has sd 0.732 cycles over 249 inputs, under 5% of the target's own spread (41.5) — p(tau|x) barely depends on x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses at most K, non-monotonically), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.
+[10:58:11] === run start · seed0 · seed 0 · hash 7cde01cb311d ===
+[10:58:11] stages ['ad', 'explain', 'rul', 'calibration'] · device cuda · dataset synthetic
+[10:58:11] --- stage: ad ---
+[10:58:11]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[10:58:11]   task: {'kind': 'ad', 'n_train': 544, 'n_test': 396, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.14646464586257935, 'kind_counts': {'drift': 6, 'normal': 338, 'decouple': 10, 'offset': 7, 'organic': 23, 'spike': 7, 'desync': 5}, 'train_units': 14, 'test_units': 10, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic', 'censored_units': 9, 'simulated_censoring': 0.35}
+[10:58:11]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+    fit chain K=4:   0%|          | 0/6 [00:00<?, ?it/s]    [pc] epoch   0  nll   64.565
+    [pc] epoch   1  nll   62.919
+    [pc] epoch   2  nll   60.187
+    [pc] epoch   3  nll   56.772
+    fit chain K=4:  67%|######6   | 4/6 [00:00<00:00, 38.45it/s]    [pc] epoch   4  nll   53.527
+    [pc] epoch   5  nll   50.761
+                                                                [10:58:11]   pc_train_nll: first=64.5645 last=50.7615 (6 epochs)
+[10:58:11]   pc: fit 0.7s · 752 params · score sd 7.435 · device cuda · layered · 4,398 win/s
+    typed decomposition (per channel):   0%|          | 0/8 [00:00<?, ?it/s]                                                                            [10:58:12]   typed decomposition (mean worst-channel surprise):
+[10:58:12]        normal  n=  338  marginal    11.73  conditional    10.61  structural     2.26
+[10:58:12]      decouple  n=   10  marginal    12.93  conditional    12.03  structural     2.28
+[10:58:12]        desync  n=    5  marginal     9.41  conditional    11.73  structural     4.35
+[10:58:12]         drift  n=    6  marginal    16.52  conditional    15.36  structural     5.71
+[10:58:12]        offset  n=    7  marginal    20.53  conditional    18.27  structural     6.38
+[10:58:12]       organic  n=   23  marginal    41.65  conditional    51.16  structural    19.14
+[10:58:12]         spike  n=    7  marginal    25.46  conditional    26.45  structural     3.77
+[10:58:12] --- stage ad done in 1.4s ---
+[10:58:12] --- stage: explain ---
+[10:58:12]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[10:58:12]   task: {'kind': 'ad', 'n_train': 544, 'n_test': 396, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.14646464586257935, 'kind_counts': {'drift': 6, 'normal': 338, 'decouple': 10, 'offset': 7, 'organic': 23, 'spike': 7, 'desync': 5}, 'train_units': 14, 'test_units': 10, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic', 'censored_units': 9, 'simulated_censoring': 0.35}
+[10:58:12]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+[10:58:12]   explain: capped test set to 200 windows
+    fit chain K=4:   0%|          | 0/6 [00:00<?, ?it/s]    [pc] epoch   0  nll   64.565
+    [pc] epoch   1  nll   62.919
+    [pc] epoch   2  nll   60.187
+    [pc] epoch   3  nll   56.772
+    [pc] epoch   4  nll   53.527
+    [pc] epoch   5  nll   50.761
+                                                        [10:58:12]   pc_train_nll: first=64.5645 last=50.7615 (6 epochs)
+[10:58:12]   pc: fit 0.1s · 752 params · score sd 7.435 · device cuda · layered · 42,051 win/s
+    typed decomposition (per channel):   0%|          | 0/8 [00:00<?, ?it/s]                                                                                conditional Shapley (2 orders):   0%|          | 0/2 [00:00<?, ?it/s]                                                                         [10:58:12]   attribution cost: PC exact (all views) 0.0s · AE sampling-SHAP (one view) 0.0s
+    chain-rule attribution (48 exact conditionals):   0%|          | 0/1 [00:00<?, ?it/s]                                                                                         [10:58:12]   completeness: max residual 3.81e-06 nats, mean 9.54e-07
+[10:58:12]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[10:58:12]   worked examples (median-scoring window of each kind):
+    typed decomposition (per channel):   0%|          | 0/8 [00:00<?, ?it/s]                                                                                (t,c) attribution grid 6x8:   0%|          | 0/6 [00:00<?, ?it/s]                                                                     [10:58:13]    [normal]
+[10:58:13]   anomaly score 48.1 nats
+[10:58:13]       ch1  out of range         marginal   14.11  structural    1.53  worst at t=2
+[10:58:13]       ch7  out of range         marginal    6.72  structural   -1.73  worst at t=5
+[10:58:13]       ch0  out of range         marginal    7.04  structural   -2.64  worst at t=4
+    typed decomposition (per channel):   0%|          | 0/8 [00:00<?, ?it/s]                                                                                (t,c) attribution grid 6x8:   0%|          | 0/6 [00:00<?, ?it/s]                                                                     [10:58:13]    [spike]
+[10:58:13]   anomaly score 72.3 nats   [injected: spike, channels [6]]
+[10:58:13]       ch6  out of range         marginal   28.66  structural   -2.57  worst at t=4  <- CORRECT
+[10:58:13]       ch0  out of range         marginal    6.71  structural    2.29  worst at t=0  <- miss
+[10:58:13]       ch7  out of range         marginal    6.62  structural    1.80  worst at t=2  <- miss
+    typed decomposition (per channel):   0%|          | 0/8 [00:00<?, ?it/s]                                                                                (t,c) attribution grid 6x8:   0%|          | 0/6 [00:00<?, ?it/s]                                                                     [10:58:13]    [offset]
+[10:58:13]   anomaly score 71.3 nats   [injected: offset, channels [5, 6]]
+[10:58:13]       ch6  broken relationship  marginal   13.24  structural    9.09  worst at t=4  <- CORRECT
+[10:58:13]       ch5  out of range         marginal   21.41  structural   -3.66  worst at t=5  <- CORRECT
+[10:58:13]       ch7  out of range         marginal   10.11  structural   -2.88  worst at t=5  <- miss
+    typed decomposition (per channel):   0%|          | 0/8 [00:00<?, ?it/s]                                                                                (t,c) attribution grid 6x8:   0%|          | 0/6 [00:00<?, ?it/s]                                                                     [10:58:13]    [drift]
+[10:58:13]   anomaly score 61.4 nats   [injected: drift, channels [1, 2, 4]]
+[10:58:13]       ch1  out of range         marginal    8.78  structural    3.60  worst at t=5  <- CORRECT
+[10:58:13]       ch4  out of range         marginal   14.02  structural   -3.61  worst at t=5  <- CORRECT
+[10:58:13]       ch2  out of range         marginal    7.21  structural    1.98  worst at t=5  <- CORRECT
+    typed decomposition (per channel):   0%|          | 0/8 [00:00<?, ?it/s]                                                                                (t,c) attribution grid 6x8:   0%|          | 0/6 [00:00<?, ?it/s]                                                                     [10:58:13]    [decouple]
+[10:58:13]   anomaly score 50.2 nats   [injected: decouple, channels [2, 6]]
+[10:58:13]       ch6  out of range         marginal   10.39  structural   -2.75  worst at t=3  <- CORRECT
+[10:58:13]       ch1  out of range         marginal    7.35  structural    0.21  worst at t=4  <- miss
+[10:58:13]       ch2  out of range         marginal   10.43  structural   -3.78  worst at t=2  <- CORRECT
+    typed decomposition (per channel):   0%|          | 0/8 [00:00<?, ?it/s]                                                                                (t,c) attribution grid 6x8:   0%|          | 0/6 [00:00<?, ?it/s]                                                                     [10:58:13]    [desync]
+[10:58:13]   anomaly score 45.9 nats   [injected: desync, channels [3]]
+[10:58:13]       ch7  out of range         marginal    6.88  structural    3.28  worst at t=1  <- miss
+[10:58:13]       ch0  out of range         marginal    6.56  structural   -0.43  worst at t=3  <- miss
+[10:58:13]       ch4  out of range         marginal    7.01  structural   -1.03  worst at t=2  <- miss
+[10:58:13] --- stage explain done in 0.9s ---
+[10:58:13] --- stage: rul ---
+[10:58:13]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[10:58:13]   task: {'kind': 'rul', 'n_train': 653, 'n_test': 249, 'd': 48, 'window': 6, 'n_channels': 8, 'n_bins': 12, 'cap': 130.0, 'censored_frac': 0.21745789051055908, 'train_units': 14, 'test_units': 10, 'censored_units': 9, 'n_regimes': 2, 'seed': 0, 'split_rebalanced': 0, 'dataset': 'synthetic', 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic', 'simulated_censoring': 0.35}
+[10:58:13]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+    survival fit (observed):   0%|          | 0/6 [00:00<?, ?it/s]    [surv] epoch   0  censored-NLL   71.273
+    [surv] epoch   1  censored-NLL   70.504
+    [surv] epoch   2  censored-NLL   69.846
+    [surv] epoch   3  censored-NLL   69.024
+    [surv] epoch   4  censored-NLL   68.132
+    [surv] epoch   5  censored-NLL   67.362
+                                                                  [10:58:13]   surv_dropped_nll: first=71.2732 last=67.3618 (6 epochs)
+[10:58:13]   surv_dropped: fit 0.1s · 864 params
+    log p(tau|x) · 12 bins:   0%|          | 0/1 [00:00<?, ?it/s]                                                                 [10:58:13]   !! SurvivalPC (drop censored): degenerate predictive: E[tau|x] has sd 0.732 cycles over 249 inputs, under 5% of the target's own spread (41.5) — p(tau|x) barely depends on x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses at most K, non-monotonically), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.
+[10:58:13] !!! FAILED after 2.5s: DegenerateModelError: degenerate predictive: E[tau|x] has sd 0.732 cycles over 249 inputs, under 5% of the target's own spread (41.5) — p(tau|x) barely depends on x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses at most K, non-monotonically), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.

@@ -12,3 +12,6 @@
 {"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 13.1, "config_hash": "04a3130bb048", "finished": "2026-08-04T14:35:54"}
 {"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 7.6, "config_hash": "04a3130bb048", "finished": "2026-08-04T14:44:11"}
 {"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 7.6, "config_hash": "5558b5b0aeb3", "finished": "2026-08-04T15:08:14"}
+{"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "failed", "wall_s": 2.5, "config_hash": "9d3d53fdd2e9", "finished": "2026-08-06T10:07:49"}
+{"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "failed", "wall_s": 2.5, "config_hash": "9d3d53fdd2e9", "finished": "2026-08-06T10:18:39"}
+{"experiment": "smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "failed", "wall_s": 2.5, "config_hash": "7cde01cb311d", "finished": "2026-08-06T10:58:13"}

@@ -1,0 +1,23 @@
+......................................................................   [100%]
+=============================== warnings summary ===============================
+../../../../../../miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/jit/_script.py:1480
+../../../../../../miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/jit/_script.py:1480
+../../../../../../miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/jit/_script.py:1480
+  /home/jawa17/miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/jit/_script.py:1480: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+tests/test_experiment_hygiene.py::test_floor_flag_switches_the_runtime_bound_only
+  /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/tests/test_experiment_hygiene.py:71: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+  Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)
+    seen[relative] = (float(leaf.sigma), float(leaf.sigma_floor))
+
+tests/test_datasets_catalog.py::test_battery_roundtrip_and_genuine_censoring
+  /home/jawa17/miniconda3/envs/expllm_env/lib/python3.11/site-packages/numpy/lib/_function_base_impl.py:3023: RuntimeWarning: invalid value encountered in divide
+    c /= stddev[:, None]
+
+tests/test_datasets_catalog.py::test_battery_roundtrip_and_genuine_censoring
+  /home/jawa17/miniconda3/envs/expllm_env/lib/python3.11/site-packages/numpy/lib/_function_base_impl.py:3024: RuntimeWarning: invalid value encountered in divide
+    c /= stddev[None, :]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+70 passed, 6 warnings in 14.58s

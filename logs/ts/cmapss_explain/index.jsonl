@@ -16,3 +16,12 @@
 {"experiment": "cmapss_explain", "variant": "subset-FD004", "seed": 0, "run_dir": "subset-FD004/seed0", "status": "ok", "wall_s": 76.2, "config_hash": "9ec604aa9621", "finished": "2026-08-04T15:23:32"}
 {"experiment": "cmapss_explain", "variant": "subset-FD004", "seed": 1, "run_dir": "subset-FD004/seed1", "status": "ok", "wall_s": 77.0, "config_hash": "9ec604aa9621", "finished": "2026-08-04T15:24:49"}
 {"experiment": "cmapss_explain", "variant": "subset-FD004", "seed": 2, "run_dir": "subset-FD004/seed2", "status": "ok", "wall_s": 74.9, "config_hash": "9ec604aa9621", "finished": "2026-08-04T15:26:04"}
+{"experiment": "cmapss_explain", "variant": "subset-FD001", "seed": 0, "run_dir": "subset-FD001/seed0", "status": "ok", "wall_s": 22.3, "config_hash": "115c972b743f", "finished": "2026-08-06T11:07:19"}
+{"experiment": "cmapss_explain", "variant": "subset-FD001", "seed": 1, "run_dir": "subset-FD001/seed1", "status": "ok", "wall_s": 20.2, "config_hash": "115c972b743f", "finished": "2026-08-06T11:07:39"}
+{"experiment": "cmapss_explain", "variant": "subset-FD001", "seed": 2, "run_dir": "subset-FD001/seed2", "status": "ok", "wall_s": 20.1, "config_hash": "115c972b743f", "finished": "2026-08-06T11:07:59"}
+{"experiment": "cmapss_explain", "variant": "subset-FD002", "seed": 0, "run_dir": "subset-FD002/seed0", "status": "ok", "wall_s": 40.5, "config_hash": "2dc946b3192f", "finished": "2026-08-06T11:08:39"}
+{"experiment": "cmapss_explain", "variant": "subset-FD002", "seed": 1, "run_dir": "subset-FD002/seed1", "status": "ok", "wall_s": 39.6, "config_hash": "2dc946b3192f", "finished": "2026-08-06T11:09:19"}
+{"experiment": "cmapss_explain", "variant": "subset-FD002", "seed": 2, "run_dir": "subset-FD002/seed2", "status": "ok", "wall_s": 40.4, "config_hash": "2dc946b3192f", "finished": "2026-08-06T11:09:59"}
+{"experiment": "cmapss_explain", "variant": "subset-FD004", "seed": 0, "run_dir": "subset-FD004/seed0", "status": "ok", "wall_s": 46.2, "config_hash": "cfed8c522e85", "finished": "2026-08-06T11:10:46"}
+{"experiment": "cmapss_explain", "variant": "subset-FD004", "seed": 1, "run_dir": "subset-FD004/seed1", "status": "ok", "wall_s": 46.7, "config_hash": "cfed8c522e85", "finished": "2026-08-06T11:11:32"}
+{"experiment": "cmapss_explain", "variant": "subset-FD004", "seed": 2, "run_dir": "subset-FD004/seed2", "status": "ok", "wall_s": 45.6, "config_hash": "cfed8c522e85", "finished": "2026-08-06T11:12:18"}
