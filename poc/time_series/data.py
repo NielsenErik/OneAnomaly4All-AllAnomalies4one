@@ -41,7 +41,23 @@ import torch
 
 @dataclass
 class Fleet:
-    """A set of run-to-failure trajectories."""
+    """
+    A set of trajectories.  Two populations share this container:
+
+      RUN-TO-FAILURE units (turbofans, batteries, bearings, tools).  `rul` and
+      `health` are meaningful, `labels` is None, and anomalies for the
+      detection task are INJECTED because no annotation exists.
+
+      ANNOTATED TELEMETRY segments (spacecraft channels).  `rul`/`health` are
+      filled with zeros and carry no meaning — there is no failure to run to —
+      while `labels` holds the operators' PER-CHANNEL annotation for every
+      timestep.  That is what makes real (rather than injected) detection and
+      localisation ground truth available; see `datasets.make_ad_task_labeled`.
+
+    Which of the two a fleet is, is decided by `labels is None`, never by the
+    dataset name, so a new annotated source needs no new branch anywhere
+    downstream.
+    """
     series: List[np.ndarray]              # per unit: (T_i, C) sensor readings
     rul: List[np.ndarray]                 # per unit: (T_i,) cycles until failure
     regime: List[np.ndarray]              # per unit: (T_i,) operating-regime id
@@ -50,12 +66,24 @@ class Fleet:
     n_channels: int
     n_regimes: int
     channel_groups: List[List[int]] = field(default_factory=list)
+    labels: Optional[List[np.ndarray]] = None   # per unit: (T_i, C) annotation code
 
     def __len__(self) -> int:
         return len(self.series)
 
+    @property
+    def annotated(self) -> bool:
+        """True when this fleet carries real per-timestep annotations."""
+        return self.labels is not None
+
     def __repr__(self) -> str:
         lens = [len(s) for s in self.series]
+        if self.annotated:
+            n_ann = sum(int((l > 0).any(axis=1).sum()) for l in self.labels or [])
+            total = sum(lens)
+            return (f"Fleet(segments={len(self)}, C={self.n_channels}, "
+                    f"samples={total:,}, len={min(lens)}–{max(lens)}, "
+                    f"annotated={n_ann / max(total, 1):.2%})")
         return (f"Fleet(units={len(self)}, C={self.n_channels}, "
                 f"regimes={self.n_regimes}, cycles={min(lens)}–{max(lens)}, "
                 f"censored={sum(self.censored)}/{len(self)})")
@@ -364,7 +392,20 @@ def make_ad_task(
     for u in tr_units:
         W, h = windows_of(u)
         X_train.append(W[h < healthy_frac])
-    X_train = np.concatenate([w for w in X_train if len(w)], axis=0)
+    X_train = [w for w in X_train if len(w)]
+    if not X_train:
+        # Loud, because the cause is never the model.  It is almost always a
+        # `cap` longer than the units themselves: health = 1 - rul/cap, so on a
+        # fleet whose trajectories are shorter than `cap` every window looks
+        # degraded and nothing qualifies as healthy.
+        lives = [len(s) for s in fleet.series]
+        raise ValueError(
+            f"no healthy training windows (healthy_frac={healthy_frac}): unit "
+            f"lengths are {min(lives)}-{max(lives)} steps while the health "
+            "proxy uses cap from the dataset — lower `dataset.cap` to well "
+            "below the shortest life, raise `healthy_frac`, or check that "
+            "`window` fits the trajectories")
+    X_train = np.concatenate(X_train, axis=0)
 
     donor_pool = X_train                              # in-distribution donors
     X_test, y_test, kinds, affected = [], [], [], []
@@ -503,6 +544,17 @@ def make_rul_task(
             deltas.append(np.full(len(W), 0 if fleet.censored[u] else 1))
             regs.append(fleet.regime[u][right])
             uids.append(np.full(len(W), int(u)))
+        if not Xs:
+            # On a genuinely censored fleet (batteries, bearings) a small
+            # held-out side can contain nothing BUT censored units, and the
+            # test set is failure-observed only.  Say which of the two it is.
+            why = ("every held-out unit is right-censored and the test set is "
+                   "failure-observed only" if force_uncensored else
+                   "no unit yielded a window")
+            raise ValueError(
+                f"RUL split produced an empty {'test' if force_uncensored else 'train'} "
+                f"set: {why}.  Adjust `dataset.train_units`, use a fleet with "
+                f"more failures, or shorten `window` ({window} steps).")
         cat = lambda a: np.concatenate(a, axis=0)
         return cat(Xs), cat(taus), cat(deltas), cat(regs), cat(raw), cat(uids)
 

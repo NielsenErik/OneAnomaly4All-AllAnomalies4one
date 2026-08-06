@@ -10,6 +10,12 @@ Read `CLAUDE.md` (hard constraints), then
 run anything) and [`data/README.md`](data/README.md) (what is real and what is
 injected). This file is the state of play and the next actions.
 
+**New here, or back after a while?** [`EXPLAIN.md`](EXPLAIN.md) walks through
+how the whole pipeline works — data → structure → circuit → queries → the five
+stages — in plain language, with diagrams and worked numbers. Three documents,
+three jobs: `CLAUDE.md` is the contract, `EXPLAIN.md` is the machine, this file
+is the state of play.
+
 **If you read one thing: §B.2. Two of the results in §2 are now suspended
 pending one re-run, and §B.7 is that re-run.**
 
@@ -348,12 +354,10 @@ the pre-fix leaf code** and are not comparable to anything measured after
 **Uncommitted, and this is now a large diff — commit before the workstation
 batch (§B.10), which needs to run at a known commit.**
 
-Tests: 87 green across the three new suites + `test_ts_pipeline` +
-`test_leaf_sigma_floor`; 173 green across the fast half of `tests/`; the full
-suite passes (exit 0) but takes >10 min, dominated by `test_inference` and
-`test_vtree`. Smoke run clean end to end on all four stages. **All four strict
-xfails are now cleared** — they were the signal that the open items were open,
-and they flipped as each was fixed.
+Tests: **331 passed, 0 failed, 0 skipped** (`pytest tests/ -q`, 23.8 min on this
+Mac — `test_inference` and `test_vtree` dominate). Smoke run clean end to end on
+all four stages. **All four strict xfails are now cleared** — they were the
+signal that the open items were open, and they flipped as each was fixed.
 
 | file | change |
 |---|---|

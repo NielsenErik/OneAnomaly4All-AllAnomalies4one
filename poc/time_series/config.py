@@ -56,7 +56,11 @@ DEFAULTS: Dict[str, Any] = {
     "skip_if_missing_data": True,     # real-data configs no-op when files absent
 
     "dataset": {
-        "source": "synthetic",        # synthetic | cmapss | ncmapss
+        # any name in catalog.SOURCES:
+        #   synthetic | cmapss | ncmapss                      (turbofan)
+        #   phm08 | battery | calce | ims | milling | pcoe    (other PCoE)
+        #   esa | opssat | smapmsl                            (annotated telemetry)
+        "source": "synthetic",
         # --- shared ---
         "window": 8,
         "stride": 2,
@@ -89,6 +93,44 @@ DEFAULTS: Dict[str, Any] = {
         "max_rows": None,
         "cache": True,
         "data_dir": None,
+        # --- other NASA PCoE prognostics sets ---
+        "phm08_regimes": 6,           # PHM08 has six operating conditions
+        "cells": None,                # battery/calce: subset of cells, e.g. [B0005]
+        "eol_frac": 0.7,              # battery/calce: 30% capacity fade = EOL
+        "rated_ah": None,             # battery: None -> first cycles' capacity
+        "min_cycles": 20,             # battery/calce: shorter records are dropped
+        "ims_test": "2nd_test",       # 1st_test | 2nd_test | 3rd_test
+        "ims_unit": "bearing",        # bearing | rig
+        "ims_file_stride": 1,         # keep every n-th 10-minute snapshot
+        "max_files": None,            # ims: keep only the last N snapshots
+        "vb_eol": 0.6,                # milling: flank wear (mm) at end of life
+        "preset": "igbt",             # pcoe: igbt | capacitor | fatigue
+        "unit_glob": "*.csv",         # pcoe: one file per unit
+        "time_col": None,             # pcoe: dropped from the features
+        "sensor_cols": None,          # pcoe: None -> every numeric column
+        "regime_col": None,           # pcoe: becomes the operating regime
+        "eol_column": None,           # pcoe: health indicator (preset default)
+        "eol_threshold": None,        # pcoe: None -> end of record is EOL
+        "min_length": 12,             # pcoe/opssat: shortest usable record
+        # --- annotated telemetry (esa | opssat | smapmsl) ---
+        "mission": "Mission1",        # esa: Mission1 | Mission2 | Mission3
+        "esa_channels": "lightweight",  # lightweight | all | explicit list
+        "esa_form": "auto",           # auto | preprocessed | raw
+        "esa_split": None,            # preprocessed: 84_months, 21_months, ...
+        "resample_s": None,           # esa raw: None -> mission's dominant rate
+        "include_telecommands": False,
+        "rare_events": "anomaly",     # anomaly | normal | drop
+        "gaps": "drop",               # drop | normal
+        "train_on_clean": True,       # drop annotated windows from the fit set
+        "labeled_inject_rate": 0.0,   # inject ON TOP of real labels (0 = off)
+        "max_train_samples": 400000,  # esa: stride the stream to this length
+        "max_test_samples": 200000,
+        "max_train_windows": None,
+        "max_length": 2000,           # opssat: longest segment kept
+        "opssat_channels": None,
+        "spacecraft": "SMAP",         # smapmsl: SMAP | MSL | both
+        "dims": "first",              # smapmsl: first (telemetry) | all (+commands)
+        "smap_channels": None,
         # --- rul only ---
         "censor_frac": 0.0,
         "bins": 20,
@@ -179,9 +221,22 @@ def validate(cfg: Dict[str, Any]) -> None:
     bad = [s for s in cfg["stages"] if s not in STAGES]
     if bad:
         raise ValueError(f"unknown stage(s) {bad}; expected a subset of {list(STAGES)}")
+    # Imported here, not at module level: `catalog` pulls in the loaders (and
+    # through them scipy/pandas), and `config` is imported by tooling that only
+    # wants to read a YAML file.
+    from .catalog import SOURCES, get_source
     src = cfg["dataset"]["source"]
-    if src not in ("synthetic", "cmapss", "ncmapss"):
-        raise ValueError(f"unknown dataset.source {src!r}")
+    if src not in SOURCES:
+        raise ValueError(f"unknown dataset.source {src!r}; expected one of "
+                         f"{sorted(SOURCES)}")
+    source = get_source(src)
+    unsupported = [s for s in cfg["stages"] if s not in source.tasks]
+    if unsupported:
+        raise ValueError(
+            f"dataset.source {src!r} ({source.title}) does not support stage(s) "
+            f"{unsupported}; it supports {list(source.tasks)}.  Annotated "
+            "telemetry has no remaining useful life, so `rul`, `calibration` "
+            "and `scaling` are refused rather than run against zeros.")
     if cfg["model"]["sos"] and cfg["model"]["vtree"].endswith("_multi"):
         raise ValueError(
             "multi-partition region graphs are not structured decomposable, so "

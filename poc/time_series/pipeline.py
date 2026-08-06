@@ -153,7 +153,13 @@ def prepare_task(cfg: Dict[str, Any], seed: int, log: RunLogger, kind: str):
     desc = describe_task(task)
     log.info(f"  data: {pair}  ({time.time() - t0:.1f}s)")
     log.info(f"  task: {desc}")
-    log.metrics({f"task_{kind}": desc})
+    # Known defects of the source, printed beside the numbers they qualify.
+    # SMAP/MSL's triviality and OPSSAT's segment-level labels are the kind of
+    # thing that gets dropped between a run and a write-up; here they cannot be.
+    for c in pair.meta.get("caveats", []):
+        log.info(f"  caveat: {c}")
+    log.metrics({f"task_{kind}": desc,
+                 "dataset_caveats": list(pair.meta.get("caveats", []))})
     return pair, task
 
 
