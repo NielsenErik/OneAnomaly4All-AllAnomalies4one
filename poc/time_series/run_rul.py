@@ -39,10 +39,10 @@ from typing import Dict, List
 import numpy as np
 import torch
 
-from baselines import rul_baselines
-from circuits import SurvivalPC
-from data import make_rul_task
-from metrics import (
+from .baselines import rul_baselines
+from .circuits import SurvivalPC
+from .data import make_rul_task
+from .metrics import (
     calibration_error,
     crps_from_interval,
     crps_from_pmf,
