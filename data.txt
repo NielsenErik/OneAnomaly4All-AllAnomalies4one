@@ -1,0 +1,92 @@
+
+=== synthetic — C-MAPSS-shaped simulator ===
+    tasks: ad, explain, rul, calibration, scaling   path: (none)
+  synthetic  present
+
+=== cmapss — NASA C-MAPSS turbofan (FD001-FD004) ===
+    tasks: ad, explain, rul, calibration, scaling   path: /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/data/cmapss
+  FD001      present
+  FD002      present
+  FD003      present
+  FD004      present
+
+=== ncmapss — NASA N-C-MAPSS (real flight conditions) ===
+    tasks: ad, explain, rul, calibration, scaling   path: /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/data/ncmapss
+  DS01       MISSING
+  DS02       MISSING
+  DS03       MISSING
+  DS04       MISSING
+  DS05       MISSING
+  DS06       MISSING
+  DS07       MISSING
+  DS08a      MISSING
+  DS08c      MISSING
+  DS08d      MISSING
+    get it: NASA PCoE 'Turbofan Engine Degradation Simulation Data Set 2' (Arias Chao et al. 2021), HDF5, 1-5 GB per release. Needs h5py.
+
+=== phm08 — PHM08 Prognostics Challenge ===
+    tasks: ad, explain, rul, calibration, scaling   path: /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/data/phm08
+  phm08      MISSING
+    get it: PHM Society data repository (data.phmsociety.org) / NASA PCoE mirror. Place train.txt (26 columns, C-MAPSS layout).
+
+=== battery — NASA Li-ion battery aging (Saha & Goebel) ===
+    tasks: ad, explain, rul, calibration, scaling   path: /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/data/battery_nasa
+  battery    MISSING
+    get it: NASA PCoE 'Battery Data Set' (data.nasa.gov / data.phmsociety.org/nasa). Place B0005.mat, B0006.mat, ... Needs scipy.
+
+=== calce — CALCE CS2 prismatic cells ===
+    tasks: ad, explain, rul, calibration, scaling   path: /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/data/calce
+  calce      MISSING
+    get it: CALCE battery data (calce.umd.edu). Place per-cell CSV summaries (cycle, capacity, ...) or the raw CS2_xx/ Arbin exports.
+
+=== ims — IMS / Rexnord bearing run-to-failure ===
+    tasks: ad, explain, rul, calibration, scaling   path: /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/data/ims
+  1st_test   MISSING
+  2nd_test   MISSING
+  3rd_test   MISSING
+    get it: NASA PCoE 'Bearing Data Set' (IMS, University of Cincinnati). Unpack 1st_test/, 2nd_test/, 3rd_test/ of ASCII snapshot files.
+
+=== milling — NASA milling (tool flank wear) ===
+    tasks: ad, explain, rul, calibration, scaling   path: /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/data/milling
+  milling    MISSING
+    get it: NASA PCoE 'Milling Data Set'. Place mill.mat. Needs scipy.
+
+=== pcoe — Generic PCoE per-unit CSV adapter ===
+    tasks: ad, explain, rul, calibration, scaling   path: /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/data/pcoe
+  igbt       MISSING
+  capacitor  MISSING
+  fatigue    MISSING
+    get it: For the PCoE sets without a stable layout (IGBT, capacitor, fatigue/Lamb-wave): convert each unit to data/pcoe/<preset>/<unit>.csv and name the columns in the config.
+
+=== esa — ESA Anomalies Dataset / ESA-ADB ===
+    tasks: ad, explain   path: /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/data/esa_adb
+  Mission1   MISSING
+  Mission2   MISSING
+  Mission3   MISSING
+    get it: Zenodo 10.5281/zenodo.12528696 (~31 GB, CC BY 3.0 IGO). Unpack ESA-Mission1/ and ESA-Mission2/ into data/esa_adb/, or place the TimeEval-preprocessed CSVs under data/esa_adb/preprocessed/.
+
+=== opssat — OPSSAT-AD (ESA CubeSat) ===
+    tasks: ad, explain   path: /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/data/opssat
+  opssat     MISSING
+    get it: Zenodo 10.5281/zenodo.12588359 (also on Kaggle). Place segments.csv in data/opssat/.
+
+=== smapmsl — SMAP / MSL (Hundman et al. 2018) ===
+    tasks: ad, explain   path: /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/data/smap_msl
+  SMAP       MISSING
+  MSL        MISSING
+    get it: khundman/telemanom `data.zip`. Unpack train/, test/ and labeled_anomalies.csv into data/smap_msl/.
+
+==========================================================================
+present: synthetic, cmapss
+missing: ncmapss, phm08, battery, calce, ims, milling, pcoe, esa, opssat, smapmsl
+
+  h5py      installed
+  scipy     installed
+  pandas    installed
+  openpyxl  NOT installed  (needed for: raw CALCE .xlsx)
+
+The synthetic fleet always works and needs nothing.
+Configs for real data set `skip_if_missing_data: true`, so a batch
+on a machine without the files skips them instead of failing.
+Run with --caveats before writing anything up.
+
