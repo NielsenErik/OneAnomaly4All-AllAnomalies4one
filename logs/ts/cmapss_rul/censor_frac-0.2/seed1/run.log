@@ -68,3 +68,47 @@
     log p(tau|x) · 25 bins:   0%|          | 0/11 [00:00<?, ?it/s]    log p(tau|x) · 25 bins:  18%|#8        | 2/11 [00:00<00:00, 15.40it/s]    log p(tau|x) · 25 bins:  36%|###6      | 4/11 [00:00<00:00, 15.44it/s]    log p(tau|x) · 25 bins:  55%|#####4    | 6/11 [00:00<00:00, 15.58it/s]    log p(tau|x) · 25 bins:  73%|#######2  | 8/11 [00:00<00:00, 15.79it/s]    log p(tau|x) · 25 bins:  91%|######### | 10/11 [00:00<00:00, 15.94it/s]                                                                           [12:48:43]   SurvivalPC (exact censored lik.) [all]: PICP 0.401 centres / 0.972 edges (nominal 0.90), MPIW 69.2 / 74.2; PIT mean 0.551 var 0.0784 (1/12 = 0.0833)
     log p(tau|x) · 25 bins:   0%|          | 0/1 [00:00<?, ?it/s]                                                                 [12:48:43]   SurvivalPC (exact censored lik.) [last]: PICP 0.830 centres / 0.950 edges (nominal 0.90), MPIW 80.3 / 85.3; PIT mean 0.391 var 0.0598 (1/12 = 0.0833)
     log p(tau|x) · 25 bins:   0%|          | 0/11 [00:00<?, ?it/s]    log p(tau|x) · 25 bins:  18%|#8        | 2/11 [00:00<00:00, 15.24it/s]    log p(tau|x) · 25 bins:  36%|###6      | 4/11 [00:00<00:00, 15.47it/s]    log p(tau|x) · 25 bins:  55%|#####4    | 6/11 [00:00<00:00, 15.63it/s]    log p(tau|x) · 25 bins:  73%|#######2  | 8/11 [00:00<00:00, 15.83it/s]    log p(tau|x) · 25 bins:  91%|######### | 10/11 [00:00<00:00, 15.97it/s]                                                                               log p(tau|x) · 25 bins:   0%|          | 0/11 [00:00<?, ?it/s]    log p(tau|x) · 25 bins:  18%|#8        | 2/11 [00:00<00:00, 16.29it/s]    log p(tau|x) · 25 bins:  36%|###6      | 4/11 [00:00<00:00, 16.33it/s]    log p(tau|x) · 25 bins:  55%|#####4    | 6/11 [00:00<00:00, 16.37it/s]    log p(tau|x) · 25 bins:  73%|#######2  | 8/11 [00:00<00:00, 16.39it/s]    log p(tau|x) · 25 bins:  91%|######### | 10/11 [00:00<00:00, 16.41it/s]                                                                           [12:48:46] !!! FAILED after 65.1s: DegenerateModelError: degenerate predictive: E[tau|x] has sd 1.4 cycles over 5625 inputs, under 5% of the target's own spread (39.7) — p(tau|x) barely depends on x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses at most K, non-monotonically), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.
+[16:55:51] === run start · seed1 · seed 1 · hash d4e5db9c80c8 ===
+[16:55:51] stages ['rul'] · device cpu · dataset cmapss:FD001
+[16:55:51] --- stage: rul ---
+[16:55:51]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:55:51]   task: {'kind': 'rul', 'n_train': 8778, 'n_test': 5625, 'd': 300, 'window': 20, 'n_channels': 15, 'n_bins': 25, 'cap': 125.0, 'censored_frac': 0.1418318748474121, 'train_units': 100, 'test_units': 100, 'censored_units': 20, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'test_windows': 'all', 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet', 'simulated_censoring': 0.2}
+[16:55:51]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [surv] epoch   0  censored-NLL 25613.892
+    [surv] epoch   7  censored-NLL  275.910
+    survival fit (observed): 13/60 (22%) · 0.42 it/s · elapsed 00:31 · ETA 01:53
+    [surv] epoch  14  censored-NLL  276.591
+    [surv] epoch  21  censored-NLL  276.660
+    survival fit (observed): 26/60 (43%) · 0.42 it/s · elapsed 01:02 · ETA 01:21
+    [surv] epoch  28  censored-NLL  273.997
+    [surv] epoch  35  censored-NLL  271.724
+    survival fit (observed): 39/60 (65%) · 0.42 it/s · elapsed 01:32 · ETA 00:49
+    [surv] epoch  42  censored-NLL  280.584
+    [surv] epoch  49  censored-NLL  269.049
+    survival fit (observed): 52/60 (87%) · 0.43 it/s · elapsed 02:02 · ETA 00:18
+    [surv] epoch  56  censored-NLL  272.354
+    survival fit (observed): done 60/60 in 02:20
+[16:58:13]   surv_dropped_nll: first=25613.8917 last=280.0802 (60 epochs)
+[16:58:13]   surv_dropped: fit 142.0s · 43,356 params
+[16:58:30]   SurvivalPC (drop censored) [all]: PICP 0.409 centres / 0.978 edges (nominal 0.90), MPIW 72.8 / 77.8; PIT mean 0.595 var 0.0750 (1/12 = 0.0833)
+[16:58:31]   SurvivalPC (drop censored) [last]: PICP 0.830 centres / 0.960 edges (nominal 0.90), MPIW 82.3 / 87.3; PIT mean 0.444 var 0.0634 (1/12 = 0.0833)
+    [surv] epoch   0  censored-NLL 22061.172
+    [surv] epoch   7  censored-NLL  260.698
+    survival fit (censored): 11/60 (18%) · 0.36 it/s · elapsed 00:30 · ETA 02:14
+    [surv] epoch  14  censored-NLL  264.522
+    [surv] epoch  21  censored-NLL  265.477
+    survival fit (censored): 22/60 (37%) · 0.36 it/s · elapsed 01:00 · ETA 01:44
+    [surv] epoch  28  censored-NLL  268.666
+    survival fit (censored): 33/60 (55%) · 0.36 it/s · elapsed 01:30 · ETA 01:14
+    [surv] epoch  35  censored-NLL  268.385
+    [surv] epoch  42  censored-NLL  264.679
+    survival fit (censored): 45/60 (75%) · 0.36 it/s · elapsed 02:03 · ETA 00:41
+    [surv] epoch  49  censored-NLL  268.463
+    [surv] epoch  56  censored-NLL  270.261
+    survival fit (censored): 57/60 (95%) · 0.37 it/s · elapsed 02:34 · ETA 00:08
+    survival fit (censored): done 60/60 in 02:42
+[17:01:15]   surv_censored_nll: first=22061.1724 last=261.8831 (60 epochs)
+[17:01:15]   surv_censored: fit 164.3s · 43,356 params
+[17:01:33]   SurvivalPC (exact censored lik.) [all]: PICP 0.402 centres / 0.972 edges (nominal 0.90), MPIW 69.4 / 74.4; PIT mean 0.556 var 0.0781 (1/12 = 0.0833)
+[17:01:33]   SurvivalPC (exact censored lik.) [last]: PICP 0.830 centres / 0.950 edges (nominal 0.90), MPIW 80.2 / 85.2; PIT mean 0.399 var 0.0596 (1/12 = 0.0833)
+[17:02:09] !!! FAILED after 377.8s: DegenerateModelError: degenerate predictive: E[tau|x] has sd 1.66 cycles over 5625 inputs, under 5% of the target's own spread (39.7) — p(tau|x) barely depends on x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses at most K, non-monotonically), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.

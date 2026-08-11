@@ -6,7 +6,7 @@
     1,
     2
   ],
-  "device": "auto",
+  "device": "cpu",
   "evaluator": "layered",
   "log_root": "logs/ts/capacity_sweep",
   "stages": [

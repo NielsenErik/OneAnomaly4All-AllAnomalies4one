@@ -35,61 +35,61 @@
   ],
   "ad": {
     "circuit": {
-      "auroc": 0.8374414058743616,
-      "ap": 0.6865390750512603,
-      "auroc[decouple]": 0.49540607930455705,
-      "auroc[desync]": 0.7139520330645865,
-      "auroc[drift]": 0.9943703854624483,
-      "auroc[offset]": 0.9982801938865217,
-      "auroc[organic]": 0.9997579760342491,
-      "auroc[spike]": 0.9045027214250371
+      "auroc": 0.8393168112906356,
+      "ap": 0.695116895590702,
+      "auroc[decouple]": 0.5039899680802553,
+      "auroc[desync]": 0.7105150818367921,
+      "auroc[drift]": 0.995806288868838,
+      "auroc[offset]": 0.9981757084592363,
+      "auroc[organic]": 0.9997633543445991,
+      "auroc[spike]": 0.9081112284971761
     },
     "typed": {
       "normal": {
-        "marginal": 23.324953079223633,
-        "conditional": 23.529939651489258,
-        "structural": 6.047348976135254,
+        "marginal": 23.364761352539062,
+        "conditional": 23.396377563476562,
+        "structural": 5.538386344909668,
         "n": 4042
       },
       "decouple": {
-        "marginal": 23.854734420776367,
-        "conditional": 23.8975887298584,
-        "structural": 6.756776332855225,
+        "marginal": 23.391830444335938,
+        "conditional": 23.759504318237305,
+        "structural": 6.422115325927734,
         "n": 102
       },
       "desync": {
-        "marginal": 23.82891273498535,
-        "conditional": 35.58135223388672,
-        "structural": 20.991783142089844,
+        "marginal": 23.682308197021484,
+        "conditional": 35.93275451660156,
+        "structural": 20.92812728881836,
         "n": 102
       },
       "drift": {
-        "marginal": 160544.203125,
-        "conditional": 160565.203125,
-        "structural": 47.31603240966797,
+        "marginal": 162776.921875,
+        "conditional": 162794.640625,
+        "structural": 48.00419998168945,
         "n": 102
       },
       "offset": {
-        "marginal": 49314.97265625,
-        "conditional": 49340.8671875,
-        "structural": 54.16945266723633,
+        "marginal": 49724.2265625,
+        "conditional": 49750.37890625,
+        "structural": 55.10996627807617,
         "n": 103
       },
       "organic": {
-        "marginal": 112.58073425292969,
-        "conditional": 131.8826141357422,
-        "structural": 54.94826889038086,
+        "marginal": 113.41110229492188,
+        "conditional": 130.98194885253906,
+        "structural": 52.75669860839844,
         "n": 46
       },
       "spike": {
-        "marginal": 14175.8232421875,
-        "conditional": 14176.4169921875,
-        "structural": 6.346217632293701,
+        "marginal": 14293.44140625,
+        "conditional": 14293.6748046875,
+        "structural": 5.587253093719482,
         "n": 111
       }
     }
   },
   "_timing": {
-    "ad": 46.22
+    "ad": 322.19
   }
 }

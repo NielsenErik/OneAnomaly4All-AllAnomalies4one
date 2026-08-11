@@ -1,8 +1,8 @@
 {
   "seed": 1,
-  "config_hash": "6238a48a0d20",
+  "config_hash": "3a9911598444",
   "name": "capacity_sweep",
-  "device": "auto",
+  "device": "cpu",
   "evaluator": "layered",
   "stages": [
     "ad"

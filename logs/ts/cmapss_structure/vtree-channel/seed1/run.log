@@ -53,3 +53,41 @@
 [15:12:39]         spike  n=  111  marginal 13909.21  conditional 13908.58  structural     0.82
 [15:12:39] --- stage ad done in 45.8s ---
 [15:12:39] === run ok · 45.8s · peak RSS 1.733 GB ===
+[18:50:01] === run start · seed1 · seed 1 · hash f81c56e7a3e9 ===
+[18:50:01] stages ['ad'] · device cpu · dataset cmapss:FD001
+[18:50:01] --- stage: ad ---
+[18:50:01]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[18:50:01]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1228298619389534, 'kind_counts': {'normal': 4042, 'desync': 102, 'drift': 102, 'offset': 103, 'decouple': 102, 'spike': 111, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[18:50:01]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 31390.849
+    [pc] epoch   6  nll  106.236
+    fit channel K=8: 7/50 (14%) · 0.23 it/s · elapsed 00:30 · ETA 03:06
+    [pc] epoch  12  nll   81.997
+    fit channel K=8: 14/50 (28%) · 0.23 it/s · elapsed 01:00 · ETA 02:35
+    [pc] epoch  18  nll   60.928
+    fit channel K=8: 21/50 (42%) · 0.23 it/s · elapsed 01:31 · ETA 02:05
+    [pc] epoch  24  nll   48.292
+    fit channel K=8: 28/50 (56%) · 0.23 it/s · elapsed 02:01 · ETA 01:35
+    [pc] epoch  30  nll   41.493
+    fit channel K=8: 35/50 (70%) · 0.23 it/s · elapsed 02:32 · ETA 01:05
+    [pc] epoch  36  nll   49.673
+    fit channel K=8: 42/50 (84%) · 0.23 it/s · elapsed 03:03 · ETA 00:34
+    [pc] epoch  42  nll   49.043
+    [pc] epoch  48  nll   58.518
+    fit channel K=8: 49/50 (98%) · 0.23 it/s · elapsed 03:34 · ETA 00:04
+    fit channel K=8: done 50/50 in 03:38
+[18:53:41]   pc_train_nll: first=31390.8494 last=58.6776 (50 epochs)
+[18:53:42]   pc: fit 220.3s · 157,440 params · score sd 16.653 · device cpu · layered · 1,201 win/s
+    typed decomposition (per channel): 6/15 (40%) · 0.17 it/s · elapsed 00:35 · ETA 00:53
+    typed decomposition (per channel): 12/15 (80%) · 0.17 it/s · elapsed 01:11 · ETA 00:17
+    typed decomposition (per channel): done 15/15 in 01:29
+[18:55:14]   typed decomposition (mean worst-channel surprise):
+[18:55:14]        normal  n= 4042  marginal    23.19  conditional    22.51  structural     0.93
+[18:55:14]      decouple  n=  102  marginal    23.31  conditional    22.52  structural     0.89
+[18:55:14]        desync  n=  102  marginal    23.44  conditional    23.75  structural     4.39
+[18:55:14]         drift  n=  102  marginal 155335.25  conditional 155337.41  structural     5.87
+[18:55:14]        offset  n=  103  marginal 48273.23  conditional 48274.49  structural     6.23
+[18:55:14]       organic  n=   46  marginal   124.05  conditional   122.87  structural     2.79
+[18:55:14]         spike  n=  111  marginal 14047.85  conditional 14047.26  structural     0.97
+[18:55:14] --- stage ad done in 312.8s ---
+[18:55:14] === run ok · 312.8s · peak RSS 1.591 GB ===
