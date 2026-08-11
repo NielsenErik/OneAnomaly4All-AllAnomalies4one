@@ -53,3 +53,43 @@
 [15:16:36]         spike  n=  130  marginal  9412.63  conditional  9412.58  structural     2.26
 [15:16:36] --- stage ad done in 53.4s ---
 [15:16:36] === run ok · 53.4s · peak RSS 1.779 GB ===
+[19:16:45] === run start · seed0 · seed 0 · hash 22581e48802f ===
+[19:16:45] stages ['ad'] · device cpu · dataset cmapss:FD001
+[19:16:45] --- stage: ad ---
+[19:16:45]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[19:16:45]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1317274272441864, 'kind_counts': {'normal': 4001, 'spike': 130, 'offset': 113, 'drift': 102, 'desync': 111, 'decouple': 105, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[19:16:45]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll 31413.269
+    fit chow_liu K=8: 6/50 (12%) · 0.18 it/s · elapsed 00:32 · ETA 04:00
+    [pc] epoch   6  nll  128.647
+    fit chow_liu K=8: 12/50 (24%) · 0.18 it/s · elapsed 01:05 · ETA 03:27
+    [pc] epoch  12  nll   81.501
+    fit chow_liu K=8: 18/50 (36%) · 0.18 it/s · elapsed 01:38 · ETA 02:54
+    [pc] epoch  18  nll   66.968
+    fit chow_liu K=8: 24/50 (48%) · 0.18 it/s · elapsed 02:10 · ETA 02:21
+    [pc] epoch  24  nll   57.128
+    fit chow_liu K=8: 30/50 (60%) · 0.18 it/s · elapsed 02:44 · ETA 01:49
+    [pc] epoch  30  nll   55.632
+    fit chow_liu K=8: 36/50 (72%) · 0.18 it/s · elapsed 03:16 · ETA 01:16
+    [pc] epoch  36  nll   53.026
+    fit chow_liu K=8: 42/50 (84%) · 0.18 it/s · elapsed 03:49 · ETA 00:43
+    [pc] epoch  42  nll   53.487
+    fit chow_liu K=8: 48/50 (96%) · 0.18 it/s · elapsed 04:22 · ETA 00:10
+    [pc] epoch  48  nll   78.148
+    fit chow_liu K=8: done 50/50 in 04:33
+[19:21:20]   pc_train_nll: first=31413.2688 last=76.2120 (50 epochs)
+[19:21:21]   pc: fit 275.3s · 157,440 params · score sd 16.975 · device cpu · layered · 961 win/s
+    typed decomposition (per channel): 4/15 (27%) · 0.12 it/s · elapsed 00:32 · ETA 01:28
+    typed decomposition (per channel): 8/15 (53%) · 0.12 it/s · elapsed 01:04 · ETA 00:56
+    typed decomposition (per channel): 12/15 (80%) · 0.12 it/s · elapsed 01:36 · ETA 00:24
+    typed decomposition (per channel): done 15/15 in 02:00
+[19:23:24]   typed decomposition (mean worst-channel surprise):
+[19:23:24]        normal  n= 4001  marginal    23.17  conditional    22.61  structural     1.80
+[19:23:24]      decouple  n=  105  marginal    23.59  conditional    22.91  structural     1.72
+[19:23:24]        desync  n=  111  marginal    23.09  conditional    33.16  structural    17.00
+[19:23:24]         drift  n=  102  marginal 144726.70  conditional 144749.45  structural    50.34
+[19:23:24]        offset  n=  113  marginal 64720.89  conditional 64749.07  structural    52.31
+[19:23:24]       organic  n=   46  marginal   279.56  conditional   270.51  structural     0.77
+[19:23:24]         spike  n=  130  marginal  9365.46  conditional  9365.45  structural     2.37
+[19:23:24] --- stage ad done in 399.3s ---
+[19:23:24] === run ok · 399.3s · peak RSS 1.614 GB ===

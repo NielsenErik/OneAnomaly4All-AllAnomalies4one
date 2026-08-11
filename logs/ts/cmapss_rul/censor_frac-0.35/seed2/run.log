@@ -68,3 +68,52 @@
     log p(tau|x) · 25 bins:   0%|          | 0/11 [00:00<?, ?it/s]    log p(tau|x) · 25 bins:  18%|#8        | 2/11 [00:00<00:00, 15.40it/s]    log p(tau|x) · 25 bins:  36%|###6      | 4/11 [00:00<00:00, 15.44it/s]    log p(tau|x) · 25 bins:  55%|#####4    | 6/11 [00:00<00:00, 15.67it/s]    log p(tau|x) · 25 bins:  73%|#######2  | 8/11 [00:00<00:00, 15.86it/s]    log p(tau|x) · 25 bins:  91%|######### | 10/11 [00:00<00:00, 15.99it/s]                                                                           [12:52:43]   SurvivalPC (exact censored lik.) [all]: PICP 0.405 centres / 0.976 edges (nominal 0.90), MPIW 70.3 / 75.3; PIT mean 0.521 var 0.0778 (1/12 = 0.0833)
     log p(tau|x) · 25 bins:   0%|          | 0/1 [00:00<?, ?it/s]                                                                 [12:52:43]   SurvivalPC (exact censored lik.) [last]: PICP 0.830 centres / 0.950 edges (nominal 0.90), MPIW 82.0 / 87.0; PIT mean 0.358 var 0.0526 (1/12 = 0.0833)
     log p(tau|x) · 25 bins:   0%|          | 0/11 [00:00<?, ?it/s]    log p(tau|x) · 25 bins:  18%|#8        | 2/11 [00:00<00:00, 14.99it/s]    log p(tau|x) · 25 bins:  36%|###6      | 4/11 [00:00<00:00, 15.26it/s]    log p(tau|x) · 25 bins:  55%|#####4    | 6/11 [00:00<00:00, 15.55it/s]    log p(tau|x) · 25 bins:  73%|#######2  | 8/11 [00:00<00:00, 15.77it/s]    log p(tau|x) · 25 bins:  91%|######### | 10/11 [00:00<00:00, 15.92it/s]                                                                               log p(tau|x) · 25 bins:   0%|          | 0/11 [00:00<?, ?it/s]    log p(tau|x) · 25 bins:  18%|#8        | 2/11 [00:00<00:00, 16.28it/s]    log p(tau|x) · 25 bins:  36%|###6      | 4/11 [00:00<00:00, 16.32it/s]    log p(tau|x) · 25 bins:  55%|#####4    | 6/11 [00:00<00:00, 16.35it/s]    log p(tau|x) · 25 bins:  73%|#######2  | 8/11 [00:00<00:00, 16.38it/s]    log p(tau|x) · 25 bins:  91%|######### | 10/11 [00:00<00:00, 16.38it/s]                                                                           [12:52:46] !!! FAILED after 56.7s: DegenerateModelError: degenerate predictive: E[tau|x] has sd 1.52 cycles over 5625 inputs, under 5% of the target's own spread (38.7) — p(tau|x) barely depends on x. Check tau_where (use 'deep'; 'root' caps the coupling at a KxK latent and collapses at most K, non-monotonically), weight_jitter (must be > 0) and leaf jitter before trusting any result from this model.
+[17:20:31] === run start · seed2 · seed 2 · hash ba0ffa88061c ===
+[17:20:31] stages ['rul'] · device cpu · dataset cmapss:FD001
+[17:20:31] --- stage: rul ---
+[17:20:31]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[17:20:31]   task: {'kind': 'rul', 'n_train': 8100, 'n_test': 5625, 'd': 300, 'window': 20, 'n_channels': 15, 'n_bins': 25, 'cap': 125.0, 'censored_frac': 0.2822222113609314, 'train_units': 100, 'test_units': 100, 'censored_units': 36, 'n_regimes': 1, 'seed': 2, 'per_regime_norm': False, 'test_windows': 'all', 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet', 'simulated_censoring': 0.35}
+[17:20:31]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [surv] epoch   0  censored-NLL 33083.340
+    [surv] epoch   7  censored-NLL  277.014
+    [surv] epoch  14  censored-NLL  280.744
+    survival fit (observed): 17/60 (28%) · 0.56 it/s · elapsed 00:30 · ETA 01:16
+    [surv] epoch  21  censored-NLL  295.756
+    [surv] epoch  28  censored-NLL  279.722
+    survival fit (observed): 34/60 (57%) · 0.56 it/s · elapsed 01:00 · ETA 00:46
+    [surv] epoch  35  censored-NLL  279.747
+    [surv] epoch  42  censored-NLL  277.481
+    [surv] epoch  49  censored-NLL  281.003
+    survival fit (observed): 51/60 (85%) · 0.56 it/s · elapsed 01:30 · ETA 00:16
+    [surv] epoch  56  censored-NLL  280.498
+    survival fit (observed): done 60/60 in 01:46
+[17:22:19]   surv_dropped_nll: first=33083.3402 last=278.4332 (60 epochs)
+[17:22:19]   surv_dropped: fit 107.9s · 43,356 params
+[17:22:36]   SurvivalPC (drop censored) [all]: PICP 0.406 centres / 0.974 edges (nominal 0.90), MPIW 65.2 / 70.2; PIT mean 0.574 var 0.0737 (1/12 = 0.0833)
+[17:22:36]   SurvivalPC (drop censored) [last]: PICP 0.810 centres / 0.940 edges (nominal 0.90), MPIW 71.7 / 76.7; PIT mean 0.441 var 0.0674 (1/12 = 0.0833)
+    [surv] epoch   0  censored-NLL 24930.581
+    [surv] epoch   7  censored-NLL  258.866
+    survival fit (censored): 13/60 (22%) · 0.41 it/s · elapsed 00:31 · ETA 01:54
+    [surv] epoch  14  censored-NLL  254.285
+    [surv] epoch  21  censored-NLL  265.847
+    survival fit (censored): 26/60 (43%) · 0.41 it/s · elapsed 01:03 · ETA 01:22
+    [surv] epoch  28  censored-NLL  264.881
+    [surv] epoch  35  censored-NLL  261.841
+    survival fit (censored): 39/60 (65%) · 0.41 it/s · elapsed 01:35 · ETA 00:51
+    [surv] epoch  42  censored-NLL  268.628
+    [surv] epoch  49  censored-NLL  261.204
+    survival fit (censored): 51/60 (85%) · 0.41 it/s · elapsed 02:05 · ETA 00:22
+    [surv] epoch  56  censored-NLL  266.728
+    survival fit (censored): done 60/60 in 02:28
+[17:25:06]   surv_censored_nll: first=24930.5812 last=265.6323 (60 epochs)
+[17:25:06]   surv_censored: fit 149.6s · 43,356 params
+[17:25:23]   SurvivalPC (exact censored lik.) [all]: PICP 0.400 centres / 0.972 edges (nominal 0.90), MPIW 62.9 / 67.9; PIT mean 0.517 var 0.0800 (1/12 = 0.0833)
+[17:25:24]   SurvivalPC (exact censored lik.) [last]: PICP 0.820 centres / 0.940 edges (nominal 0.90), MPIW 74.3 / 79.3; PIT mean 0.375 var 0.0639 (1/12 = 0.0833)
+[17:26:30]   partial evidence (3 dead): CRPS exact-marginal 9.855 vs imputed 20.338 (full 9.683)
+[17:26:35]   exact survival S(t|x), grouped by TRUE remaining life:
+[17:26:35]     RUL   0-20  n=   55  S(20)=0.604  S(40)=0.337  S(60)=0.202
+[17:26:35]     RUL  20-50  n=  372  S(20)=0.843  S(40)=0.635  S(60)=0.454
+[17:26:35]     RUL  50-90  n=  836  S(20)=0.963  S(40)=0.891  S(60)=0.796
+[17:26:35]     RUL  90-126 n= 4362  S(20)=0.994  S(40)=0.976  S(60)=0.932
+[17:26:35] --- stage rul done in 363.6s ---
+[17:26:35] === run ok · 363.6s · peak RSS 6.957 GB ===

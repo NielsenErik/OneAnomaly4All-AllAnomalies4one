@@ -92,3 +92,15 @@
 {"experiment": "cmapss_ad", "variant": "subset-FD004", "seed": 0, "run_dir": "subset-FD004/seed0", "status": "ok", "wall_s": 74.2, "config_hash": "7d7790b15145", "finished": "2026-08-06T11:03:58"}
 {"experiment": "cmapss_ad", "variant": "subset-FD004", "seed": 1, "run_dir": "subset-FD004/seed1", "status": "ok", "wall_s": 84.8, "config_hash": "7d7790b15145", "finished": "2026-08-06T11:05:23"}
 {"experiment": "cmapss_ad", "variant": "subset-FD004", "seed": 2, "run_dir": "subset-FD004/seed2", "status": "ok", "wall_s": 92.5, "config_hash": "7d7790b15145", "finished": "2026-08-06T11:06:55"}
+{"experiment": "cmapss_ad", "variant": "subset-FD001", "seed": 0, "run_dir": "subset-FD001/seed0", "status": "ok", "wall_s": 30.2, "config_hash": "50df6f8d714d", "finished": "2026-08-11T16:33:47"}
+{"experiment": "cmapss_ad", "variant": "subset-FD001", "seed": 1, "run_dir": "subset-FD001/seed1", "status": "ok", "wall_s": 25.7, "config_hash": "50df6f8d714d", "finished": "2026-08-11T16:34:12"}
+{"experiment": "cmapss_ad", "variant": "subset-FD001", "seed": 2, "run_dir": "subset-FD001/seed2", "status": "ok", "wall_s": 29.1, "config_hash": "50df6f8d714d", "finished": "2026-08-11T16:34:42"}
+{"experiment": "cmapss_ad", "variant": "subset-FD002", "seed": 0, "run_dir": "subset-FD002/seed0", "status": "ok", "wall_s": 98.5, "config_hash": "dc6aa1824dd3", "finished": "2026-08-11T16:36:20"}
+{"experiment": "cmapss_ad", "variant": "subset-FD002", "seed": 1, "run_dir": "subset-FD002/seed1", "status": "ok", "wall_s": 94.4, "config_hash": "dc6aa1824dd3", "finished": "2026-08-11T16:37:54"}
+{"experiment": "cmapss_ad", "variant": "subset-FD002", "seed": 2, "run_dir": "subset-FD002/seed2", "status": "ok", "wall_s": 95.1, "config_hash": "dc6aa1824dd3", "finished": "2026-08-11T16:39:30"}
+{"experiment": "cmapss_ad", "variant": "subset-FD003", "seed": 0, "run_dir": "subset-FD003/seed0", "status": "ok", "wall_s": 41.9, "config_hash": "6434c00aa1c5", "finished": "2026-08-11T16:40:11"}
+{"experiment": "cmapss_ad", "variant": "subset-FD003", "seed": 1, "run_dir": "subset-FD003/seed1", "status": "ok", "wall_s": 45.1, "config_hash": "6434c00aa1c5", "finished": "2026-08-11T16:40:56"}
+{"experiment": "cmapss_ad", "variant": "subset-FD003", "seed": 2, "run_dir": "subset-FD003/seed2", "status": "ok", "wall_s": 42.7, "config_hash": "6434c00aa1c5", "finished": "2026-08-11T16:41:39"}
+{"experiment": "cmapss_ad", "variant": "subset-FD004", "seed": 0, "run_dir": "subset-FD004/seed0", "status": "ok", "wall_s": 144.0, "config_hash": "f66b2308077a", "finished": "2026-08-11T16:44:03"}
+{"experiment": "cmapss_ad", "variant": "subset-FD004", "seed": 1, "run_dir": "subset-FD004/seed1", "status": "ok", "wall_s": 143.0, "config_hash": "f66b2308077a", "finished": "2026-08-11T16:46:26"}
+{"experiment": "cmapss_ad", "variant": "subset-FD004", "seed": 2, "run_dir": "subset-FD004/seed2", "status": "ok", "wall_s": 142.8, "config_hash": "f66b2308077a", "finished": "2026-08-11T16:48:49"}

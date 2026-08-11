@@ -45,3 +45,50 @@
     log p(tau|x) · 25 bins:   0%|          | 0/9 [00:00<?, ?it/s]    log p(tau|x) · 25 bins:  22%|##2       | 2/9 [00:00<00:00, 14.85it/s]    log p(tau|x) · 25 bins:  44%|####4     | 4/9 [00:00<00:00, 15.11it/s]    log p(tau|x) · 25 bins:  67%|######6   | 6/9 [00:00<00:00, 15.18it/s]    log p(tau|x) · 25 bins:  89%|########8 | 8/9 [00:00<00:00, 15.27it/s]                                                                             log p(tau|x) · 25 bins:   0%|          | 0/29 [00:00<?, ?it/s]    log p(tau|x) · 25 bins:   7%|6         | 2/29 [00:00<00:01, 14.63it/s]    log p(tau|x) · 25 bins:  14%|#3        | 4/29 [00:00<00:01, 15.01it/s]    log p(tau|x) · 25 bins:  21%|##        | 6/29 [00:00<00:01, 15.12it/s]    log p(tau|x) · 25 bins:  28%|##7       | 8/29 [00:00<00:01, 15.23it/s]    log p(tau|x) · 25 bins:  34%|###4      | 10/29 [00:00<00:01, 15.31it/s]    log p(tau|x) · 25 bins:  41%|####1     | 12/29 [00:00<00:01, 15.37it/s]    log p(tau|x) · 25 bins:  48%|####8     | 14/29 [00:00<00:00, 15.40it/s]    log p(tau|x) · 25 bins:  55%|#####5    | 16/29 [00:01<00:00, 15.42it/s]    log p(tau|x) · 25 bins:  62%|######2   | 18/29 [00:01<00:00, 15.43it/s]    log p(tau|x) · 25 bins:  69%|######8   | 20/29 [00:01<00:00, 15.43it/s]    log p(tau|x) · 25 bins:  76%|#######5  | 22/29 [00:01<00:00, 15.44it/s]    log p(tau|x) · 25 bins:  83%|########2 | 24/29 [00:01<00:00, 15.45it/s]    log p(tau|x) · 25 bins:  90%|########9 | 26/29 [00:01<00:00, 15.45it/s]    log p(tau|x) · 25 bins:  97%|#########6| 28/29 [00:01<00:00, 15.45it/s]                                                                           [12:43:38]   conformal[pit] a=0.20: PICP 0.411 (nominal 0.80), MPIW 85.5 (raw PICP 0.419, MPIW 89.8)
 [12:43:39] --- stage calibration done in 81.4s ---
 [12:43:39] === run ok · 81.4s · peak RSS 1.944 GB ===
+[17:30:38] === run start · seed2 · seed 2 · hash 7930b3828234 ===
+[17:30:38] stages ['calibration'] · device cpu · dataset cmapss:FD002
+[17:30:38] --- stage: calibration ---
+[17:30:38]   data: FleetPair(cmapss:FD002: train=260 units, test=259 units, C=21, regimes=6, cap=125)  (0.3s)
+[17:30:38]   task: {'kind': 'rul', 'n_train': 20932, 'n_test': 14599, 'd': 420, 'window': 20, 'n_channels': 21, 'n_bins': 25, 'cap': 125.0, 'censored_frac': 0.2657175660133362, 'train_units': 260, 'test_units': 259, 'censored_units': 98, 'n_regimes': 6, 'seed': 2, 'per_regime_norm': True, 'test_windows': 'all', 'official_test_fleet': True, 'dataset': 'cmapss:FD002', 'subset': 'FD002', 'dropped_constant_sensors': 0, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet', 'simulated_censoring': 0.35}
+[17:30:38]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+[17:30:38]   conformal split: 14783 fit windows / 4355 calibration windows (260 units total)
+    [surv] epoch   0  censored-NLL 14376.776
+    survival fit (censored): 7/60 (12%) · 0.21 it/s · elapsed 00:33 · ETA 04:15
+    [surv] epoch   7  censored-NLL  -55.183
+    survival fit (censored): 14/60 (23%) · 0.21 it/s · elapsed 01:08 · ETA 03:43
+    [surv] epoch  14  censored-NLL  -27.128
+    survival fit (censored): 21/60 (35%) · 0.21 it/s · elapsed 01:41 · ETA 03:08
+    [surv] epoch  21  censored-NLL  -24.629
+    survival fit (censored): 28/60 (47%) · 0.21 it/s · elapsed 02:14 · ETA 02:34
+    [surv] epoch  28  censored-NLL  -34.209
+    survival fit (censored): 35/60 (58%) · 0.21 it/s · elapsed 02:48 · ETA 02:00
+    [surv] epoch  35  censored-NLL  -19.609
+    survival fit (censored): 42/60 (70%) · 0.21 it/s · elapsed 03:22 · ETA 01:26
+    [surv] epoch  42  censored-NLL  -31.266
+    survival fit (censored): 49/60 (82%) · 0.21 it/s · elapsed 03:55 · ETA 00:52
+    [surv] epoch  49  censored-NLL  -18.658
+    survival fit (censored): 56/60 (93%) · 0.21 it/s · elapsed 04:28 · ETA 00:19
+    [surv] epoch  56  censored-NLL  -22.573
+    survival fit (censored): done 60/60 in 04:46
+[17:35:27]   surv_conformal_nll: first=14376.7757 last=-15.1961 (60 epochs)
+[17:35:27]   surv_conformal: fit 289.2s · 46,236 params
+    log p(tau|x) · 25 bins: 18/29 (62%) · 0.59 it/s · elapsed 00:30 · ETA 00:18
+    log p(tau|x) · 25 bins: done 29/29 in 00:48
+[17:36:16]   raw exact predictive · a=0.10: PICP 0.422 centres / 0.986 edges, MPIW 92.1 / 97.1
+    log p(tau|x) · 25 bins: 17/29 (59%) · 0.55 it/s · elapsed 00:30 · ETA 00:21
+    log p(tau|x) · 25 bins: done 29/29 in 00:52
+[17:37:22]   conformal[cqr] a=0.10: PICP 0.986 (nominal 0.90), MPIW 97.1 (raw PICP 0.422, MPIW 92.1)
+    log p(tau|x) · 25 bins: 17/29 (59%) · 0.56 it/s · elapsed 00:30 · ETA 00:21
+    log p(tau|x) · 25 bins: done 29/29 in 00:50
+[17:38:28]   conformal[pit] a=0.10: PICP 0.427 (nominal 0.90), MPIW 96.3 (raw PICP 0.422, MPIW 92.1)
+    log p(tau|x) · 25 bins: 17/29 (59%) · 0.56 it/s · elapsed 00:30 · ETA 00:21
+    log p(tau|x) · 25 bins: done 29/29 in 00:51
+[17:39:21]   raw exact predictive · a=0.20: PICP 0.422 centres / 0.986 edges, MPIW 92.1 / 97.1
+    log p(tau|x) · 25 bins: 18/29 (62%) · 0.58 it/s · elapsed 00:30 · ETA 00:18
+    log p(tau|x) · 25 bins: done 29/29 in 00:48
+[17:40:25]   conformal[cqr] a=0.20: PICP 0.986 (nominal 0.80), MPIW 97.1 (raw PICP 0.422, MPIW 92.1)
+    log p(tau|x) · 25 bins: 18/29 (62%) · 0.58 it/s · elapsed 00:30 · ETA 00:18
+    log p(tau|x) · 25 bins: done 29/29 in 00:48
+[17:41:28]   conformal[pit] a=0.20: PICP 0.407 (nominal 0.80), MPIW 84.4 (raw PICP 0.422, MPIW 92.1)
+[17:41:30] --- stage calibration done in 652.5s ---
+[17:41:30] === run ok · 652.5s · peak RSS 1.886 GB ===

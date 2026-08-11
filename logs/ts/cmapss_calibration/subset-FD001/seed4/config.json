@@ -1,8 +1,8 @@
 {
   "seed": 4,
-  "config_hash": "7d6402db3581",
+  "config_hash": "e592f95b5f21",
   "name": "cmapss_calibration",
-  "device": "auto",
+  "device": "cpu",
   "evaluator": "layered",
   "stages": [
     "calibration"

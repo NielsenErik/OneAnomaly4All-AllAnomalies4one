@@ -1,8 +1,8 @@
 {
   "seed": 0,
-  "config_hash": "115c972b743f",
+  "config_hash": "5e8dd1d7d062",
   "name": "cmapss_explain",
-  "device": "auto",
+  "device": "cpu",
   "evaluator": "layered",
   "stages": [
     "explain"

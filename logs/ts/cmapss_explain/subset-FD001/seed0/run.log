@@ -158,3 +158,57 @@
 [11:07:19]       ch1  out of range         marginal   23.18  structural   -0.01  worst at t=11  <- miss
 [11:07:19] --- stage explain done in 22.2s ---
 [11:07:19] === run ok · 22.3s · peak RSS 1.836 GB ===
+[16:33:17] === run start · seed0 · seed 0 · hash 5e8dd1d7d062 ===
+[16:33:17] stages ['explain'] · device cpu · dataset cmapss:FD001
+[16:33:17] --- stage: explain ---
+[16:33:17]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.6s)
+[16:33:17]   task: {'kind': 'ad', 'n_train': 5290, 'n_test': 4608, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1638454794883728, 'kind_counts': {'normal': 3853, 'spike': 142, 'offset': 159, 'drift': 128, 'desync': 158, 'decouple': 122, 'organic': 46}, 'train_units': 100, 'test_units': 100, 'n_regimes': 1, 'seed': 0, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:33:17]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+[16:33:17]   explain: capped test set to 1500 windows
+    [pc] epoch   0  nll 31295.146
+    [pc] epoch   6  nll  177.989
+    [pc] epoch  12  nll  172.796
+    [pc] epoch  18  nll  179.574
+    [pc] epoch  24  nll  173.061
+    [pc] epoch  30  nll  174.204
+    [pc] epoch  36  nll  179.163
+    [pc] epoch  42  nll  174.943
+    [pc] epoch  48  nll  176.386
+[16:33:35]   pc_train_nll: first=31295.1461 last=175.2704 (50 epochs)
+[16:33:35]   pc: fit 17.8s · 15,360 params · score sd 60.398 · device cpu · layered · 14,854 win/s
+[16:33:47]   attribution cost: PC exact (all views) 9.5s · AE sampling-SHAP (one view) 0.8s
+[16:33:48]   completeness: max residual 4.88e-04 nats, mean 1.24e-05
+[16:33:49]   deletion curves scored with the circuit's own scorer — PC attributions have home-field advantage here, the localisation columns do not
+[16:33:49]   worked examples (median-scoring window of each kind):
+[16:33:49]    [normal]
+[16:33:49]   anomaly score 159.2 nats
+[16:33:49]       ch0  out of range         marginal   24.54  structural    0.33  worst at t=2
+[16:33:49]       ch1  out of range         marginal   23.51  structural    0.23  worst at t=2
+[16:33:49]      ch11  out of range         marginal   18.69  structural    0.94  worst at t=9
+[16:33:50]    [spike]
+[16:33:50]   anomaly score 214.1 nats   [injected: spike, channels [7, 11]]
+[16:33:50]      ch11  out of range         marginal   41.01  structural   -0.23  worst at t=9  <- CORRECT
+[16:33:50]       ch7  out of range         marginal   40.32  structural   -0.43  worst at t=9  <- CORRECT
+[16:33:50]      ch14  out of range         marginal   23.65  structural   -0.27  worst at t=18  <- miss
+[16:33:51]    [offset]
+[16:33:51]   anomaly score 321.3 nats   [injected: offset, channels [1, 9, 12, 14]]
+[16:33:51]       ch9  out of range         marginal   97.28  structural   -0.58  worst at t=8  <- CORRECT
+[16:33:51]      ch12  out of range         marginal   70.34  structural   -0.53  worst at t=9  <- CORRECT
+[16:33:51]      ch14  out of range         marginal   63.34  structural    0.80  worst at t=4  <- CORRECT
+[16:33:51]    [drift]
+[16:33:51]   anomaly score 319.2 nats   [injected: drift, channels [1, 2, 4, 9, 11, 12]]
+[16:33:51]       ch4  out of range         marginal   89.98  structural   -0.43  worst at t=19  <- CORRECT
+[16:33:51]       ch9  out of range         marginal   42.27  structural   16.13  worst at t=16  <- CORRECT
+[16:33:51]       ch0  out of range         marginal   27.76  structural    0.57  worst at t=19  <- miss
+[16:33:52]    [decouple]
+[16:33:52]   anomaly score 149.6 nats   [injected: decouple, channels [2, 12]]
+[16:33:52]       ch1  out of range         marginal   24.94  structural   -0.12  worst at t=15  <- miss
+[16:33:52]       ch4  out of range         marginal   21.89  structural   -0.38  worst at t=12  <- miss
+[16:33:52]       ch0  out of range         marginal   21.63  structural   -0.22  worst at t=9  <- miss
+[16:33:53]    [desync]
+[16:33:53]   anomaly score 169.6 nats   [injected: desync, channels [5]]
+[16:33:53]       ch4  out of range         marginal   26.44  structural   -0.44  worst at t=10  <- miss
+[16:33:53]       ch1  out of range         marginal   22.62  structural   -0.28  worst at t=7  <- miss
+[16:33:53]       ch8  out of range         marginal   21.38  structural   -0.22  worst at t=0  <- miss
+[16:33:53] --- stage explain done in 36.6s ---
+[16:33:53] === run ok · 36.7s · peak RSS 0.998 GB ===
