@@ -1,0 +1,92 @@
+# THE BLOCKING EXPERIMENT — vtree CROSSED with leaf_components, on real data.
+#
+# Why this must run before any headline config.
+#
+# `capacity_sweep` (2026-08-06, real FD001) found that `vtree: chain` with
+# `leaf_components: 1` is a DEGENERATE CELL: detection AUROC is flat at
+# 0.7502-0.7528 across K = 2..16, i.e. across a 62x parameter range (1,428 ->
+# 88,704 params), and held-out NLL is flat at ~189-199 too.  Capacity does
+# nothing there.  At `leaf_components: 3` the same structure scales normally
+# (0.8128 -> 0.8370).
+#
+# That cell is exactly what `cmapss_ad`, `cmapss_explain`, `cmapss_rul` and
+# `cmapss_calibration` are all configured to run in — `vtree: chain` with
+# `leaf_components` at its default of 1.  So every ad / explain / rul /
+# calibration number currently on record was produced by a model that cannot
+# use its own parameters, and re-running those configs unchanged would
+# reproduce the same void numbers at greater expense.
+#
+# The two existing sweeps each vary ONE axis and therefore cannot answer which
+# cell to use:
+#   capacity_sweep    K x leaf_components, at FIXED vtree=chain
+#   cmapss_structure  vtree, at FIXED leaf_components=1 (the default)
+# The second is the more dangerous one: its chain arms sit in the degenerate
+# cell while its chow_liu arm does not, so it is comparing a crippled chain
+# against a healthy Chow-Liu and reporting the difference as "structure".
+#
+# This config crosses the two axes so the interaction is visible, which is the
+# only way to decide (a) whether the degeneracy is specific to chain+1 or
+# affects other structures too, and (b) which single cell the headline configs
+# should adopt.
+#
+# WHAT TO READ OFF IT
+#   * If chain improves a lot from leaf_components 1 -> 3 while chow_liu barely
+#     moves, the degeneracy is a chain-specific interaction, and the structure
+#     ablation has to be re-read at leaf_components=3 before any structure
+#     claim is made.
+#   * The perm controls are included at BOTH leaf settings for the same reason:
+#     the 2026-08-06 result that `chain_perm_features` BEATS `chain` (+0.040
+#     AUROC, -27 nats at identical parameter count) was measured at
+#     leaf_components=1, i.e. inside the degenerate cell, so it is not yet
+#     known whether it survives outside it.
+#   * `random` is the control. If it is not clearly worst in the chosen cell,
+#     structure is not doing anything and the structure story comes out.
+#
+#   PYTHONPATH=. python -m poc.time_series.runner config/ts/cmapss_structure_x_leaves.yaml
+name: cmapss_structure_x_leaves
+description: |
+  vtree x leaf_components crossed, at fixed K and epochs, on real C-MAPSS
+  FD001.  Decides which cell the headline configs run in.  Everything else is
+  blocked on this.
+
+seeds: [0, 1, 2]
+device: auto
+evaluator: layered
+stages: [ad]
+log_root: logs/ts/cmapss_structure_x_leaves
+skip_if_missing_data: true
+
+dataset:
+  source: cmapss
+  subset: FD001
+  cap: 125
+  window: 20
+  stride: 2
+  per_regime: auto
+  max_test_windows: 8000
+
+model:
+  K: 8
+  epochs: 50
+  lr: 0.05
+
+eval:
+  fast_baselines: true
+  baselines: false
+  missing: false
+  typed: true
+
+grid:
+  # Deliberately NOT all 11 structures from cmapss_structure: this sweep exists
+  # to pick a cell, not to re-rank structures.  Six arms x two leaf settings x
+  # three seeds = 36 runs.  The curvature / spectral / n-ary arms are omitted
+  # because they already lost on both axes and re-ranking them belongs in
+  # cmapss_structure, once this has said which leaf setting to run it at.
+  model.vtree:
+    - chain                # the incumbent, and half of the degenerate cell
+    - chain_perm_blocks    # control: time ORDER destroyed, blocking kept
+    - chain_perm_features  # control: blocking destroyed too
+    - chow_liu             # the learner that topped FD001 at leaf_components=1
+    - time                 # balanced temporal vtree
+    - random               # the control: is structure doing anything at all?
+  model.leaf_components: [1, 3]
