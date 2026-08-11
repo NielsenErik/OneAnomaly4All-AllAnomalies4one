@@ -1,9 +1,8 @@
 # Hand-off — time-series PoC
 
-_Last updated: 2026-08-05 (evening), after the diagnostic-suite pass (§B).
-The σ-floor episode from earlier the same day follows unchanged in §A; the
-2026-08-03 hand-off from §0; two more are archived after it. Nothing was
-deleted._
+_Last updated: 2026-08-11 (§C). The 2026-08-05 diagnostic-suite pass follows in
+§B, the σ-floor episode from earlier that day in §A, the 2026-08-03 hand-off in
+§0, two more archived after it. Nothing was deleted._
 
 Read `CLAUDE.md` (hard constraints), then
 [`poc/time_series/launch/README.md`](poc/time_series/launch/README.md) (how to
@@ -16,12 +15,266 @@ stages — in plain language, with diagrams and worked numbers. Three documents,
 three jobs: `CLAUDE.md` is the contract, `EXPLAIN.md` is the machine, this file
 is the state of play.
 
-**If you read one thing: §B.2. Two of the results in §2 are now suspended
-pending one re-run, and §B.7 is that re-run.**
+**If you read one thing: §C.1. The 2026-08-06 re-run happened, inverted three
+claims, and was never written into this file until now. Every headline number
+in §2 is void, and §C.2 is the one experiment that unblocks re-measuring them.**
 
 ---
 
-## B. LATEST (2026-08-05, evening) — three diagnostic suites, and what they found
+## C. LATEST (2026-08-11) — the void batch, and the conformal layer
+
+### C.0 Why this section exists
+
+Two things happened that this file did not record.
+
+1. **The §B.10 batch ran on 2026-08-06.** Its results are in `logs/ts/` and
+   nowhere else. They inverted three claims and exposed a sixth degenerate
+   cell. Because the doc was never updated, work continued for five days
+   against premises the data had already killed — including a design document
+   (`poc/EVALUES_Brainstorm.md`) written on 2026-08-11 whose §4.5 treats a
+   question the 08-06 logs had closed.
+2. **A conformal / e-value layer was built on 2026-08-11** on top of the
+   circuit, with a sequential-monitoring half. It is standalone and not yet a
+   pipeline stage.
+
+The process lesson is the same one §3 keeps making, one level up: **a result
+that lives only in `logs/` has not been recorded.** Aggregate output is not a
+hand-off. If a batch settles something, it goes in this file the same day or it
+will be re-derived, or worse, contradicted by work built on the old premise.
+
+### C.1 The 2026-08-06 re-measurement — three inversions, one dead cell
+
+Real C-MAPSS FD001, 3 seeds, one commit. Sources: `logs/ts/cmapss_structure/`
+and `logs/ts/capacity_sweep/`.
+
+**Inversion 1 — "the chain wins" is DEAD.**
+
+| structure | AUROC | NLL | params |
+|---|---|---|---|
+| `chow_liu` | **0.8539 ± 0.0048** | 66.3 | 157,400 |
+| `chain_grouped` | 0.8453 ± 0.0041 | 89.2 | 138,200 |
+| `random` | 0.8388 ± 0.0035 | 67.3 | 157,400 |
+| `chain_perm_features` | 0.7923 ± 0.0029 | 162.3 | 15,360 |
+| `chain` | 0.7528 ± 0.0081 | 189.4 | 15,360 |
+| `chain_perm_blocks` | 0.7512 ± 0.0056 | 190.8 | 15,360 |
+
+The chain is second-worst. A **random** vtree beats it by +0.086. `chow_liu`
+tops every FD001 baseline on record.
+
+Read the two comparisons separately, because only one of them is
+capacity-matched. `chain` vs the perm controls IS matched (15,360 params each);
+`chain` vs `chow_liu`/`random` is NOT (10x fewer parameters), so that row pair
+says "the chain is small", not only "the chain is bad".
+
+**Inversion 2 — the blocking is the DEFECT, not the advantage.** Within the
+matched triple: destroying the timestep ORDER costs 0.0016 AUROC (nothing).
+Destroying the channel BLOCKING as well **gains +0.040 AUROC and −27 nats**.
+The synthetic measurement said the opposite (+0.07 vs +5.17 nats, §B.3). The
+sign reversed on real data. So the chain models neither time order nor useful
+grouping — `chain_perm_features` is simply a better circuit at the same size.
+
+**Inversion 3 — curvature vtrees are dead**, dominated by Chow-Liu on both
+AUROC and NLL. That line is closed for this domain.
+
+**The sixth degenerate cell, and it is the expensive one.** From
+`logs/ts/capacity_sweep/`: `vtree: chain` with `leaf_components: 1` is FLAT at
+AUROC 0.7502–0.7528 across K = 2..16, i.e. across 1,428 → 88,704 parameters
+(**62x**), NLL flat at ~189–199. At `leaf_components: 3` the same structure
+scales normally (0.8128 → 0.8370).
+
+`leaf_components` defaults to 1 (`poc/time_series/config.py:144`), and
+`cmapss_ad.yaml` sets `vtree: chain` + `leaf_components: 1` explicitly while
+`cmapss_explain`, `cmapss_rul` and `cmapss_calibration` set `chain` and inherit
+the default. **All four headline configs ran inside the degenerate cell.** Every
+ad / explain / rul / calibration number on record is therefore void — not
+wrong-ish, but produced by a model that provably cannot use its own capacity.
+
+This also means `cmapss_structure.yaml` is currently a misleading experiment:
+it varies the vtree at `leaf_components: 1`, so its chain arms sit in the dead
+cell while its `chow_liu` arm does not. It compares a crippled chain against a
+healthy Chow-Liu and reports the difference as "structure".
+
+### C.2 The blocker, and the config that clears it
+
+Neither existing sweep can pick a replacement cell — `capacity_sweep` varies
+K × leaf at fixed `vtree: chain`; `cmapss_structure` varies vtree at fixed
+`leaf_components: 1`. The crossed sweep did not exist. It does now:
+
+```
+config/ts/cmapss_structure_x_leaves.yaml
+  6 structures x leaf_components {1,3} x 3 seeds = 36 runs  (dry-run verified)
+  chain | chain_perm_blocks | chain_perm_features | chow_liu | time | random
+```
+
+Runs on this config shape are ~14 s each (`logs/ts/cmapss_structure/*/status.json`),
+so this is ~10 minutes at `JOBS=3`. **Nothing else should be re-measured until
+it has answered**, because every other config inherits the cell it picks.
+
+What to read off it: does `chain` jump from lc=1→3 while `chow_liu` barely
+moves (a chain-specific interaction)? Is `random` clearly worst in the winning
+cell — if not, structure is doing nothing and the structure story comes out of
+the paper? And does `chain_perm_features > chain` survive outside the dead
+cell, given that it was measured inside it?
+
+### C.3 The e-value conformal layer (new, 2026-08-11)
+
+`poc/time_series/pc_conformal.py` (1471 lines) + `tests/test_pc_conformal.py`
+(48 tests, ~2 s). Full repo suite: **344 pass**. Design:
+`poc/EVALUES_Brainstorm.md` §§8–9 (written back with the corrections below).
+
+Read-only with respect to the circuit; needs nothing from
+`src/probabilistic_circuits.py` that is not already public (`log_prob`,
+`log_marginal`, `log_box`). Contents: `EvalueICAD` (rank-based p→e anomaly
+alarm), `EvaluePredictionSet` (HPD-score RUL sets), `CoveragePolicy` + LOO
+training, `EvalueMerge`, `ConformalSurvivalBound`, `ConformalTestMartingale`,
+and the gates.
+
+**Five things the design did not survive contact with:**
+
+1. **Censored rows were being scored at their censoring bound.** For a censored
+   window `tau` is a lower bound, not the label; calibrating a two-sided set at
+   `tau_train` puts wrong values in the quantile. Fixed via `delta_cal`.
+   Measured cost, 7 seeds: p-fixed coverage 0.770 ± 0.058 mislabelled vs
+   0.777 ± 0.042 dropped. A correctness fix with a SMALL effect — one seed read
+   0.667 vs 0.738 and looked decisive; that was noise at n_cal ≈ 40.
+2. **The `p-fixed` baseline is the instrument, not a baseline.** It is what
+   found (1); the e-set's conservatism masked the mislabelling completely
+   (coverage 1.000 either way). `report()` now computes it by default.
+3. **Per-unit `max` reduction answers a different question than assumed** —
+   it guarantees every window of a new unit is covered, which is near-vacuous
+   here (11.6 of 12 bins). `reduce="random"` is now the default.
+4. **kappa < 0.5 has infinite variance.** E[f(P)] = 1 exactly for all
+   kappa in (0,1) but E[f²] diverges below ½, so `mean_e` stops concentrating.
+   The §6 kappa ablation is not a free knob.
+5. **The Task-A scale trap reappears in Task B** via `sum_i S_i` in the set
+   threshold; `log_s_max` is load-bearing and `sum_concentration` is reported.
+
+**Two measured results that bear on whether the line is worth pursuing:**
+
+- **The degeneracy gate fires on real models.** `assert_conditional_varies`
+  refused 1 of 8 seeds at ordinary settings (TV 4.4e-4 — `p(tau|x)` essentially
+  constant). A full valid-looking table on that seed was one check away.
+- **The e-set is near-vacuous at fleet scale.** n_cal ≈ 40 units, 12 bins,
+  alpha = 0.20: e-set coverage 1.000 at mean size **10.7/12**, against p-fixed
+  size ~4. Post-hoc validity costs nearly all the informativeness, and the
+  resolution floor 1/(n+1) over UNITS is the binding constraint. For Task B at
+  fleet scale the honest answer is currently **no**.
+  `ConformalSurvivalBound` — one-sided, and the only piece that can KEEP
+  censored units, because `log_box` turns "alive at c" into a valid bound on
+  the unobservable score — is not limited this way and remains the best reason
+  to keep the line.
+
+### C.4 The martingale, and the trap under it
+
+Vovk's conformal test martingale: smoothed ONLINE conformal p-values (i.i.d.
+uniform under exchangeability), betting function with integral 1,
+`M_T = prod_t f(p_t)`, Ville gives `P(sup_T M_T >= 1/alpha) <= alpha`. Default
+bet is the mixture over eps, so there is no free parameter.
+
+**The naive product is a trap, not a blow-up.** Multiplying `EvalueICAD`'s
+fixed-calibration e-values is not a martingale. At the default kappa=0.5 it
+respects the bound BY ACCIDENT — the bet's drift is `log k + 1 - k = -0.19` per
+step, so it goes bankrupt before the shared-calibration bias matters:
+
+| kappa | drift/step | alarm rate (exchangeable null, nominal 5%) |
+|---|---|---|
+| 0.50 | −0.193 | 2.3% |
+| 0.80 | −0.023 | **13.7%** |
+| 0.95 | −0.001 | **14.3%** |
+
+Since kappa is exactly what the design doc says to ablate, that is a trap.
+Power does not separate them — both detect a strong changepoint 100%.
+
+**OVERLAPPING WINDOWS INVALIDATE THE MONITOR.** The largest trap in this half
+and invisible without a control. At stride < window consecutive scores are
+autocorrelated, so exchangeability is false before any degradation. Running the
+monitor on the HEALTHY region only (RUL > 100, nothing to find):
+
+| stride (window=6) | full-life fired | median lead | **healthy-only fired (nominal 5%)** |
+|---|---|---|---|
+| 6 (disjoint) | 33% | 13 cyc | **2%** |
+| 2 | 75% | 30 cyc | **17%** |
+| 1 | 90% | 130 cyc | **57%** |
+
+The full-life column reads as a spectacular win from denser windowing and is
+entirely artefact — at stride 1 the "lead time" equals the RUL cap because it
+fires on the first window of every unit. `assert_non_overlapping` refuses this
+now; no correction repairs it, the null itself is false.
+
+**At the only valid setting the monitor is weak but honest**: ~33% of units,
+median lead ~13 cycles of a 130-cycle horizon. The score is NOT the bottleneck
+— within-unit corr(anomaly score, RUL) is **−0.62**, 93% of units below −0.3.
+What limits it is that the score only crosses the healthy fleet's 95th
+percentile at RUL < 20. **Never quote a lead time without the healthy-region
+control beside it**: both knobs that improve it (stride, dropping the warm
+start) also raise the healthy firing rate.
+
+### C.5 Data status
+
+`data/cmapss` FD001–FD004 present on BOTH the laptop and `jawa17-desktop`, so
+tiers 1, 2, 4, 5 are fully runnable. N-C-MAPSS was being added on 2026-08-11
+(DS01–DS03 are what the configs need: `ncmapss_ad` grids `[DS01, DS02, DS03]`,
+`ncmapss_rul` uses DS02). Everything else — ESA-ADB, SMAP/MSL, PHM08, battery,
+bearings — still missing, so **this batch buys real-engine evidence, not
+cross-domain evidence.**
+
+Two operational notes. `skip_if_missing_data: true` means a tier with absent
+data SKIPS silently; use `TIERS="1 2 5"` rather than including 3 so the absence
+is explicit. And the workstation ran out of disk during the N-C-MAPSS unzip —
+`~/.cache/huggingface` was 447 GB, pip cache 39 GB, Trash 37 GB. Leave real
+headroom before a batch: the `.npz` parse cache and `logs/ts` both grow during
+one, and an ENOSPC mid-batch wastes the run even though `status.json` resumes.
+
+### C.6 What to run, in order
+
+```bash
+# 0. preflight
+PYTHONPATH=. python -m poc.time_series.check_data
+PYTHONPATH=. python -m pytest tests/test_ad_diagnostics.py \
+    tests/test_rul_diagnostics.py tests/test_experiment_hygiene.py \
+    tests/test_pc_conformal.py -q
+bash poc/time_series/launch/run_smoke.sh
+
+# 1. THE BLOCKER — 36 runs, ~10 min at JOBS=3
+bash poc/time_series/launch/run_config.sh config/ts/cmapss_structure_x_leaves.yaml
+PYTHONPATH=. python -m poc.time_series.aggregate logs/ts/cmapss_structure_x_leaves
+
+# 2. patch leaf_components (and possibly vtree) in the four headline configs
+#    to the winning cell — the config hash changes, so step 3 re-runs them
+
+# 3. the batch
+JOBS=3 THREADS=4 DEVICE=cpu TIERS="1 2 5" bash poc/time_series/launch/run_workstation.sh
+
+# 4. read it
+PYTHONPATH=. python -m poc.time_series.aggregate logs/ts
+```
+
+**Expect the guardrails to REJECT runs that previously produced numbers.** That
+is the point; a rejected run is a result and the message names the channels or
+the sd that failed. FD002/FD004 are the ones to watch — 60/630 features with
+MAD ≡ 0 under six operating conditions.
+
+**Still do NOT draft the Paper A section.** What survives untouched from §2:
+exact attribution 0.902 vs 0.498 sampling-SHAP, completeness at 1.5e-5 nats,
+box-query exactness at 6e-6, and T1's death. Everything else waits on step 3.
+
+### C.7 Corrections to this file's own record
+
+- **§2 "Structure ablation — the chain wins on AUROC *and* likelihood"** —
+  DEAD, and inverted (§C.1). Do not cite it.
+- **§B.3 "the chain's advantage is BLOCKING, not temporal order"** — the first
+  half survives (order is worth ~nothing), the second half reverses: on real
+  data the blocking is a DEFECT worth −0.040 AUROC.
+- **§2 AD / explain / RUL / calibration tables** — all void, produced in the
+  degenerate cell (§C.1). Not "suspended pending a re-run" as §B.2 put it for
+  two of them: void, all four.
+- **§B.7 step 0b** ("is the calibration stage worth its 4 missing runs") — still
+  open, and now sharper: §C.3 says conformal was buying the half-bin, and the
+  e-value layer does not change that for two-sided sets.
+
+---
+
+## B. 2026-08-05 (evening) — three diagnostic suites, and what they found
 
 ### B.1 What was built and why
 
@@ -258,6 +511,14 @@ of this shape. And before any A/B: name what the flag switches, and test that
 the "off" branch reproduces a recorded number.
 
 ### B.10 THE NEXT ACTION — one batch, on the workstation, at this commit
+
+> **THIS RAN on 2026-08-06. Read §C.1 for what it found — it is not pending.**
+> It answered question 2 (structure) and question 3 (the void numbers) and
+> inverted three claims in the process. Question 1 (the censoring de-confound)
+> is still open, because the batch also revealed that all four headline configs
+> ran in a degenerate cell, so the censoring arm has to be re-measured outside
+> it. The command block below is still the right shape; the configs it runs
+> need the §C.2 fix first.
 
 Everything above converges on a single run. It is not "re-run RUL": it is
 **re-establish every real-data number at one commit**, because §B.9 voided the
