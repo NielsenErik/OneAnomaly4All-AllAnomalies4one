@@ -299,11 +299,18 @@ def test_move_circuit_is_the_only_safe_device_move():
     """`.to()` on a region-graph circuit recurses over children() with no
     memoisation and is exponential in depth (0.2 s -> 400 s, silently, with
     correct results).  The project's answer is a convention in a gotcha list;
-    this pins at least that the safe helper exists and is what the models use."""
+    this pins at least that the safe helper exists and is what the models use.
+
+    `WindowPC.build` is read alongside `fit`: Tier 1.2 needs a structure's
+    parameter count BEFORE training it, so construction (and with it the device
+    move) was split out of `fit` into `build`.  The convention is unchanged —
+    only where it lives is.
+    """
     import inspect
 
     from src.probabilistic_circuits import move_circuit_
-    src = inspect.getsource(WindowPC.fit) + inspect.getsource(SurvivalPC.fit)
+    src = (inspect.getsource(WindowPC.build) + inspect.getsource(WindowPC.fit)
+           + inspect.getsource(SurvivalPC.fit))
     assert src.count("move_circuit_(self.pc") == 2, (
         "a fit path stopped using move_circuit_ to place its circuit")
     for bad in ("self.pc.to(", "self.pc = self.pc.to", "pc.to(self.device)"):

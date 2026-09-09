@@ -270,7 +270,7 @@ def _register(src: Source) -> Source:
 
 _register(Source(
     name="synthetic", kind="synthetic", title="C-MAPSS-shaped simulator",
-    tasks=("ad", "explain", "rul", "calibration", "scaling"),
+    tasks=("ad", "structure_gate", "relational", "diagnosis", "explain", "rul", "calibration", "scaling"),
     loader=_load_synthetic, probe=lambda spec: True,
     ident=lambda spec: "synthetic", root="(none)",
     howto="Always available; needs no files.",
@@ -280,7 +280,7 @@ _register(Source(
 
 _register(Source(
     name="cmapss", kind="fleet", title="NASA C-MAPSS turbofan (FD001-FD004)",
-    tasks=("ad", "explain", "rul", "calibration", "scaling"),
+    tasks=("ad", "structure_gate", "relational", "diagnosis", "explain", "rul", "calibration", "scaling"),
     loader=_load_cmapss,
     probe=lambda spec: cmapss_available(str(_s(spec, "subset", "FD001")).upper(),
                                         spec.get("data_dir")),
@@ -293,7 +293,7 @@ _register(Source(
 
 _register(Source(
     name="ncmapss", kind="fleet", title="NASA N-C-MAPSS (real flight conditions)",
-    tasks=("ad", "explain", "rul", "calibration", "scaling"),
+    tasks=("ad", "structure_gate", "relational", "diagnosis", "explain", "rul", "calibration", "scaling"),
     loader=_load_ncmapss,
     probe=lambda spec: ncmapss_available(str(_s(spec, "dataset", "DS02")).upper(),
                                          spec.get("data_dir")),
@@ -307,7 +307,7 @@ _register(Source(
 
 _register(Source(
     name="phm08", kind="fleet", title="PHM08 Prognostics Challenge",
-    tasks=("ad", "explain", "rul", "calibration", "scaling"),
+    tasks=("ad", "structure_gate", "relational", "diagnosis", "explain", "rul", "calibration", "scaling"),
     loader=_load_phm08,
     probe=lambda spec: prog.phm08_available(spec.get("data_dir")),
     ident=lambda spec: "phm08", root=prog.PHM08_DIR,
@@ -319,7 +319,7 @@ _register(Source(
 
 _register(Source(
     name="battery", kind="fleet", title="NASA Li-ion battery aging (Saha & Goebel)",
-    tasks=("ad", "explain", "rul", "calibration", "scaling"),
+    tasks=("ad", "structure_gate", "relational", "diagnosis", "explain", "rul", "calibration", "scaling"),
     loader=_load_battery,
     probe=lambda spec: prog.battery_available(spec.get("data_dir")),
     ident=lambda spec: "battery", root=prog.BATTERY_DIR,
@@ -333,7 +333,7 @@ _register(Source(
 
 _register(Source(
     name="calce", kind="fleet", title="CALCE CS2 prismatic cells",
-    tasks=("ad", "explain", "rul", "calibration", "scaling"),
+    tasks=("ad", "structure_gate", "relational", "diagnosis", "explain", "rul", "calibration", "scaling"),
     loader=_load_calce,
     probe=lambda spec: prog.calce_available(spec.get("data_dir")),
     ident=lambda spec: "calce", root=prog.CALCE_DIR,
@@ -345,7 +345,7 @@ _register(Source(
 
 _register(Source(
     name="ims", kind="fleet", title="IMS / Rexnord bearing run-to-failure",
-    tasks=("ad", "explain", "rul", "calibration", "scaling"),
+    tasks=("ad", "structure_gate", "relational", "diagnosis", "explain", "rul", "calibration", "scaling"),
     loader=_load_ims,
     probe=lambda spec: prog.ims_available(spec.get("data_dir")),
     ident=lambda spec: f"ims:{str(_s(spec, 'ims_test', '2nd_test'))}",
@@ -360,7 +360,7 @@ _register(Source(
 
 _register(Source(
     name="milling", kind="fleet", title="NASA milling (tool flank wear)",
-    tasks=("ad", "explain", "rul", "calibration", "scaling"),
+    tasks=("ad", "structure_gate", "relational", "diagnosis", "explain", "rul", "calibration", "scaling"),
     loader=_load_milling,
     probe=lambda spec: prog.milling_available(spec.get("data_dir")),
     ident=lambda spec: "milling", root=prog.MILLING_DIR,
@@ -372,7 +372,7 @@ _register(Source(
 
 _register(Source(
     name="pcoe", kind="fleet", title="Generic PCoE per-unit CSV adapter",
-    tasks=("ad", "explain", "rul", "calibration", "scaling"),
+    tasks=("ad", "structure_gate", "relational", "diagnosis", "explain", "rul", "calibration", "scaling"),
     loader=_load_pcoe,
     probe=lambda spec: prog.pcoe_available(str(_s(spec, "preset", "igbt")),
                                            spec.get("data_dir")),
@@ -387,7 +387,7 @@ _register(Source(
 
 _register(Source(
     name="esa", kind="telemetry", title="ESA Anomalies Dataset / ESA-ADB",
-    tasks=("ad", "explain"),
+    tasks=("ad", "structure_gate", "relational", "diagnosis", "explain"),
     loader=_load_esa,
     probe=lambda spec: space.esa_available(str(_s(spec, "mission", "Mission1")),
                                            spec.get("data_dir")),
@@ -401,7 +401,7 @@ _register(Source(
 
 _register(Source(
     name="opssat", kind="telemetry", title="OPSSAT-AD (ESA CubeSat)",
-    tasks=("ad", "explain"),
+    tasks=("ad", "structure_gate", "relational", "diagnosis", "explain"),
     loader=_load_opssat,
     probe=lambda spec: space.opssat_available(spec.get("data_dir")),
     ident=lambda spec: "opssat", root=space.OPSSAT_DIR,
@@ -412,7 +412,7 @@ _register(Source(
 
 _register(Source(
     name="smapmsl", kind="telemetry", title="SMAP / MSL (Hundman et al. 2018)",
-    tasks=("ad", "explain"),
+    tasks=("ad", "structure_gate", "relational", "diagnosis", "explain"),
     loader=_load_smapmsl,
     probe=lambda spec: space.smap_msl_available(spec.get("data_dir")),
     ident=lambda spec: f"smapmsl:{str(_s(spec, 'spacecraft', 'SMAP')).upper()}",

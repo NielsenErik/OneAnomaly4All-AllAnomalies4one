@@ -144,11 +144,21 @@ def vtree_ablation(args, seed: int) -> Dict[str, dict]:
                       n_sum_components=args.K, leaf_components=args.leaf_components,
                       channel_groups=task.channel_groups, use_sos=args.sos,
                       delta=args.delta, seed=seed, device=args.device)
-        pc.fit(task.X_train, epochs=args.epochs, lr=args.lr)
+        pc.fit(task.X_train, epochs=args.epochs, lr=args.lr,
+               X_val=getattr(task, "X_val", None))
         with torch.no_grad():
-            held_nll = float(-pc.pc.log_prob(task.X_train[:512]).mean())
+            # Two distinct quantities, named as such.  `train_nll` scores the
+            # data the model was fit on; `val_nll` scores healthy windows from
+            # units it never saw.  Only the second says anything about
+            # generalisation, and only the second may be compared across
+            # structures of different capacity.
+            train_nll = float(-pc.pc.log_prob(task.X_train[:512]).mean())
+            Xv = getattr(task, "X_val", None)
+            val_nll = (float(-pc.pc.log_prob(Xv[:512]).mean())
+                       if Xv is not None and len(Xv) else float("nan"))
         rep = detection_report(pc.score(task.X_test), task.y_test, task.kind_test)
-        out[method] = {**rep, "train_nll": held_nll, "fit_s": time.time() - t0}
+        out[method] = {**rep, "train_nll": train_nll, "val_nll": val_nll,
+                       "best_epoch": pc.best_epoch, "fit_s": time.time() - t0}
     return out
 
 
@@ -191,14 +201,17 @@ def main(argv=None) -> None:
         print("\n=== vtree ablation (matched budget; structure quality only) ===\n")
         per_seed = [vtree_ablation(args, s) for s in args.seeds]
         methods = list(per_seed[0])
-        print(f"{'vtree':>16} {'AUROC':>16} {'AP':>16} {'train NLL':>12}")
-        print("-" * 64)
+        print(f"{'vtree':>16} {'AUROC':>16} {'AP':>16} "
+              f"{'train NLL':>12} {'val NLL':>12}")
+        print("-" * 78)
         for m in methods:
             a = [r[m]["auroc"] for r in per_seed]
             p = [r[m]["ap"] for r in per_seed]
             n = [r[m]["train_nll"] for r in per_seed]
+            v = [r[m]["val_nll"] for r in per_seed]
             print(f"{m:>16} {np.mean(a):>8.4f}±{np.std(a):<6.4f} "
-                  f"{np.mean(p):>8.4f}±{np.std(p):<6.4f} {np.mean(n):>12.2f}")
+                  f"{np.mean(p):>8.4f}±{np.std(p):<6.4f} {np.mean(n):>12.2f} "
+                  f"{np.mean(v):>12.2f}")
         print()
         return
 

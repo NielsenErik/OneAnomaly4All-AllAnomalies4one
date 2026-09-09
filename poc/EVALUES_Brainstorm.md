@@ -441,4 +441,4 @@ at identical parameter count, `chain` 0.7528, `chain_perm_blocks` 0.7512,
 `chain_perm_features` 0.7923. Destroying time order costs nothing; destroying
 the blocking as well *gains* 0.040 AUROC. And `leaf_components=1` (the default)
 is flat across a 62x parameter range, so §5's gate 2 should be expected to fire
-there rather than pass.
+there rather than pass.Do a 

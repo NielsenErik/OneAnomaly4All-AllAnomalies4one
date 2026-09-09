@@ -1,0 +1,154 @@
+{
+  "task_ad": {
+    "kind": "ad",
+    "n_train": 4340,
+    "n_val": 950,
+    "n_test": 4639,
+    "d": 300,
+    "window": 20,
+    "n_channels": 15,
+    "anomaly_rate": 0.12998491525650024,
+    "kind_counts": {
+      "normal": 4036,
+      "decouple": 96,
+      "desync": 127,
+      "offset": 104,
+      "spike": 117,
+      "drift": 107,
+      "organic": 52
+    },
+    "train_units": 100,
+    "val_units": 20,
+    "test_units": 100,
+    "n_val_windows": 950,
+    "n_regimes": 1,
+    "seed": 2,
+    "per_regime_norm": false,
+    "official_test_fleet": true,
+    "dataset": "cmapss:FD001",
+    "cap": 125.0,
+    "subset": "FD001",
+    "dropped_constant_sensors": 6,
+    "source": "NASA C-MAPSS (real)",
+    "source_name": "cmapss",
+    "source_kind": "fleet"
+  },
+  "dataset_caveats": [
+    "Ships no anomaly annotations: detection anomalies are injected."
+  ],
+  "structure_gate_verdict": {
+    "verdict": "FAIL",
+    "rule": "delta_auroc >= -0.02 and delta_nll_frac <= 0.05",
+    "dependence_nats": {
+      "channel_blocked": 7.521332740783691,
+      "channel": 7.291815757751465,
+      "chow_liu": 30.326980590820312,
+      "random": 20.575218200683594
+    },
+    "candidate": "channel_blocked",
+    "delta_auroc": -0.029,
+    "delta_nll_frac": 0.06456,
+    "best_other_auroc": 0.84069,
+    "best_other_nll": 30.9893,
+    "candidate_auroc": 0.81169,
+    "candidate_nll": 32.99,
+    "reason": "channel_blocked is -0.0290 AUROC and +6.46% NLL from the best unblocked structure"
+  },
+  "structure_gate": {
+    "rows": [
+      {
+        "vtree": "channel_blocked",
+        "K": 8,
+        "params": 174240,
+        "param_ratio": 1.0,
+        "val_nll": 32.99003601074219,
+        "fit_s": 226.9,
+        "dependence_nats": 7.521332740783691,
+        "blocked": true,
+        "best_epoch": 50,
+        "auroc": 0.8116926301364342,
+        "ap": 0.7586109446044638,
+        "auroc[decouple]": 0.48916639982922405,
+        "auroc[desync]": 0.6678019386953105,
+        "auroc[drift]": 0.9949013522500554,
+        "auroc[offset]": 0.984795786544768,
+        "auroc[spike]": 0.94287772745986
+      },
+      {
+        "vtree": "channel",
+        "K": 8,
+        "params": 174240,
+        "param_ratio": 1.0,
+        "val_nll": 30.98927116394043,
+        "fit_s": 223.1,
+        "dependence_nats": 7.291815757751465,
+        "blocked": true,
+        "best_epoch": 47,
+        "auroc": 0.8095967433143225,
+        "ap": 0.7563770828362936,
+        "auroc[decouple]": 0.5070978759739566,
+        "auroc[desync]": 0.6378482228626321,
+        "auroc[drift]": 0.9960097539348259,
+        "auroc[offset]": 0.9862863957070456,
+        "auroc[spike]": 0.9476121860848086
+      },
+      {
+        "vtree": "chow_liu",
+        "K": 8,
+        "params": 174240,
+        "param_ratio": 1.0,
+        "val_nll": 51.29996871948242,
+        "fit_s": 387.7,
+        "dependence_nats": 30.326980590820312,
+        "blocked": false,
+        "best_epoch": 46,
+        "auroc": 0.840692448761613,
+        "ap": 0.7920337563059512,
+        "auroc[decouple]": 0.5333546803287438,
+        "auroc[desync]": 0.7449131080254999,
+        "auroc[drift]": 0.9998891598315229,
+        "auroc[offset]": 0.9990062605584815,
+        "auroc[spike]": 0.9381432688349115
+      },
+      {
+        "vtree": "random",
+        "K": 8,
+        "params": 174240,
+        "param_ratio": 1.0,
+        "val_nll": 55.38517761230469,
+        "fit_s": 290.0,
+        "dependence_nats": 20.575218200683594,
+        "blocked": false,
+        "best_epoch": 57,
+        "auroc": 0.8049616089961912,
+        "ap": 0.727934029280336,
+        "auroc[decouple]": 0.5358095848009393,
+        "auroc[desync]": 0.6836084184787354,
+        "auroc[drift]": 0.9954555530924407,
+        "auroc[offset]": 0.994931928848256,
+        "auroc[spike]": 0.8338822560724578
+      }
+    ],
+    "verdict": {
+      "verdict": "FAIL",
+      "rule": "delta_auroc >= -0.02 and delta_nll_frac <= 0.05",
+      "dependence_nats": {
+        "channel_blocked": 7.521332740783691,
+        "channel": 7.291815757751465,
+        "chow_liu": 30.326980590820312,
+        "random": 20.575218200683594
+      },
+      "candidate": "channel_blocked",
+      "delta_auroc": -0.029,
+      "delta_nll_frac": 0.06456,
+      "best_other_auroc": 0.84069,
+      "best_other_nll": 30.9893,
+      "candidate_auroc": 0.81169,
+      "candidate_nll": 32.99,
+      "reason": "channel_blocked is -0.0290 AUROC and +6.46% NLL from the best unblocked structure"
+    }
+  },
+  "_timing": {
+    "structure_gate": 1211.07
+  }
+}

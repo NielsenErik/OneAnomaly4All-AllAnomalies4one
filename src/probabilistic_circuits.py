@@ -39,6 +39,7 @@ from __future__ import annotations
 import json
 import math
 import random
+import time
 from dataclasses import dataclass, field
 from typing import (Any, Callable, Dict, FrozenSet, Iterable, List, Optional,
                     Sequence, Tuple, Union)
@@ -2124,6 +2125,8 @@ class RegionGraphPC(nn.Module):
         seed: int = 0,
         pairing: str = "auto",
         allow_zero_jitter: bool = False,
+        region_widths: Optional[Dict[frozenset, int]] = None,
+        mixture_scopes: Optional[Iterable[frozenset]] = None,
     ):
         super().__init__()
         # Degeneracy #2, refused at construction instead of documented in a
@@ -2153,6 +2156,13 @@ class RegionGraphPC(nn.Module):
         self.n_input_components = int(n_input_components or n_sum_components)
         self.leaf_factory = leaf_factory or InputNode
         self.pairing = pairing
+        self.region_widths = {frozenset(s): int(k) for s, k in
+                              (region_widths or {}).items()}
+        if any(k < 1 for k in self.region_widths.values()):
+            raise ValueError("region widths must be positive")
+        # Optional shared-latent mixture above block boundaries. Products pair
+        # the SAME component index; only the root mixes these components.
+        self.mixture_scopes = {frozenset(s) for s in (mixture_scopes or ())}
         self._regions: Dict[int, List[nn.Module]] = {}
         self.root = self._build_rg(self.region_graph, n_units=1)[0]
         if weight_jitter > 0:
@@ -2184,7 +2194,8 @@ class RegionGraphPC(nn.Module):
         return [ProductNode([u[j % len(u)] for u in child_units]) for j in range(n)]
 
     def _rg_child_units(self, region: RegionNode) -> int:
-        return (self.n_input_components if region.is_leaf else self.n_sum_components)
+        return self.region_widths.get(frozenset(region.scope),
+            self.n_input_components if region.is_leaf else self.n_sum_components)
 
     def _build_rg(self, region: RegionNode, n_units: int) -> List[nn.Module]:
         """
@@ -2204,6 +2215,20 @@ class RegionGraphPC(nn.Module):
             self._regions[key] = units
             return units
         products: List[nn.Module] = []
+        if frozenset(region.scope) in self.mixture_scopes:
+            if len(region.partitions) != 1:
+                raise ValueError("a channel mixture requires one partition per region")
+            children = [self._build_rg(c, self._rg_child_units(c))
+                        for c in region.partitions[0]]
+            widths = {len(c) for c in children}
+            if len(widths) != 1:
+                raise ValueError("channel-mixture interfaces must have equal widths")
+            products = [ProductNode([c[k] for c in children])
+                        for k in range(len(children[0]))]
+            units = ([SumNode(products)] if region is self.region_graph
+                     else products)
+            self._regions[key] = units
+            return units
         for part in region.partitions:
             child_units = [self._build_rg(c, self._rg_child_units(c)) for c in part]
             products.extend(self._combine(child_units))
@@ -3175,6 +3200,755 @@ def selection_marginals(
         log_total = torch.logsumexp(logZ_range, dim=1)             # (B,)
         (m,) = torch.autograd.grad(log_total.sum(), log_p)
     return m.detach()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 6c. Channel-blocked structure and the two-pass relational map
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# The diagnostic quantity of the relational-diagnosis line is
+#
+#     R_S(x) = log p(x_S) + log p(x_-S) − log p(x)
+#
+# (negative pointwise mutual information between a variable block and the
+# rest).  It is NOT a new identity and NOT an additive allocation of the
+# anomaly score; the contribution is the ALGORITHM below, and the missing-
+# sensor regime it survives.
+#
+# Read naively, R needs three marginals per block, i.e. 3·C circuit passes for
+# C blocks (that is what `WindowPC.typed_scores` does, and it stays as the
+# reference oracle).  Two structural facts collapse that to two passes TOTAL:
+#
+#   (1) DECOMPOSABILITY ⇒ MULTILINEARITY.  No product node can multiply two
+#       paths that both descend to the same node (its children have disjoint
+#       scopes), so the root value is a degree-1 polynomial in the value of
+#       any single node, and jointly degree-1 in the values of the units of
+#       one region (they share a scope, so no product sees two of them).
+#       Hence  p(x) = Σ_u β_u(x)·α_u(x)  over the units u of any region, where
+#       α is the inside value and β = ∂p/∂α the outside value.  There is no
+#       constant term: every expansion term of the root passes through exactly
+#       one unit of the region.
+#   (2) CONTIGUITY.  If block S's variables form exactly one region — one
+#       vtree subtree, which is what `channel_blocked_vtree` builds and what
+#       `assert_block_contiguous` refuses to proceed without — that region is
+#       the ONLY place x_S enters the circuit.  So marginalizing S out is
+#       "replace α_u by ∫α_u" at those units, i.e. subtree deletion, and
+#
+#           p(x_-S) = Σ_u β_u(x)·Z_u          (one downward pass, all S at once)
+#           p(x_S)  = Σ_u β̄_u  ·α_u(x)        (β̄ = outside values of the
+#                                              fully-marginalized circuit:
+#                                              data-independent, cached once)
+#
+# Both are read off the SAME upward/downward pair for every block at once, and
+# — because the substitution at the boundary is per-sample — for an arbitrary
+# per-window missing-sensor mask at the same time.  That is Tier 1.3/1.4: cost
+# grows with the circuit, not with C and not with the number of masks.
+#
+# What this needs and does not need: smoothness + decomposability for the
+# marginals, plus block contiguity for the boundary.  It does not need
+# determinism, and it does not hold for the SOS/signed circuits (whose value
+# is not a monotone sum) — `RelationalCircuit` refuses those rather than
+# returning a plausible wrong number.
+
+
+class BlockStructureError(AssertionError):
+    """
+    A block's variables are not one region of the circuit.
+
+    Loud on purpose.  Every identity in §6c assumes the block is entered
+    through a single boundary; violate it and the two-pass map still returns
+    finite, plausible, WRONG numbers — the failure mode that has cost this
+    project the most (see `DegenerateModelError`).
+    """
+
+
+def channel_scopes(n_steps: int, n_channels: int,
+                   order: Optional[Sequence[int]] = None) -> List[FrozenSet[int]]:
+    """Feature indices of each channel in a row-major (t·C + c) window."""
+    chans = list(range(n_channels)) if order is None else list(order)
+    if sorted(chans) != list(range(n_channels)):
+        raise ValueError(f"order must be a permutation of 0..{n_channels - 1}")
+    return [frozenset(window_index(t, c, n_channels) for t in range(n_steps))
+            for c in chans]
+
+
+def channel_blocked_vtree(
+    n_steps: int,
+    n_channels: int,
+    order: Optional[Sequence[int]] = None,
+) -> VtreeNode:
+    """
+    Vtree in which each channel's `n_steps` timestep variables form EXACTLY one
+    subtree (Tier 1.1).
+
+    `time_channel_vtree(mode="channel")` is the same shape with the identity
+    channel order; this constructor adds the ordering, which is the only free
+    parameter left once blocking is imposed.  Channels adjacent in `order` end
+    up in the same subtree of the balanced top structure, so the order decides
+    which channels share mixture capacity — pass `chow_liu_channel_order(...)`
+    to spend it on the channel pairs that actually co-vary.
+
+    The blocking is what makes §6c's boundary exist; the order is what has to
+    pay for it in density.  Tier 1.2 measures that price before anything is
+    built on top (`poc/time_series/run_tier1_gate.py`).
+    """
+    chans = list(range(n_channels)) if order is None else list(order)
+    if sorted(chans) != list(range(n_channels)):
+        raise ValueError(f"order must be a permutation of 0..{n_channels - 1}")
+
+    def channel_subtree(c: int) -> VtreeNode:
+        return _balanced_over([window_index(t, c, n_channels) for t in range(n_steps)])
+
+    def build(cs: Sequence[int]) -> VtreeNode:
+        if len(cs) == 1:
+            return channel_subtree(cs[0])
+        mid = len(cs) // 2
+        return VtreeInternal(build(cs[:mid]), build(cs[mid:]))
+
+    return build(chans)
+
+
+def channel_mutual_information(X, n_steps: int, n_channels: int,
+                               n_bins: int = 8) -> np.ndarray:
+    """
+    Channel-level MI matrix (C×C) of a flattened (N, n_steps·C) window matrix.
+
+    Timesteps are POOLED as samples rather than treated as separate variables:
+    the quantity wanted is "do these two sensors co-vary", not "does sensor i
+    at step 3 co-vary with sensor j at step 7".  Pooling also makes the
+    estimate independent of the window length, so the channel order does not
+    move when `window` changes.
+    """
+    if isinstance(X, torch.Tensor):
+        X = X.detach().cpu().numpy()
+    X = np.asarray(X, dtype=np.float64)
+    if X.ndim != 2 or X.shape[1] != n_steps * n_channels:
+        raise ValueError(f"expected (N, {n_steps * n_channels}), got {X.shape}")
+    pooled = X.reshape(len(X) * n_steps, n_channels)
+    return mutual_information_matrix(pooled, n_bins=n_bins)
+
+
+def chow_liu_channel_order(X, n_steps: int, n_channels: int,
+                           n_bins: int = 8) -> List[int]:
+    """
+    Channel order for `channel_blocked_vtree`: depth-first traversal of the
+    Chow-Liu (maximum-spanning) tree over channel-level MI, started at the
+    highest-MI-degree channel and always descending the heaviest remaining
+    edge.  Strongly coupled channels come out adjacent, so they land in the
+    same subtree of the balanced top structure.
+
+    This is the hybrid the plan calls for: blocking (which the queries need)
+    with the channel arrangement chosen the way Chow-Liu would choose it
+    (which is what keeps density).
+    """
+    if n_channels == 1:
+        return [0]
+    M = channel_mutual_information(X, n_steps, n_channels, n_bins=n_bins)
+    from scipy.sparse.csgraph import minimum_spanning_tree
+
+    mst = minimum_spanning_tree(-(M + 1e-9)).tocoo()
+    adj: Dict[int, List[Tuple[float, int]]] = {c: [] for c in range(n_channels)}
+    for i, j in zip(mst.row, mst.col):
+        i, j = int(i), int(j)
+        adj[i].append((float(M[i, j]), j))
+        adj[j].append((float(M[i, j]), i))
+    start = int(np.argmax(M.sum(axis=1)))
+    order, seen = [], set()
+    stack = [start]
+    while stack:
+        u = stack.pop()
+        if u in seen:
+            continue
+        seen.add(u)
+        order.append(u)
+        # heaviest edge first => pushed last
+        for _, v in sorted(adj[u]):
+            if v not in seen:
+                stack.append(v)
+    order.extend(c for c in range(n_channels) if c not in seen)   # disconnected
+    return order
+
+
+def block_boundary_units(
+    root: nn.Module,
+    scopes: Sequence[FrozenSet[int]],
+    scope_cache: Optional[Dict[int, FrozenSet[int]]] = None,
+) -> List[List[nn.Module]]:
+    """
+    The units of each block's region — the boundary §6c substitutes at — and
+    the contiguity check that makes them meaningful (Tier 1.1).
+
+    For every block V and every node n whose scope STRICTLY contains V, each
+    child of n must have a scope that either contains all of V or is disjoint
+    from it.  A child holding *part* of V means V is split by a product above
+    it, so V is entered at several places and both identities of §6c are
+    wrong.  That is a `BlockStructureError`, not a warning.
+    """
+    cache: Dict[int, FrozenSet[int]] = scope_cache if scope_cache is not None else {}
+    _compute_scope(root, cache, check_smooth=False, check_decomp=False)
+    order, children = _topological_nodes(root)
+
+    blocks = [frozenset(s) for s in scopes]
+    for a in range(len(blocks)):
+        for b in range(a + 1, len(blocks)):
+            if blocks[a] & blocks[b]:
+                raise ValueError(f"blocks {a} and {b} overlap on "
+                                 f"{sorted(blocks[a] & blocks[b])}")
+
+    candidates: List[List[nn.Module]] = [[] for _ in blocks]
+    for node in order:
+        s = cache[id(node)]
+        for k, V in enumerate(blocks):
+            if s == V:
+                candidates[k].append(node)
+                continue
+            if not s > V:                     # not a strict superset: nothing to check
+                continue
+            for ch in children[id(node)]:
+                cs = cache[id(ch)]
+                hit = cs & V
+                if hit and hit != V:
+                    raise BlockStructureError(
+                        f"block {k} (scope of size {len(V)}) is split by a "
+                        f"{type(node).__name__} above it: a child covers "
+                        f"{len(hit)} of its {len(V)} variables. The block is "
+                        "therefore entered at more than one place in the "
+                        "circuit, and the two-pass relational map would return "
+                        "a plausible wrong number. Build the circuit on "
+                        "channel_blocked_vtree (vtree='channel_blocked').")
+    # Keep only the MAXIMAL nodes of each block's region.  A region's K sum
+    # units and the K² products they mix all carry the block's scope; the
+    # boundary is the units, and including their children would count the same
+    # block twice (and nest one boundary node inside another).
+    units: List[List[nn.Module]] = []
+    for cands in candidates:
+        # One DFS from ALL candidates' children with a VISITED set, not one DFS
+        # per candidate: the sub-circuit below a region is a DAG whose PATHS are
+        # exponential in its depth, so a walk that only remembers hits (rather
+        # than visits) does not terminate at a realistic window length.  This is
+        # the same K^depth trap `move_circuit_` documents, and it cost ~20
+        # minutes of wall clock before it was found.
+        below: set = set()
+        stack = [ch for c in cands for ch in children[id(c)]]
+        while stack:
+            n = stack.pop()
+            if id(n) in below:
+                continue
+            below.add(id(n))
+            stack.extend(children[id(n)])
+        units.append([c for c in cands if id(c) not in below])
+
+    empty = [k for k, u in enumerate(units) if not u]
+    if empty:
+        raise BlockStructureError(
+            f"blocks {empty} have no region of their own: no circuit node has "
+            "exactly that scope, so there is nothing to substitute at. This is "
+            "the hard precondition of Tier 1.3/1.4.")
+    return units
+
+
+# ── inside / outside passes ──────────────────────────────────────────────
+
+def _sum_of_others(vals: List[torch.Tensor]) -> List[torch.Tensor]:
+    """
+    [Σ_{j≠i} v_j]_i, by prefix/suffix accumulation.
+
+    Not `total − v_i`: a child whose inside value is −inf (a leaf at an
+    impossible point) turns that into nan, and nan is exactly the kind of
+    silent corruption an outside pass must not introduce.
+    """
+    n = len(vals)
+    if n == 1:
+        return [torch.zeros_like(vals[0])]
+    pre: List[torch.Tensor] = []
+    acc = torch.zeros_like(vals[0])
+    for v in vals:
+        pre.append(acc)
+        acc = acc + v
+    suf: List[torch.Tensor] = [None] * n            # type: ignore[list-item]
+    acc = torch.zeros_like(vals[0])
+    for i in range(n - 1, -1, -1):
+        suf[i] = acc
+        acc = acc + vals[i]
+    return [pre[i] + suf[i] for i in range(n)]
+
+
+def _accumulate_log(store: Dict[int, torch.Tensor], node: nn.Module,
+                    value: torch.Tensor) -> None:
+    key = id(node)
+    cur = store.get(key)
+    store[key] = value if cur is None else torch.logaddexp(cur, value)
+
+
+def inside_log_values(
+    root: nn.Module,
+    x: torch.Tensor,
+    marginalized: Iterable[int] = (),
+    order: Optional[List[nn.Module]] = None,
+    children: Optional[Dict[int, List[nn.Module]]] = None,
+    only: Optional[set] = None,
+) -> Dict[int, torch.Tensor]:
+    """
+    Every node's log value on the batch `x`, keyed by id (the upward pass of
+    §6c).  `eval_log_marginal` computes the same numbers and throws all but
+    the root away; this keeps them, because the outside pass needs them.
+
+    `only` restricts the pass to a subset of node ids (used to evaluate just
+    the part of the circuit below the block boundary).
+    """
+    if order is None or children is None:
+        order, children = _topological_nodes(root)
+    marg = frozenset(marginalized)
+    zeros = x.new_zeros(x.shape[0])
+    vals: Dict[int, torch.Tensor] = {}
+    for node in order:
+        if only is not None and id(node) not in only:
+            continue
+        if isinstance(node, LeafNode):
+            i = node.feature_idx
+            vals[id(node)] = (node.log_integral().to(x.dtype) + zeros
+                              if i in marg else node.log_prob(x))
+        elif isinstance(node, ProductNode):
+            vals[id(node)] = torch.stack(
+                [vals[id(c)] for c in children[id(node)]], dim=0).sum(dim=0)
+        elif isinstance(node, SumNode):
+            stack = torch.stack([vals[id(c)] for c in children[id(node)]], dim=0)
+            vals[id(node)] = torch.logsumexp(
+                stack + node.log_weights().unsqueeze(-1), dim=0)
+        else:
+            raise TypeError(f"Unknown circuit node type: {type(node)}")
+    return vals
+
+
+def node_log_integrals(root: nn.Module,
+                       order: Optional[List[nn.Module]] = None,
+                       children: Optional[Dict[int, List[nn.Module]]] = None
+                       ) -> Dict[int, torch.Tensor]:
+    """
+    ∫ of every node (log), keyed by id.  0 for a normalized circuit, but
+    computed rather than assumed: an unnormalized leaf would otherwise bias
+    every marginal in §6c by a constant nobody would look for.
+    """
+    if order is None or children is None:
+        order, children = _topological_nodes(root)
+    vals: Dict[int, torch.Tensor] = {}
+    for node in order:
+        if isinstance(node, LeafNode):
+            vals[id(node)] = node.log_integral().reshape(())
+        elif isinstance(node, ProductNode):
+            vals[id(node)] = torch.stack(
+                [vals[id(c)] for c in children[id(node)]]).sum()
+        elif isinstance(node, SumNode):
+            stack = torch.stack([vals[id(c)] for c in children[id(node)]])
+            vals[id(node)] = torch.logsumexp(stack + node.log_weights(), dim=0)
+        else:
+            raise TypeError(f"Unknown circuit node type: {type(node)}")
+    return vals
+
+
+def outside_log_values(
+    root: nn.Module,
+    inside: Dict[int, torch.Tensor],
+    order: List[nn.Module],
+    children: Dict[int, List[nn.Module]],
+    stop_at: Iterable[int] = (),
+) -> Dict[int, torch.Tensor]:
+    """
+    log β_n = log ∂p(root)/∂α_n for every node, by one pass in reverse
+    topological order (§6c).  β_root = 1; a sum node passes β·w down to each
+    child; a product node passes β·Π_{siblings} α.
+
+    `stop_at` — node ids the pass does not descend below.  With the block
+    boundary in it, the downward pass touches only the part of the circuit
+    ABOVE the blocks, which is what makes the masked queries cheap.
+    """
+    stop = frozenset(stop_at)
+    beta: Dict[int, torch.Tensor] = {id(root): torch.zeros_like(inside[id(root)])}
+    for node in reversed(order):
+        b = beta.get(id(node))
+        if b is None or id(node) in stop or isinstance(node, LeafNode):
+            continue
+        kids = children[id(node)]
+        if isinstance(node, SumNode):
+            lw = node.log_weights()
+            for k, ch in enumerate(kids):
+                _accumulate_log(beta, ch, b + lw[k])
+        elif isinstance(node, ProductNode):
+            others = _sum_of_others([inside[id(c)] for c in kids])
+            for ch, o in zip(kids, others):
+                _accumulate_log(beta, ch, b + o)
+        else:
+            raise TypeError(f"Unknown circuit node type: {type(node)}")
+    return beta
+
+
+@dataclass
+class QueryCost:
+    """
+    Measured cost of one relational query, in the units the claim is made in.
+
+    Traversals and node visits describe the program, not arithmetic work.
+    `node_evaluations` counts nodes times batch rows (including replicated
+    masks); it is a work proxy, NOT a FLOP count. Boundary/output elements and
+    peak boundary bytes expose batching costs that traversal counts hide.
+    """
+    passes: int = 0
+    node_visits: int = 0
+    boundary_visits: int = 0
+    n_masks: int = 0
+    seconds: float = 0.0
+    node_evaluations: int = 0
+    boundary_elements: int = 0
+    output_elements: int = 0
+    peak_boundary_bytes: int = 0
+
+    def __add__(self, other: "QueryCost") -> "QueryCost":
+        return QueryCost(self.passes + other.passes,
+                         self.node_visits + other.node_visits,
+                         self.boundary_visits + other.boundary_visits,
+                         self.n_masks + other.n_masks,
+                         self.seconds + other.seconds,
+                         self.node_evaluations + other.node_evaluations,
+                         self.boundary_elements + other.boundary_elements,
+                         self.output_elements + other.output_elements,
+                         max(self.peak_boundary_bytes, other.peak_boundary_bytes))
+
+    def as_dict(self) -> Dict[str, float]:
+        return {"passes": self.passes, "node_visits": self.node_visits,
+                "boundary_visits": self.boundary_visits,
+                "n_masks": self.n_masks, "seconds": round(self.seconds, 6),
+                "node_evaluations": self.node_evaluations,
+                "boundary_elements": self.boundary_elements,
+                "output_elements": self.output_elements,
+                "peak_boundary_bytes": self.peak_boundary_bytes}
+
+
+@dataclass
+class RelationalResult:
+    """One relational map.  All fields are (N,) or (N, n_blocks) log-space."""
+    log_px: torch.Tensor            # log p(x_obs)
+    log_block: torch.Tensor         # log p(x_b)          — mask-independent
+    log_rest: torch.Tensor          # log p(x_obs \ x_b)
+    R: torch.Tensor                 # log_block + log_rest − log_px
+    mask: torch.Tensor              # (N, n_blocks) bool, True = observed
+    cost: QueryCost = field(default_factory=QueryCost)
+
+
+class RelationalCircuit:
+    """
+    The two-pass relational map over a block-contiguous circuit (Tier 1.3-1.5).
+
+    Wraps a trained circuit ROOT (not a copy: it reads the live parameters) and
+    a partition of its scope into blocks — for a windowed series, one block per
+    channel.  Everything it answers is an exact marginal of that same circuit;
+    nothing here trains, approximates or samples.
+
+        rc = RelationalCircuit(pc.root, channel_scopes(W, C))
+        res = rc.relational_map(x)                  # all blocks, one up+down
+        res = rc.relational_map(x, mask=mask)       # per-window sensor masks
+        lp  = rc.masked_log_prob(x, masks)          # (N, M) for M mask patterns
+
+    Refuses signed/SOS circuits: their value is not a monotone sum, so the
+    multilinear identity β = ∂p/∂α that the whole section rests on does not
+    give a marginal.
+    """
+
+    def __init__(self, root: nn.Module, scopes: Sequence[FrozenSet[int]],
+                 labels: Optional[Sequence[Any]] = None):
+        for m in root.modules() if isinstance(root, nn.Module) else []:
+            if isinstance(m, (_SignedSum, _SignedProduct)):
+                raise NotImplementedError(
+                    "RelationalCircuit needs a monotone circuit: the outside "
+                    "pass computes ∂p/∂α, which is a marginal only when every "
+                    "sum is a non-negative mixture. Squared/SOS circuits must "
+                    "use the 3·C reference path (WindowPC.typed_scores).")
+        self.root = root
+        self.scopes = [frozenset(s) for s in scopes]
+        self.labels = list(labels) if labels is not None else list(range(len(self.scopes)))
+        self.order, self.children = _topological_nodes(root)
+        self._scope_cache: Dict[int, FrozenSet[int]] = {}
+        self.units = block_boundary_units(root, self.scopes, self._scope_cache)
+        self.n_blocks = len(self.scopes)
+
+        boundary = {id(u) for us in self.units for u in us}
+        self.boundary_ids = boundary
+        below: set = set()
+        stack = [c for us in self.units for u in us for c in self.children[id(u)]]
+        while stack:
+            n = stack.pop()
+            if id(n) in below:
+                continue
+            below.add(id(n))
+            stack.extend(self.children[id(n)])
+        if below & boundary:
+            raise BlockStructureError(
+                "a block boundary unit is nested inside another block: the "
+                "blocks are not a partition of independent regions.")
+        self.lower_ids = below
+        self.upper_order = [n for n in self.order if id(n) not in below]
+        self.lower_order = [n for n in self.order if id(n) in below or id(n) in boundary]
+        self._const: Optional[Tuple[Dict[int, torch.Tensor], Dict[int, torch.Tensor]]] = None
+
+    # ── cached, data-independent constants ───────────────────────────────
+
+    def refresh(self) -> "RelationalCircuit":
+        """Drop the cached constants.  Call after the parameters change —
+        `WindowPC` builds the wrapper after `fit`, so this is for the tests
+        and for anyone editing weights in place."""
+        self._const = None
+        return self
+
+    @property
+    def _constants(self) -> Tuple[Dict[int, torch.Tensor], Dict[int, torch.Tensor]]:
+        """(log ∫ per node, log β̄ per node) of the FULLY MARGINALIZED circuit.
+
+        β̄ is what turns p(x_b) into a boundary read-off: with every variable
+        outside block b integrated out, the circuit above the boundary is a
+        constant, so log p(x_b) = logsumexp_u(β̄_u + α_u(x_b)) and the b-th
+        marginal costs no pass of its own.  Data-independent ⇒ computed once
+        per set of parameters."""
+        if self._const is None:
+            with torch.no_grad():
+                logz = node_log_integrals(self.root, self.order, self.children)
+                beta = outside_log_values(self.root, logz, self.order,
+                                          self.children, stop_at=self.boundary_ids)
+            self._const = (logz, beta)
+        return self._const
+
+    def block_log_integrals(self) -> List[torch.Tensor]:
+        """log ∫ α_u per block, shape (n_units_b,) — the value substituted at
+        the boundary when a block is marginalized out (1.4's subtree
+        deletion)."""
+        logz, _ = self._constants
+        return [torch.stack([logz[id(u)] for u in us]) for us in self.units]
+
+    def block_outside_constants(self) -> List[torch.Tensor]:
+        _, beta = self._constants
+        return [torch.stack([beta[id(u)] for u in us]) for us in self.units]
+
+    # ── the two passes ───────────────────────────────────────────────────
+
+    def block_log_values(self, x: torch.Tensor,
+                         cost: Optional[QueryCost] = None) -> List[torch.Tensor]:
+        """
+        Inside values at the boundary: α_u(x_b) per block, shape (N, n_units_b).
+
+        This is the only part of the pass that touches the leaves, and it is
+        computed ONCE however many masks or candidate subsets are scored
+        afterwards — the reuse that bounds Tier 1.4/1.5.
+        """
+        keep = self.lower_ids | self.boundary_ids
+        vals = inside_log_values(self.root, x, order=self.order,
+                                 children=self.children, only=keep)
+        if cost is not None:
+            cost.passes += 1
+            cost.node_visits += len(keep)
+            cost.node_evaluations += len(keep) * len(x)
+        return [torch.stack([vals[id(u)] for u in us], dim=1) for us in self.units]
+
+    def _boundary_values(self, block_vals: Sequence[torch.Tensor],
+                         mask: Optional[torch.Tensor]) -> Dict[int, torch.Tensor]:
+        """
+        α at the boundary after subtree deletion: the observed blocks keep
+        their inside value, the masked-out ones are replaced by their integral.
+        `torch.where` makes the substitution PER WINDOW, which is why a batch
+        with a different mask in every row still costs one pass.
+        """
+        logz = self.block_log_integrals()
+        out: Dict[int, torch.Tensor] = {}
+        for b, us in enumerate(self.units):
+            v = block_vals[b]
+            if mask is not None:
+                keep = mask[:, b].unsqueeze(1)
+                v = torch.where(keep, v, logz[b].to(v.dtype).unsqueeze(0).expand_as(v))
+            for k, u in enumerate(us):
+                out[id(u)] = v[:, k]
+        return out
+
+    def _upper_inside(self, boundary: Dict[int, torch.Tensor],
+                      cost: Optional[QueryCost] = None) -> Dict[int, torch.Tensor]:
+        """Upward pass over the circuit ABOVE the boundary only."""
+        vals = dict(boundary)
+        for node in self.upper_order:
+            if id(node) in vals:
+                continue
+            kids = self.children[id(node)]
+            if isinstance(node, ProductNode):
+                vals[id(node)] = torch.stack([vals[id(c)] for c in kids], dim=0).sum(dim=0)
+            elif isinstance(node, SumNode):
+                stack = torch.stack([vals[id(c)] for c in kids], dim=0)
+                vals[id(node)] = torch.logsumexp(
+                    stack + node.log_weights().unsqueeze(-1), dim=0)
+            elif isinstance(node, LeafNode):
+                raise BlockStructureError(
+                    f"leaf for feature {node.feature_idx} is not inside any "
+                    "block: the blocks must partition the circuit's scope.")
+            else:
+                raise TypeError(f"Unknown circuit node type: {type(node)}")
+        if cost is not None:
+            cost.passes += 1
+            cost.node_visits += len(self.upper_order)
+            n = next(iter(boundary.values())).numel()
+            cost.node_evaluations += len(self.upper_order) * n
+            cost.boundary_elements += sum(v.numel() for v in boundary.values())
+            cost.peak_boundary_bytes = max(cost.peak_boundary_bytes,
+                sum(v.numel() * v.element_size() for v in boundary.values()))
+        return vals
+
+    def relational_map(self, x: Optional[torch.Tensor] = None,
+                       mask: Optional[torch.Tensor] = None,
+                       block_vals: Optional[Sequence[torch.Tensor]] = None,
+                       ) -> RelationalResult:
+        """
+        log p(x_b), log p(x_obs \\ x_b) and log p(x_obs) for EVERY block at
+        once, in one upward and one downward pass (Tier 1.3), under an
+        arbitrary per-window observation mask (Tier 1.4).
+
+        mask: None (everything observed), (n_blocks,) or (N, n_blocks) bool,
+        True = observed.  Blocks that are not observed get R = nan: there is no
+        statistic for a sensor that is not there, and returning 0 or the
+        unmasked value would be a fabricated one.
+        """
+        t0 = time.perf_counter()
+        cost = QueryCost()
+        if block_vals is None:
+            if x is None:
+                raise ValueError("pass either x or block_vals")
+            block_vals = self.block_log_values(x, cost)
+        n = block_vals[0].shape[0]
+        dev = block_vals[0].device
+        if mask is None:
+            m = torch.ones(n, self.n_blocks, dtype=torch.bool, device=dev)
+        else:
+            m = torch.as_tensor(mask, dtype=torch.bool, device=dev)
+            if m.dim() == 1:
+                m = m.unsqueeze(0).expand(n, self.n_blocks)
+            if m.shape != (n, self.n_blocks):
+                raise ValueError(f"mask must be (N, {self.n_blocks}); got {tuple(m.shape)}")
+        # counted on CPU on purpose: `torch.unique(..., dim=0)` is not
+        # supported on every backend, and this is bookkeeping for the cost
+        # table, not part of the query being timed
+        cost.n_masks = int(torch.unique(m.cpu(), dim=0).shape[0])
+
+        boundary = self._boundary_values(block_vals, m)
+        inside = self._upper_inside(boundary, cost)
+        beta = outside_log_values(self.root, inside, self.upper_order,
+                                  self.children, stop_at=self.boundary_ids)
+        cost.passes += 1
+        cost.node_visits += len(self.upper_order)
+        cost.boundary_visits += len(self.boundary_ids)
+        cost.node_evaluations += len(self.upper_order) * n
+        cost.boundary_elements += len(self.boundary_ids) * n
+        cost.output_elements += n * self.n_blocks
+
+        logz = self.block_log_integrals()
+        beta_const = self.block_outside_constants()
+        log_px = inside[id(self.root)]
+        log_block, log_rest = [], []
+        for b, us in enumerate(self.units):
+            bet = torch.stack([beta[id(u)] for u in us], dim=1)          # (N, U)
+            log_rest.append(torch.logsumexp(bet + logz[b].unsqueeze(0), dim=1))
+            log_block.append(torch.logsumexp(
+                block_vals[b] + beta_const[b].unsqueeze(0), dim=1))
+        log_block_t = torch.stack(log_block, dim=1)
+        log_rest_t = torch.stack(log_rest, dim=1)
+        R = log_block_t + log_rest_t - log_px.unsqueeze(1)
+        # A sensor that is not observed gets NO per-channel statistic — not a
+        # zero, and not the value it would have had if it were there.  p(x_b)
+        # is still well defined for it (nothing about the mask changes that),
+        # but reporting it beside the terms that ARE mask-dependent invites
+        # reading a diagnosis off a channel the model never saw.
+        nan = torch.full_like(R, float("nan"))
+        R = torch.where(m, R, nan)
+        log_rest_t = torch.where(m, log_rest_t, nan)
+        log_block_t = torch.where(m, log_block_t, nan)
+        cost.seconds = time.perf_counter() - t0
+        return RelationalResult(log_px=log_px, log_block=log_block_t,
+                                log_rest=log_rest_t, R=R, mask=m, cost=cost)
+
+    def masked_log_prob(self, x: Optional[torch.Tensor] = None,
+                        masks: Optional[torch.Tensor] = None,
+                        block_vals: Optional[Sequence[torch.Tensor]] = None,
+                        chunk: int = 64,
+                        cost: Optional[QueryCost] = None) -> torch.Tensor:
+        """
+        log p(x_S) for M observation patterns at once, shape (N, M).
+
+        Every pattern reuses the SAME boundary values, so the leaves — which
+        are most of the circuit — are touched once for all M.  This is the
+        query a Gaussian/GMM block conditional has to refactorize for
+        (a Schur complement per pattern) and the one Lüdtke et al. (2022) spend
+        a fresh circuit pass on per candidate subset.
+        """
+        if block_vals is None:
+            if x is None:
+                raise ValueError("pass either x or block_vals")
+            block_vals = self.block_log_values(x, cost)
+        if masks is None:
+            raise ValueError("masks is required")
+        if chunk < 1:
+            raise ValueError("chunk must be positive")
+        M = torch.as_tensor(masks, dtype=torch.bool, device=block_vals[0].device)
+        if M.dim() == 1:
+            M = M.unsqueeze(0)
+        if M.ndim != 2 or M.shape[1] != self.n_blocks or len(M) == 0:
+            raise ValueError("masks must be a nonempty (M, n_blocks) array")
+        n = block_vals[0].shape[0]
+        out = []
+        for s in range(0, len(M), chunk):
+            mm = M[s:s + chunk]                                   # (m, C)
+            m = len(mm)
+            tiled = [v.repeat_interleave(m, dim=0) for v in block_vals]   # (N·m, U)
+            full = mm.repeat(n, 1)                                        # (N·m, C)
+            boundary = self._boundary_values(tiled, full)
+            inside = self._upper_inside(boundary, cost)
+            out.append(inside[id(self.root)].view(n, m))
+            if cost is not None:
+                cost.n_masks += m
+                cost.output_elements += n * m
+        return torch.cat(out, dim=1)
+
+    def block_relational_value(self, subsets: Sequence[Sequence[int]],
+                               x: Optional[torch.Tensor] = None,
+                               block_vals: Optional[Sequence[torch.Tensor]] = None,
+                               observed: Optional[torch.Tensor] = None,
+                               cost: Optional[QueryCost] = None) -> torch.Tensor:
+        """
+        R_S(x) = log p(x_S) + log p(x_{obs∖S}) − log p(x_obs) for a list of
+        candidate blocks subsets, shape (N, len(subsets)).
+
+        `observed` (N, n_blocks) or (n_blocks,) restricts every term to the
+        sensors actually present, so the statistic keeps its meaning under a
+        missing-sensor mask; S is intersected with it.  The subsets are scored
+        in ONE batched pass over the upper circuit — the property Tier 1.5's
+        search needs to stay bounded.
+        """
+        if block_vals is None:
+            if x is None:
+                raise ValueError("pass either x or block_vals")
+            block_vals = self.block_log_values(x, cost)
+        dev = block_vals[0].device
+        n = block_vals[0].shape[0]
+        if observed is None:
+            obs = torch.ones(self.n_blocks, dtype=torch.bool, device=dev)
+        else:
+            obs = torch.as_tensor(observed, dtype=torch.bool, device=dev)
+        if obs.dim() == 2:
+            raise NotImplementedError(
+                "per-window `observed` is not supported here; call this once "
+                "per distinct mask (the search in relational.py does).")
+        pats = [obs]                                    # p(x_obs) first
+        for S in subsets:
+            sel = torch.zeros(self.n_blocks, dtype=torch.bool, device=dev)
+            if len(S):
+                sel[torch.as_tensor(list(S), device=dev)] = True
+            pats.append(sel & obs)                      # S
+            pats.append((~sel) & obs)                   # obs ∖ S
+        lp = self.masked_log_prob(block_vals=block_vals,
+                                  masks=torch.stack(pats), cost=cost)
+        base = lp[:, :1]
+        val = lp[:, 1::2] + lp[:, 2::2] - base
+        return val
 
 
 def _compute_scope(

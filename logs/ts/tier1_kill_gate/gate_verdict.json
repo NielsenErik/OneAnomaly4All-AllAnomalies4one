@@ -1,0 +1,160 @@
+{
+  "stats": [
+    {
+      "vtree": "chow_liu",
+      "auroc_mean": 0.826753515559251,
+      "auroc_std": 0.02724877792317605,
+      "ap_mean": 0.7661165430894448,
+      "ap_std": 0.03690544533447461,
+      "val_nll_mean": 58.344624837239586,
+      "val_nll_std": 8.195312643518081,
+      "params_mean": 174240.0,
+      "params_std": 0.0,
+      "K_mean": 8.0,
+      "K_std": 0.0,
+      "fit_s_mean": 415.90000000000003,
+      "fit_s_std": 50.76100865822113,
+      "best_epoch_mean": 54.666666666666664,
+      "best_epoch_std": 7.505553499465135,
+      "dependence_nats_mean": 34.22483698527018,
+      "dependence_nats_std": 4.118411919472984,
+      "n_seeds": 3,
+      "seeds": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "vtree": "random",
+      "auroc_mean": 0.7993631467873975,
+      "auroc_std": 0.008818231158100072,
+      "ap_mean": 0.7235411493176828,
+      "ap_std": 0.009796493890174824,
+      "val_nll_mean": 70.05892690022786,
+      "val_nll_std": 12.716807178649491,
+      "params_mean": 174240.0,
+      "params_std": 0.0,
+      "K_mean": 8.0,
+      "K_std": 0.0,
+      "fit_s_mean": 330.0,
+      "fit_s_std": 146.1642911247477,
+      "best_epoch_mean": 56.333333333333336,
+      "best_epoch_std": 3.055050463303893,
+      "dependence_nats_mean": 23.9317626953125,
+      "dependence_nats_std": 4.090171898716404,
+      "n_seeds": 3,
+      "seeds": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "vtree": "channel",
+      "auroc_mean": 0.7936722364776285,
+      "auroc_std": 0.019899742920725123,
+      "ap_mean": 0.7246567656402126,
+      "ap_std": 0.03214220252578763,
+      "val_nll_mean": 40.51914278666178,
+      "val_nll_std": 8.255635832827547,
+      "params_mean": 174240.0,
+      "params_std": 0.0,
+      "K_mean": 8.0,
+      "K_std": 0.0,
+      "fit_s_mean": 404.4666666666667,
+      "fit_s_std": 252.22494589816714,
+      "best_epoch_mean": 54.333333333333336,
+      "best_epoch_std": 6.429100507328637,
+      "dependence_nats_mean": 6.0291643142700195,
+      "dependence_nats_std": 1.8695881966448475,
+      "n_seeds": 3,
+      "seeds": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "vtree": "channel_blocked",
+      "auroc_mean": 0.7933558144087782,
+      "auroc_std": 0.026760321995685985,
+      "ap_mean": 0.7256698434203873,
+      "ap_std": 0.0382300438002277,
+      "val_nll_mean": 45.294514973958336,
+      "val_nll_std": 12.465245438676725,
+      "params_mean": 174240.0,
+      "params_std": 0.0,
+      "K_mean": 8.0,
+      "K_std": 0.0,
+      "fit_s_mean": 285.09999999999997,
+      "fit_s_std": 50.446407206063746,
+      "best_epoch_mean": 55.0,
+      "best_epoch_std": 4.358898943540674,
+      "dependence_nats_mean": 5.59659989674886,
+      "dependence_nats_std": 1.9600726043894527,
+      "n_seeds": 3,
+      "seeds": [
+        0,
+        1,
+        2
+      ]
+    }
+  ],
+  "verdict": {
+    "verdict": "FAIL",
+    "rule": "delta_auroc >= -0.02 and delta_nll_frac <= 0.05, against the best NON-blocked arm (chow_liu, random)",
+    "dependence_nats": {
+      "chow_liu": 34.22483698527018,
+      "random": 23.9317626953125,
+      "channel": 6.0291643142700195,
+      "channel_blocked": 5.59659989674886
+    },
+    "candidate": "channel_blocked",
+    "delta_auroc": -0.0334,
+    "delta_nll_frac": -0.22367,
+    "best_other_auroc": 0.82675,
+    "best_other_nll": 58.3446,
+    "comparators": [
+      "chow_liu",
+      "random"
+    ],
+    "delta_auroc_vs_any": -0.0334,
+    "delta_nll_frac_vs_any": 0.11785,
+    "candidate_auroc": 0.79336,
+    "candidate_nll": 45.2945,
+    "auroc_ok": false,
+    "nll_ok": true,
+    "failed_on": [
+      "detection AUROC"
+    ],
+    "reason": "channel_blocked is -0.0334 AUROC and -22.37% NLL from the best unblocked structure; inside the NLL budget, outside the detection one",
+    "n_seeds": [
+      0,
+      1,
+      2
+    ],
+    "pre_registered": {
+      "gate_max_auroc_loss": 0.02,
+      "gate_max_nll_loss_frac": 0.05,
+      "gate_candidate": "channel_blocked",
+      "gate_reference": "chow_liu",
+      "config_path": "config/ts/tier1_kill_gate.yaml"
+    }
+  },
+  "blocked": {
+    "channel_blocked": true,
+    "channel": true,
+    "chow_liu": false,
+    "random": false
+  },
+  "provenance": {
+    "rows_total": 15,
+    "rows_used": 15,
+    "rows_dropped": 0,
+    "runs_by_status": {
+      "ok": 3
+    },
+    "incomplete_runs": []
+  }
+}

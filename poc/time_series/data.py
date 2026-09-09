@@ -215,20 +215,56 @@ def simulate_fleet(
 # ═══════════════════════════════════════════════════════════════════════════
 
 def windowize(
-    x: np.ndarray, window: int, stride: int = 1
+    x: np.ndarray, window: int, stride: int = 1, include_last: bool = True
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Sliding windows of a (T, C) series, flattened row-major so that feature
     index = t·C + c (the layout `time_channel_vtree` assumes).
 
     Returns (windows (N, window·C), right-edge index of each window (N,)).
+
+    `include_last` appends the window ending at the FINAL timestep whenever the
+    stride grid misses it, which it does for every T with (T − window) % stride
+    ≠ 0.  That silently mattered: `make_rul_task_split(test_windows="last")`
+    takes the last row of this grid and calls it the official one-prediction-
+    per-engine C-MAPSS protocol, so for T=24, window=20, stride=3 it was
+    scoring the window ending at cycle 22 while the engine's last cycle is 23 —
+    internally consistent, but not the benchmark it is compared against, and
+    exactly the point of the trajectory where RUL is smallest and the
+    prediction hardest.  Pass False only to reproduce a pre-fix grid.
     """
     T = x.shape[0]
     if T < window:
         return np.zeros((0, window * x.shape[1]), dtype=np.float32), np.zeros(0, dtype=int)
     starts = np.arange(0, T - window + 1, stride)
+    if include_last and len(starts) and int(starts[-1]) != T - window:
+        starts = np.append(starts, T - window)
     out = np.stack([x[s:s + window].reshape(-1) for s in starts]).astype(np.float32)
     return out, starts + window - 1
+
+
+def split_fit_val_units(unit_ids, val_frac: float, rng) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Hold ENGINES out of the fitting set, for validation.
+
+    Model selection needs data the model never saw, and on a fleet "never saw"
+    has to mean a different unit: windows of one trajectory overlap and share a
+    wear state, so a window-level holdout reports the training likelihood with
+    extra steps.  That was the defect — `stage_ad` scored its `train_nll` on
+    `task.X_train`, so no recorded run could separate over- from under-fitting,
+    and nothing selected a checkpoint.
+
+    Everything fitted on data (the `Standardizer`, structure learning, the
+    circuit itself) sees the FIT units only; the validation units exist to be
+    scored.  Returns (fit_ids, val_ids), val empty when there is no room.
+    """
+    ids = np.asarray(list(unit_ids), dtype=int)
+    if val_frac <= 0 or len(ids) < 2:
+        return ids, ids[:0]
+    ids = ids[rng.permutation(len(ids))]
+    n_val = int(round(len(ids) * float(val_frac)))
+    n_val = max(1, min(n_val, len(ids) - 1))      # never starve the fitting set
+    return np.sort(ids[n_val:]), np.sort(ids[:n_val])
 
 
 class Standardizer:
@@ -346,6 +382,47 @@ def _inject(x: np.ndarray, kind: str, rng: np.random.Generator,
     return x, sorted(int(c) for c in ch)
 
 
+def contaminate_windows(
+    X: torch.Tensor,
+    window: int,
+    n_channels: int,
+    inject_rate: float = 0.25,
+    strength: float = 1.0,
+    kinds: Sequence[str] = ("spike", "offset", "drift", "decouple", "desync"),
+    donors: Optional[torch.Tensor] = None,
+    seed: int = 0,
+) -> Tuple[torch.Tensor, torch.Tensor, List[str], List[List[int]]]:
+    """
+    Inject anomalies into an already-windowed healthy set, returning
+    (X, y, kinds, affected) in the same layout `ADTask` uses.
+
+    Factored out of `make_ad_task` so the SAME injector can contaminate the
+    VALIDATION windows.  Tier 1.2's kill gate needs a labelled detection score
+    that is not the test set — the test split is evaluated once, at the end
+    (plan §3.3), and a structure chosen on it would make every later number a
+    selection artefact.  Tier 3.1's relational corruptions plug in here too.
+
+    `donors` supplies the in-distribution replacement windows the `desync`
+    kind needs (default: the healthy input itself).
+    """
+    rng = np.random.default_rng(seed)
+    Xw = X.detach().cpu().numpy().reshape(len(X), window, n_channels).copy()
+    pool = (donors if donors is not None else X).detach().cpu().numpy()
+    y = np.zeros(len(Xw), dtype=np.int64)
+    kind_out: List[str] = ["normal"] * len(Xw)
+    affected: List[List[int]] = [[] for _ in range(len(Xw))]
+    for i in range(len(Xw)):
+        if rng.random() >= inject_rate:
+            continue
+        kind = str(rng.choice(list(kinds)))
+        donor = pool[rng.integers(len(pool))]
+        seg, chans = _inject(Xw[i], kind, rng, strength, donor=donor)
+        Xw[i] = seg
+        y[i], kind_out[i], affected[i] = 1, kind, chans
+    return (torch.from_numpy(Xw.reshape(len(Xw), -1).astype(np.float32)),
+            torch.from_numpy(y), kind_out, affected)
+
+
 @dataclass
 class ADTask:
     X_train: torch.Tensor          # (N, window·C) normal-only windows
@@ -358,8 +435,25 @@ class ADTask:
     channel_groups: List[List[int]]
     meta: dict = field(default_factory=dict)
 
+    # Healthy windows from units held out of fitting entirely (§0.1).  Used for
+    # the reported held-out NLL and for checkpoint selection; never for fitting
+    # the standardiser, the structure, or the parameters.
+    X_val: Optional[torch.Tensor] = None
+
+    # Which UNIT each window came from.  Required for anything that has to
+    # respect the fleet's dependence structure: engine-disjoint splits,
+    # engine-level bootstrap intervals, per-unit score reductions.  Overlapping
+    # windows are not independent resampling units and a confidence interval
+    # computed over them is too narrow.  `RULTask` has carried these since the
+    # conformal work; `ADTask` did not, which is why AD intervals could only be
+    # window-level.
+    unit_train: Optional[torch.Tensor] = None
+    unit_val: Optional[torch.Tensor] = None
+    unit_test: Optional[torch.Tensor] = None
+
     def __repr__(self) -> str:
-        return (f"ADTask(train={tuple(self.X_train.shape)}, "
+        v = 0 if self.X_val is None else len(self.X_val)
+        return (f"ADTask(train={tuple(self.X_train.shape)}, val={v}, "
                 f"test={tuple(self.X_test.shape)}, "
                 f"anomaly_rate={float(self.y_test.float().mean()):.1%})")
 
@@ -372,6 +466,7 @@ def make_ad_task(
     inject_rate: float = 0.12,
     strength: float = 1.0,
     train_units: float = 0.6,
+    val_units: float = 0.2,
     seed: int = 0,
     fleet: Optional[Fleet] = None,
     **sim_kwargs,
@@ -380,6 +475,10 @@ def make_ad_task(
     Build a semi-supervised AD task: train on healthy windows only, test on a
     contaminated mix.
 
+    val_units:    fraction of the TRAINING units held out for validation; they
+                  are used for the held-out likelihood and checkpoint
+                  selection and are excluded from every fit, the standardiser
+                  included.  0 disables the split (and the guarantees with it).
     healthy_frac: a window counts as NORMAL if its health stays below this.
     organic_frac: a window counts as an ORGANIC anomaly if its health exceeds
                   this (genuine late-stage degradation, nothing injected).
@@ -395,19 +494,26 @@ def make_ad_task(
     perm = rng.permutation(n_units)
     n_tr = int(n_units * train_units)
     tr_units, te_units = perm[:n_tr], perm[n_tr:]
+    fit_ids, val_ids = split_fit_val_units(tr_units, val_units, rng)
 
-    std = Standardizer(per_regime=False).fit(fleet, tr_units)
+    std = Standardizer(per_regime=False).fit(fleet, fit_ids)
 
     def windows_of(u: int) -> Tuple[np.ndarray, np.ndarray]:
         x = std.transform(fleet.series[u], fleet.regime[u])
         W, right = windowize(x, window, stride)
         return W, fleet.health[u][right] if len(right) else np.zeros(0)
 
-    X_train = []
-    for u in tr_units:
-        W, h = windows_of(u)
-        X_train.append(W[h < healthy_frac])
-    X_train = [w for w in X_train if len(w)]
+    def healthy_windows(ids) -> Tuple[List[np.ndarray], List[np.ndarray]]:
+        Ws, us = [], []
+        for u in ids:
+            W, h = windows_of(u)
+            sel = h < healthy_frac
+            if sel.any():
+                Ws.append(W[sel]); us.append(np.full(int(sel.sum()), int(u)))
+        return Ws, us
+
+    X_train, unit_train = healthy_windows(fit_ids)
+    X_val, unit_val = healthy_windows(val_ids)
     if not X_train:
         # Loud, because the cause is never the model.  It is almost always a
         # `cap` longer than the units themselves: health = 1 - rul/cap, so on a
@@ -421,9 +527,12 @@ def make_ad_task(
             "below the shortest life, raise `healthy_frac`, or check that "
             "`window` fits the trajectories")
     X_train = np.concatenate(X_train, axis=0)
+    unit_train = np.concatenate(unit_train, axis=0)
+    X_val = np.concatenate(X_val, axis=0) if X_val else None
+    unit_val = np.concatenate(unit_val, axis=0) if unit_val else None
 
     donor_pool = X_train                              # in-distribution donors
-    X_test, y_test, kinds, affected = [], [], [], []
+    X_test, y_test, kinds, affected, unit_test = [], [], [], [], []
     for u in te_units:
         x = std.transform(fleet.series[u], fleet.regime[u])
         W, right = windowize(x, window, stride)
@@ -432,6 +541,7 @@ def make_ad_task(
             if h[i] > organic_frac:                       # organic anomaly
                 X_test.append(W[i]); y_test.append(1); kinds.append("organic")
                 affected.append([])           # degradation is fleet-wide, not localised
+                unit_test.append(int(u))
             elif h[i] < healthy_frac:
                 seg = x[right[i] - window + 1:right[i] + 1]
                 if rng.random() < inject_rate:            # injected anomaly
@@ -444,6 +554,7 @@ def make_ad_task(
                 else:                                     # normal
                     X_test.append(W[i]); y_test.append(0); kinds.append("normal")
                     affected.append([])
+                unit_test.append(int(u))
             # else: ambiguous mid-life window, deliberately dropped
 
     return ADTask(
@@ -455,8 +566,16 @@ def make_ad_task(
         window=window,
         n_channels=fleet.n_channels,
         channel_groups=fleet.channel_groups,
-        meta={"train_units": len(tr_units), "test_units": len(te_units),
+        meta={"train_units": len(fit_ids), "val_units": len(val_ids),
+              "test_units": len(te_units),
+              "n_val_windows": 0 if X_val is None else int(len(X_val)),
               "n_regimes": fleet.n_regimes, "seed": seed},
+        X_val=(None if X_val is None
+               else torch.from_numpy(np.asarray(X_val, dtype=np.float32))),
+        unit_train=torch.from_numpy(unit_train.astype(np.int64)),
+        unit_val=(None if unit_val is None
+                  else torch.from_numpy(unit_val.astype(np.int64))),
+        unit_test=torch.tensor(unit_test, dtype=torch.long),
     )
 
 

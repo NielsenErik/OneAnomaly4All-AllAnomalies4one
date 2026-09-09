@@ -40,7 +40,8 @@ import yaml
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-STAGES = ("ad", "explain", "rul", "calibration", "scaling")
+STAGES = ("ad", "structure_gate", "relational", "diagnosis", "explain", "rul",
+          "calibration", "scaling")
 
 DEFAULTS: Dict[str, Any] = {
     "name": "unnamed",
@@ -151,6 +152,15 @@ DEFAULTS: Dict[str, Any] = {
         "tau_where": "deep",          # 'root' is degenerate — see hand-off §3
         "rul_K": None,                # default: model.K
         "rul_epochs": None,           # default: model.epochs
+        # Opt-in diagnosis study controls; defaults preserve legacy fits.
+        "boundary_K": None,
+        "upper_K": None,
+        "channel_mixture": False,
+        "conditional_weight": 0.0,
+        "train_mask_drop_prob": 0.25,
+        "select_metric": "nll",
+        "patience": 0,
+        "min_epochs": 1,
     },
 
     "eval": {
@@ -163,6 +173,12 @@ DEFAULTS: Dict[str, Any] = {
         "shap_samples": 32,
         "deletion": True,
         "n_complete": 64,             # windows used for the completeness check
+        # The additive (chain-rule) attribution, scored in the SAME
+        # localisation table as the non-additive ones.  It costs window·C
+        # exact conditionals per view rather than 3·C, so it is a knob — but
+        # the completeness claim is about this statistic and no other, and
+        # without it in the table there is nothing to attach that claim to.
+        "chain_rule_attr": True,
         "max_explain_windows": 1500,  # attribution is O(C) passes; cap for real data
         "kinds": ["spike", "offset", "drift", "decouple", "desync"],
         "alpha": 0.10,
@@ -182,6 +198,40 @@ DEFAULTS: Dict[str, Any] = {
         "examples": True,
         "save_scores": True,
         "scaling_dims": [16, 32, 64, 112, 256],
+
+        # --- Tier 1.2: the structure kill gate -------------------------
+        # PRE-REGISTERED in the config, i.e. before the run, because a
+        # tolerance chosen after seeing the numbers is not a gate.  The
+        # candidate may lose at most `gate_max_auroc_loss` detection AUROC
+        # against the best structure that is NOT channel-blocked, and at most
+        # `gate_max_nll_loss_frac` (relative) held-out NLL.  Both are measured
+        # on the VALIDATION split at matched parameter count.
+        "gate_structures": ["channel_blocked", "channel", "chow_liu", "random"],
+        "gate_candidate": "channel_blocked",
+        "gate_reference": "chow_liu",          # sets the parameter target
+        "gate_k_grid": [2, 3, 4, 6, 8, 10, 12, 16],
+        "gate_inject_rate": 0.30,              # contamination of the labelled val half
+        "gate_max_auroc_loss": 0.02,
+        "gate_max_nll_loss_frac": 0.05,
+        # Below this much cross-channel dependence every structure is the same
+        # product of marginals and the comparison is VOID, not PASS/FAIL.
+        "gate_min_dependence_nats": 1.0e-3,
+        "diagnosis_split_seed": 701,
+        "diagnosis_max_windows": 512,
+        "diagnosis_alpha": 0.10,
+        "diagnosis_single_sensor": True,
+
+        # --- Tier 1.3-1.6: relational diagnosis ------------------------
+        "oracle_check_windows": 64,            # two-pass vs the 3·C reference
+        "oracle_tolerance": 1e-3,              # nats; float32 round-off is ~1e-5
+        "mask_ks": [1, 2, 3],                  # sensors dead per random pattern
+        "masks_per_k": 2,
+        "subset_windows": 128,
+        "subset_masks": 2,
+        "subset_max_size": 3,
+        "subset_beam": 4,
+        "subset_naive_baseline": True,         # the per-candidate cost model
+        "relational_alpha": 0.05,
     },
 }
 
@@ -244,6 +294,11 @@ def validate(cfg: Dict[str, Any]) -> None:
             "refuses this combination by design")
     if not cfg["seeds"]:
         raise ValueError("no seeds given")
+    m = cfg["model"]
+    if "structure_gate" in cfg["stages"] and (
+            m.get("boundary_K") is not None or m.get("upper_K") is not None
+            or m.get("channel_mixture") or m.get("conditional_weight", 0)):
+        raise ValueError("new architecture/objective controls belong to diagnosis, not the legacy matched-K gate")
 
 
 # ═══════════════════════════════════════════════════════════════════════════

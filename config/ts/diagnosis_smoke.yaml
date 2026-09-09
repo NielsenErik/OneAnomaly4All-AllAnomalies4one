@@ -1,0 +1,36 @@
+# Wiring only. Its small training/calibration budget cannot validate the claim.
+name: diagnosis_smoke
+description: Exact circuit diagnosis integration check, including capacity and conditional training.
+seeds: [11]
+device: cpu
+stages: [diagnosis]
+log_root: logs/ts/diagnosis_smoke
+dataset:
+  source: synthetic
+  window: 2
+  channels: 3
+model:
+  vtree: channel_blocked
+  K: 2
+  epochs: 3
+  batch_size: 32
+variants:
+  - name: blocked
+  - name: upper_capacity
+    model: {boundary_K: 3, upper_K: 4}
+  - name: mixture
+    model: {channel_mixture: true, boundary_K: 3}
+  - name: conditional
+    model: {conditional_weight: 0.2, select_metric: objective}
+  - name: unblocked
+    model: {vtree: chow_liu}
+eval:
+  diagnosis_control: true
+  control_train: 64
+  control_val: 60
+  diagnosis_max_windows: 20
+  diagnosis_alpha: 0.10
+  oracle_check_windows: 4
+  mask_ks: [1]
+  masks_per_k: 1
+  plots: false

@@ -1,0 +1,94 @@
+# TIER 1.2 — THE KILL GATE.  Run this before building anything on blocking.
+#
+# The question, from IMPLEMENTATION_PLAN_2026-09-08.md:
+#
+#   can a channel-BLOCKED structure hold density and detection inside a
+#   pre-registered budget, at matched parameter count?
+#
+# Why it is a gate and not an ablation.  Every Tier 1 query (the two-pass
+# relational map, arbitrary missing-sensor masks, subset search, mask-
+# conditional calibration) needs each channel's timesteps to form ONE region:
+# that boundary is what makes marginalising a sensor a subtree deletion.  But
+# the 2026-08-06 re-measurement on real FD001 found that channel BLOCKING was
+# the defect, not the advantage — removing it gained +0.040 AUROC and 27 nats —
+# and that `chow_liu` at one leaf component topped the sweep at .8539.  If the
+# blocked structure cannot hold density inside the budget below, the cheap-query
+# story has nothing to sit on and the honest output is a negative result plus
+# the benchmark.
+#
+# THE PRE-REGISTRATION (written before the run; do not edit after seeing rows):
+#
+#   eval.gate_max_auroc_loss     0.02   detection AUROC the candidate may give up
+#   eval.gate_max_nll_loss_frac  0.05   held-out NLL it may give up, RELATIVE
+#
+# both measured against the best structure in the sweep that is NOT channel-
+# blocked, on the VALIDATION split, at matched parameter count, with Tier 0
+# checkpoint selection.  Relative NLL because the nat scale moves with window
+# length and channel count, so an absolute budget would mean a different thing
+# on every dataset.
+#
+# THE ARMS (all four land on the same parameter count — a binary vtree over d
+# variables has d−1 internal regions whatever its shape, so "matched" here is
+# exact rather than approximate):
+#
+#   channel_blocked   the candidate: one subtree per channel, channels ORDERED
+#                     by Chow-Liu on channel-level MI
+#   channel           the same blocking with the IDENTITY channel order — the
+#                     control that isolates what the MI ordering is worth
+#   chow_liu          the incumbent, and the structure that tops FD001
+#   random            the control: if it is not clearly worst, structure is
+#                     doing nothing here and no structure claim survives
+#
+# leaf_components is 3, NOT the default 1: `chain`+1 was the degenerate cell
+# (flat across a 62× parameter range) that voided the 2026-08 headline runs,
+# and the crossed sweep put the healthy cell at 3.
+#
+#   PYTHONPATH=. python -m poc.time_series.runner config/ts/tier1_kill_gate.yaml
+#   PYTHONPATH=. python -m poc.time_series.run_tier1_gate logs/ts/tier1_kill_gate
+name: tier1_kill_gate
+description: |
+  Tier 1.2 feasibility spike: channel-blocked vtree vs Chow-Liu vs random at
+  matched parameters, on the engine-disjoint validation split.  Decides whether
+  Tier 1.3-1.6 gets built at all.
+
+seeds: [0, 1, 2]
+device: auto
+evaluator: layered
+stages: [structure_gate]
+log_root: logs/ts/tier1_kill_gate
+skip_if_missing_data: true
+
+dataset:
+  source: cmapss
+  subset: FD001
+  cap: 125
+  window: 20
+  stride: 2
+  per_regime: auto
+  val_units: 0.2
+  max_test_windows: 8000
+
+model:
+  K: 8
+  leaf_components: 3
+  # NOT 50.  This circuit is exactly factorised across channels for its first
+  # ~20-40 gradient-step epochs (0.0000 nats at 20, 1.02 at 40, 2.75 at 60 on
+  # C-MAPSS; 0.000 at 15 and 2.03 at 60 on the synthetic task) while the
+  # training NLL falls smoothly throughout.  A structure comparison between
+  # factorised models is EMPTY — every vtree gives the same product of
+  # per-channel marginals — so the gate refuses to return PASS/FAIL below
+  # `eval.gate_min_dependence_nats` and returns VOID instead.  50 sits on the
+  # crossover; 60 is past it.
+  epochs: 60
+  lr: 0.05
+
+eval:
+  baselines: false
+  gate_structures: [channel_blocked, channel, chow_liu, random]
+  gate_candidate: channel_blocked
+  gate_reference: chow_liu
+  gate_k_grid: [2, 3, 4, 6, 8, 10, 12, 16]
+  gate_inject_rate: 0.30
+  gate_max_auroc_loss: 0.02
+  gate_max_nll_loss_frac: 0.05
+  gate_min_dependence_nats: 1.0e-3

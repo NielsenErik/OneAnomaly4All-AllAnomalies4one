@@ -1,8 +1,10 @@
 # Hand-off — time-series PoC
 
-_Last updated: 2026-08-11 (§C). The 2026-08-05 diagnostic-suite pass follows in
-§B, the σ-floor episode from earlier that day in §A, the 2026-08-03 hand-off in
-§0, two more archived after it. Nothing was deleted._
+_Last updated: 2026-09-08 (§E). §D (2026-08-11, late) follows it and is still
+the reference for the leaf-components crossover; §C from earlier that day is
+partly superseded — read §D.6 before citing it. The 2026-08-05 diagnostic-suite
+pass is in §B, the σ-floor episode from earlier that day in §A, the 2026-08-03
+hand-off in §0, two more archived after it. Nothing was deleted._
 
 Read `CLAUDE.md` (hard constraints), then
 [`poc/time_series/launch/README.md`](poc/time_series/launch/README.md) (how to
@@ -10,18 +12,545 @@ run anything) and [`data/README.md`](data/README.md) (what is real and what is
 injected). This file is the state of play and the next actions.
 
 **New here, or back after a while?** [`EXPLAIN.md`](EXPLAIN.md) walks through
-how the whole pipeline works — data → structure → circuit → queries → the five
+how the whole pipeline works — data → structure → circuit → queries → the seven
 stages — in plain language, with diagrams and worked numbers. Three documents,
 three jobs: `CLAUDE.md` is the contract, `EXPLAIN.md` is the machine, this file
 is the state of play.
 
-**If you read one thing: §C.1. The 2026-08-06 re-run happened, inverted three
-claims, and was never written into this file until now. Every headline number
-in §2 is void, and §C.2 is the one experiment that unblocks re-measuring them.**
+The thesis was re-scoped on 2026-09-08 after the review in
+[`POC_REVIEW_2026-09-08.md`](POC_REVIEW_2026-09-08.md); the plan of record is
+[`IMPLEMENTATION_PLAN_2026-09-08.md`](IMPLEMENTATION_PLAN_2026-09-08.md), and
+§E below is the state of play. **Every AD number in §D and earlier predates the
+Tier 0 validation split and is on different data** — those sections remain the
+reference for how the earlier findings were reached and what the degeneracies
+cost, not for the numbers themselves.
+
+**If you read one thing: §E.1. The Tier 1 kill gate has RUN and FAILED, and it
+failed in the direction nobody had written down — the channel-blocked structure
+holds density comfortably and loses DETECTION, because it carries six times
+less cross-channel dependence than Chow-Liu. That dependence is the quantity
+the whole diagnosis method reports. §E.2 says what the result does not mean.**
 
 ---
 
-## C. LATEST (2026-08-11) — the void batch, and the conformal layer
+## E. LATEST (2026-09-08) — Tier 1 built, and its kill gate failed
+
+### E.0 What happened since §D
+
+§D.5's four steps were overtaken. `POC_REVIEW_2026-09-08.md` re-scoped the
+thesis from "a universal anomaly detector" to one question — *can a compact
+tractable joint model retain useful relational fault localisation when the
+available sensor set changes, at lower query cost than equally capable
+alternatives?* — and `IMPLEMENTATION_PLAN_2026-09-08.md` is what must be built
+to answer it. Two tiers have landed today:
+
+* **Tier 0** (evaluation and provenance repairs) — engine-disjoint validation
+  split, checkpoint selection, run provenance, tie-grouped AP, final-endpoint
+  windows, explicit nominal levels, honest naming of the AE baseline. 27 tests.
+  **Every AD number recorded before it is on different data.**
+* **Tier 1** (this section) — the channel-blocked structure, the two-pass
+  relational map, arbitrary missing-sensor masks, subset search,
+  mask-conditional calibration, and the kill gate that decides whether any of
+  it is worth building on. 18 tests. Full suite **451 passed / 0 failed**.
+
+### E.1 THE GATE, ANSWERED — FAIL, and not for the expected reason
+
+`logs/ts/tier1_kill_gate/`, real C-MAPSS FD001, K=8, `leaf_components: 3`,
+60 epochs, 3 seeds, 12/12 runs `ok`, 15/15 rows used. All four arms at
+**174,240 parameters** — a binary vtree over d variables has d−1 internal
+regions whatever its shape, so "matched capacity" here is exact rather than
+approximate. Scored on the Tier 0 validation split (engine-disjoint, half for
+NLL/checkpointing, half contaminated for a labelled detection score); the test
+split was not touched.
+
+| structure | val NLL | val AUROC | dependence (nats) | blocked |
+|---|---|---|---|---|
+| `chow_liu` | 58.3 ±8.2 | **0.8268 ±0.027** | **34.2** | no |
+| `random` | 70.1 ±12.7 | 0.7994 ±0.009 | 23.9 | no |
+| `channel` | **40.5 ±8.3** | 0.7937 ±0.020 | 6.0 | yes |
+| `channel_blocked` | 45.3 ±12.5 | 0.7934 ±0.027 | 5.6 | yes |
+
+Pre-registered budget (in the config, before the run): the candidate may lose
+≤ 0.02 detection AUROC and ≤ 5% relative held-out NLL against the best
+NON-blocked arm. Measured: **ΔAUROC −0.0334 → FAIL. ΔNLL −22.4% → inside.**
+
+Three readings, and the second is the one that matters.
+
+**1. Blocking BUYS density and SELLS detection.** Both blocked arms beat both
+unblocked ones on held-out NLL by 22–42%, and lose ~0.033 AUROC. The plan's own
+§1.2 sentence — "if the blocked structure cannot hold density…" — anticipated
+the wrong failure: it holds density comfortably. The loss is detection alone,
+consistent in every seed (−0.033, −0.039, −0.029), though the three-seed sd is
+±0.027 and **a three-seed sd is not a significance test** (plan §3.2). The rule
+was pre-registered on the mean; the mean fails it.
+
+**2. The mechanism is in the dependence column, and it is worse news than the
+AUROC gap.** `channel_dependence` measures |Σ_c log p(x_c) − log p(x)|, the
+nats of cross-channel dependence the fitted circuit actually carries. The
+blocked circuits carry **5.6–6.0**; Chow-Liu carries **34.2**; even `random`
+carries 23.9. The relational statistic R_S is *computed from* that dependence.
+So the boundary that makes the relational map cheap is the same boundary that
+starves the quantity the map reports — a correct, fast algorithm running on a
+model with comparatively little to say. That is a structural objection to the
+design, not a tuning problem, and it is the thing to answer before any repair.
+
+**3. The channel ORDER is noise.** `channel_blocked` (channels ordered by
+Chow-Liu on channel-level MI) and `channel` (identity order) come out at 0.7934
+vs 0.7937 and cross over between seeds — seed 0 favours identity by +0.009,
+seed 1 favours Chow-Liu by +0.006. Plan §1.1's hybrid ("order the channels by
+Chow-Liu; that hybrid is the candidate for keeping density while gaining cheap
+queries") is **not supported**. The blocking does everything; the order does
+nothing.
+
+### E.2 What the gate does NOT say
+
+* **It is not §D.1's contrast, and does not revive §C.1's Inversion 2.** §D.1
+  compared `chain` against `chain_perm_features` — both chain-family, 32k
+  params — and found destroying the blocking worth +0.008 (~1σ), i.e. the null.
+  This gate compares a fully channel-blocked 174k structure against a *learned*
+  174k one. Different question, different structures, and different data (Tier
+  0 split). Both statements stand: within the chain family blocking does
+  nothing; against Chow-Liu, blocking costs 0.033.
+* **It does not say the method is wrong.** Everything in §E.4 is measured and
+  correct. It says the structure this method requires is not, as built, a
+  structure worth deploying on FD001.
+* **It is one dataset, one anomaly generator, three seeds.** The anomalies are
+  injected by our own injector (`data/README.md`), which is exactly the credibility
+  gap the plan's Tier 3.4 exists to close.
+* **It does not license picking a different candidate and re-reading.**
+  `channel` beat `channel_blocked` in seed 0 and lost in seed 1; choosing the
+  winner after the fact is how this project has fooled itself before. Any
+  repair is a NEW pre-registration on fresh seeds.
+
+### E.3 What was built, and where it lives
+
+The algorithm, in one paragraph. Decomposability makes the circuit's value a
+degree-1 polynomial in the value of any one region, so `p(x) = Σ_u β_u·α_u`
+over the units of a channel's region, with no constant term. Contiguity — each
+channel's W timestep variables forming exactly ONE region — makes that region
+the only place `x_c` enters the circuit. Together: `p(x_-c) = Σ_u β_u·Z_u`
+falls out of a single downward pass **for every channel at once**, and
+`p(x_c) = Σ_u β̄_u·α_u` from a `β̄` computed once and cached because it does not
+depend on the data. A missing sensor is then a substitution at that boundary
+rather than a re-run, so a batch in which every window has a *different* sensor
+failure still costs one pass.
+
+| plan item | code | entry point |
+|---|---|---|
+| 1.1 structure + contiguity assertion | `src/probabilistic_circuits.py` §6c: `channel_blocked_vtree`, `chow_liu_channel_order`, `block_boundary_units` | `WindowPC(vtree_method="channel_blocked")` |
+| 1.2 the kill gate | `pipeline.py`: `stage_structure_gate`, `gate_verdict`, `channel_dependence`; `circuits.py`: `match_K`, `structure_param_count` | `config/ts/tier1_kill_gate.yaml` → `run_tier1_gate.py` |
+| 1.3 two-pass map | §6c: `inside_log_values`, `outside_log_values`, `RelationalCircuit.relational_map` | `WindowPC.relational_map` |
+| 1.4 arbitrary masks | §6c: `masked_log_prob`, `_boundary_values` | `WindowPC.score_with_masks`, `bench_relational.py` |
+| 1.5 subset search | `relational.py`: `subset_search`, `naive_subset_search` | `stage_relational` |
+| 1.6 mask calibration | `relational.py`: `MaskCalibrator`, `mask_library` | `config/ts/tier1_relational.yaml` |
+
+Two new pipeline stages (`structure_gate`, `relational`) go through the same
+runner, provenance and aggregation as the other five, so nothing here needs a
+special code path. `TIERS=6 bash poc/time_series/launch/run_workstation.sh`
+runs the gate and runs the relational config **only on PASS**.
+
+### E.4 What stands regardless of the verdict
+
+These are engineering facts about the algorithm, not claims about the model:
+
+* **Correctness.** The two-pass map agrees with the 3·C `typed_scores` oracle
+  to **2.4e-04 nats** on real FD001 (|log p| ~ 60–200 nats) and **3.2e-05** in
+  the 8-epoch wiring run. That check runs inside `stage_relational` on every
+  run and raises if it moves; it is the correctness backbone of the method.
+* **Cost, on real FD001** (W=20, C=15, K=8, 23,921 nodes, 256 windows): the
+  oracle spends 45 compiled queries / **22.3 s**; the two-pass map spends one
+  leaf pass (0.62 s) plus **0.09 s** over the 1,121-node upper circuit. ~30×.
+* **Cost curve** (`bench_relational.py`, small synthetic circuit): work ratio
+  ×10.7 at C=4 and ×21.2 at C=8 — linear in C, as claimed — while WALL CLOCK is
+  a wash (×1.01, ×0.91) because the oracle runs on the compiled layer-parallel
+  evaluator and the two-pass map on the per-node Python one. Mask cost is flat
+  (2,329 visits at 1, 4 and 16 masks) and crosses the per-mask query between 4
+  and 16 masks (×0.04 → ×2.37). **Report both halves.** Quoting only the FD001
+  30× would be the same favourable-slice claim this project has withdrawn once.
+* **Subset search**: 16 passes against the per-candidate cost model's 857 for
+  the same 413 candidates, with the candidate VALUES agreeing to **3.1e-05
+  nats** — the concrete separation from Lüdtke et al. (2022), measured on the
+  same circuit so the contrast is the algorithm and not the model class.
+  (Which subset each window ends up choosing agrees only 38–69% of the time,
+  and that is expected rather than alarming: on a factorised wiring-run circuit
+  most candidates tie to round-off, so the argmax is noise while the values it
+  is taken over are exact. Re-measure agreement on a circuit that carries
+  dependence before quoting it either way.)
+* **Mask-conditional calibration**: worst |FPR − α| **0.013** mask-conditional
+  vs **0.025** mask-blind at α=0.05 over 7 masks. Wiring-run numbers, on a
+  factorised circuit — the mechanism works, the effect size means nothing yet.
+
+### E.5 Traps found this cycle
+
+* **A SEVENTH silent degeneracy, and the most expensive kind: a hang.** The
+  first version of `block_boundary_units` walked the sub-circuit below each
+  candidate unit remembering *hits* rather than *visits*, so it enumerated the
+  PATHS of a DAG. Correct, and non-terminating at W=20 — over 20 minutes with
+  no output, on a function that takes 0.37 s once fixed. Same K^depth trap
+  `move_circuit_` documents, reached through a different door. **No test in
+  this repo would have caught it**, because a hang is not a wrong answer;
+  the small-W tests all passed.
+* **The factorisation crossover is now a GATE, not a footnote.** Tier 0 found
+  this circuit exactly factorised across channels for its first ~20 epochs.
+  Re-measured: synthetic, dependence 0.000 nats at 15 epochs, 0.007 at 30,
+  2.03 at 60; the small test task, 1.5e-05 at 45 and 1.33 at 120. Under such a
+  model every relational quantity is identically zero AND every structure is
+  the same product of marginals, so `gate_verdict` returns **VOID** rather than
+  PASS/FAIL below `eval.gate_min_dependence_nats`, every gate row carries
+  `dependence_nats`, and the Tier 1 configs run 60 epochs, not 50. A PASS
+  obtained below the crossover would have been a statement about nothing.
+* **A pre-registration mismatch, caught mid-run.** The config said "against the
+  best structure that is NOT channel-blocked"; the first implementation of
+  `gate_verdict` compared against every other arm, which would have failed the
+  gate whenever the blocked-but-differently-ordered `channel` arm won — a
+  statement about the channel ORDER, not about blocking. Fixed while seed 0 was
+  still training; the stricter number is still reported as `delta_auroc_vs_any`.
+  **Consequence for this batch:** the per-seed `VERDICT` rows in
+  `results.jsonl` were written by the stage before the fix and use the old
+  comparator. `run_tier1_gate.py` recomputes from the arm rows and is
+  authoritative; the rows are now labelled "this seed only".
+* **A mask library that asked an impossible question.** The C-MAPSS loader's
+  channel grouping puts 12 of the 15 surviving channels in group 0, so the
+  "sensor bank failure" mask left three sensors alive — a blackout, not a
+  fault, scoring the model on something no method could answer and drowning the
+  informative masks in the same table. `bank_masks` now truncates any group
+  above half the channels.
+* **Tolerances scale with the nat range, so do not tighten them to the toy
+  value.** The oracle check agrees to 2.4e-04 nats on the trained FD001 circuit
+  (|log p| ~45–70 nats accumulated over 23,921 nodes), 3.2e-05 in the 8-epoch
+  wiring run, and ~1e-05–1e-06 on the toy circuits in the test file. All of it
+  is float32 round-off — the identity is exact — but the ABSOLUTE size moves
+  with the magnitude of log p and the depth of the circuit.
+  `eval.oracle_tolerance` is 1e-3 for that reason.
+
+### E.6 What to run, in order
+
+```bash
+export PYTHONPATH=.
+
+# 0. the fast checks — ~30 s.  A failure here means the batch would produce
+#    numbers that look reasonable and are wrong.
+pytest tests/test_ad_diagnostics.py tests/test_rul_diagnostics.py \
+       tests/test_experiment_hygiene.py tests/test_tier1_relational.py -q
+
+# 1. re-read the gate (it is already run; this is free)
+python -m poc.time_series.run_tier1_gate logs/ts/tier1_kill_gate
+#    exit 0 PASS · 2 FAIL · 3 VOID (every arm factorised) · 4 NO_COMPARATOR
+
+# 2. THE DECISION, and it is not a code change (§E.7)
+```
+
+There is no "step 3 config to launch". The gate said stop, and the next action
+is a choice about the research direction, not another batch. Running
+`config/ts/tier1_relational.yaml` on this structure would produce correct
+numbers about a model the gate has already condemned — the same mistake §D.0
+records, in a new place.
+
+### E.7 The decision this leaves, stated honestly
+
+Three options, in the order I would defend them:
+
+1. **Write up the negative result plus the benchmark**, which is what the plan
+   pre-committed to. The publishable content: the two-pass algorithm with its
+   exactness proof and measured cost curve, the missing-sensor query, and the
+   finding that *the structural constraint the cheap queries require costs 6×
+   the cross-channel dependence the queries are about*. That last sentence is a
+   real contribution to anyone else who tries this, and nobody has written it.
+2. **One targeted repair, pre-registered afresh**: the blocked structures may
+   be starved of cross-channel capacity ABOVE the boundary (they spend K² on
+   within-channel timestep structure, which is exactly why their NLL is so
+   good). A blocked vtree with more units at the top levels, or Chow-Liu
+   *within* each channel block, tests that directly. It needs a new
+   pre-registration, fresh seeds, and the same dependence column as the
+   read-out — and it must be one experiment, not a search.
+3. **Change the operating regime.** The gate scores detection of injected
+   anomalies on a full sensor set. The thesis is about *diagnosis under missing
+   sensors*, and the blocked structure's advantage there is COST, not
+   capability: an unblocked circuit answers the same masked query exactly via
+   `log_marginal` (`score_with_missing` works on any structure), it just cannot
+   reuse the boundary across masks. The per-mask refactorisation cost belongs
+   to the Gaussian/GMM baselines of Tier 2, and has not been measured yet.
+   Making localisation-under-mask the primary axis is defensible — but it is a
+   different pre-registration, it has to be written down before it is run
+   rather than chosen because the first axis failed, and on this structure it
+   would be measured on a model carrying 5.6 nats of the dependence it reports.
+
+**Do not draft Paper A's method section on this structure.** What survives is
+listed in §E.4 and it is engineering, not a result about engines.
+
+### E.8 Corrections to this file's own record
+
+- **§D.1's "at a healthy leaf setting neither timestep order nor channel
+  blocking does anything"** — stands, and is now bounded. It is true *within the
+  chain family at 32k params*. Against a learned Chow-Liu vtree at matched
+  174k params on the Tier 0 split, full channel blocking costs −0.033 AUROC and
+  gains 22% NLL (§E.1). The two are different contrasts, not a contradiction.
+- **§D.5's steps 1–3** — superseded by the re-scope, not by a measurement. The
+  lc=3 undertraining confound of §D.2 is still open and still worth clearing if
+  anyone returns to the detection headline; Tier 1 sidestepped it by fixing
+  lc=3 and 60 epochs everywhere and by matching parameters exactly.
+- **Everything in §0–§D reporting an AD number** — measured before the Tier 0
+  validation split existed. Not wrong, but not comparable to anything measured
+  after 2026-09-08.
+
+---
+
+## D. 2026-08-11 (late) — the blocker answered, and why RUL collapses
+
+### D.0 What happened since §C
+
+§C.6 listed four steps. Steps 0, 1 and 3 ran. **Step 2 — patching the headline
+configs to the winning cell — was skipped**, so step 3 re-ran all four headline
+configs in the same degenerate cell §C.1 had already condemned. That batch cost
+~4 h and produced nothing usable. If you read only one operational lesson from
+this section, it is that step 2 was not optional bookkeeping; it was the entire
+point of step 1.
+
+Two smaller notes on the mechanics. The first launch of the blocker
+(`logs/ts/_console/cmapss_structure_x_leaves_20260811_154901.log`) died instantly
+with `FileNotFoundError` on its own config: the file was committed at 15:47:34
+(`539001e`) and launched at 15:49:01, before the workstation had pulled. The
+relaunch at 15:50:47 ran clean. And the conformal layer of §C.3 got its first
+end-to-end exercise in the 15:48 smoke run — see §D.4.
+
+### D.1 THE BLOCKER, ANSWERED — 36/36 clean
+
+`logs/ts/cmapss_structure_x_leaves/`, real C-MAPSS FD001, K=8, 3 seeds, all 36
+runs `ok`. RegionGraphPC density score. `train_nll` in the summaries is
+MISNAMED — `run_ad.py:151` assigns `held_nll` to it, so it is held-out.
+
+| vtree | lc=1 | lc=3 | Δ | NLL 1→3 | params 1→3 |
+|---|---|---|---|---|---|
+| `chain_perm_features` | 0.7923±0.0029 | **0.8347±0.0048** | **+0.042** | 162.3→97.1 | 15,360→32,160 |
+| `chain_perm_blocks` | 0.7512±0.0056 | 0.8278±0.0077 | **+0.077** | 190.8→99.4 | 15,360→32,160 |
+| `chow_liu` | **0.8539±0.0048** | 0.8266±0.0038 | −0.027 | 66.3→89.9 | 157,440→174,240 |
+| `chain` | 0.7528±0.0081 | 0.8265±0.0068 | **+0.074** | 189.4→97.3 | 15,360→32,160 |
+| `time` | 0.8325±0.0060 | 0.8126±0.0044 | −0.020 | 82.9→115.0 | 157,440→174,240 |
+| `random` | 0.8388±0.0035 | 0.8089±0.0082 | −0.030 | 67.3→126.8 | 157,440→174,240 |
+
+It is a crossover, and it answers all three pre-registered questions.
+
+**1. The degeneracy is chain-specific, and `leaf_components: 3` fixes it.** All
+three chain arms gain +0.04 to +0.08 and shed 65–92 nats. `chow_liu` does not
+move in that direction at all. Reading (a) of the config fires: the structure
+ablation must be re-read at lc=3 before any structure claim.
+
+**2. §C.1's Inversion 2 is DEAD — it was itself an artefact of the dead cell.**
+The "+0.040 AUROC from destroying channel blocking" was measured at lc=1. At
+lc=3 the `chain_perm_features` − `chain` gap collapses to **+0.008**, about one
+sd (0.0048 / 0.0068). All three chain arms land at 0.8265 / 0.8278 / 0.8347 —
+indistinguishable. The correct statement is now the null one: **at a healthy
+leaf setting neither timestep order nor channel blocking does anything.** The
+2026-08-03 synthetic claim and its 2026-08-06 reversal were both reading the
+degeneracy, in opposite directions.
+
+**3. The `random` control is the uncomfortable one.** The pre-registered kill
+criterion was "if random is not clearly worst in the chosen cell, structure is
+doing nothing and the structure story comes out."
+
+- At **lc=1** random is **2nd of 6** — it beats `time`, `chain` and both perm
+  controls. Only `chow_liu` beats it, by +0.015 (~3σ: real, small). The whole
+  lc=1 column separates cleanly by parameter count: all three 157k arms above
+  all three 15k arms. Capacity is doing the work, not structure.
+- At **lc=3** random IS worst (0.8089), so the criterion passes — but the
+  winner is `chain_perm_features`, a deliberately scrambled control, and the
+  total spread is only 0.026.
+
+**The cell with the best absolute number (chow_liu @ lc=1, 0.8539) is the cell
+where our own control says the structure claim is empty.** That tension is the
+finding, and it should be stated as such rather than resolved by picking the
+flattering cell.
+
+The one clean, cell-independent result: at lc=3 the 32k chain-family arms BEAT
+the 174k learned/large arms. **Matching Chow-Liu at 1/5 the parameters** is a
+defensible efficiency claim that does not depend on the structure story.
+
+### D.2 Which cell — and the confound that must be cleared first
+
+Do NOT adopt lc=3 blindly. The three large arms get **worse held-out NLL at
+lc=3 while gaining parameters** (random 67→127, time 83→115, chow_liu 66→90).
+Capacity up, fit down, at fixed `epochs: 50, lr: 0.05` is the signature of
+**undertraining, not a capacity effect**. The entire lc=3 large-arm column may
+be an optimisation artefact.
+
+So there is currently no cell where every arm is healthy: lc=1 cripples the
+chain family, lc=3 may be starving the large arms of epochs.
+
+Cheap resolution, and it must run before the headline configs are patched:
+re-run only `chow_liu`/`time`/`random` at lc=3 with substantially more epochs.
+If their NLL drops below the lc=1 values, the lc=3 regression was undertraining
+and the structure ranking has to be re-read again. If it does not, lc=3 is a
+real capacity ceiling for those arms and the chain family at lc=3 is the cell.
+
+### D.3 WHY RUL FAILS — one root cause, not five problems
+
+The headline: **RUL is not separately broken. It is the same degeneracy as the
+AD cell, measured by the one query that has nowhere to hide.**
+
+The mechanism, in order:
+
+1. **τ is a separate leaf variable**, appended to the joint (`tau_idx = self.d`,
+   `circuits.py:682`). It is not a function of the sensors. So the ONLY route by
+   which an engine's window can change its predicted life is through learned
+   **dependencies** between the τ leaf and the x leaves.
+2. `tau_where: deep` is already set in `cmapss_rul.yaml:54`, so the known-bad
+   `root` coupling of §3 is NOT the cause this time. The coupling is fine; what
+   is missing is anything to couple.
+3. **The circuit in this cell has learned almost no dependencies.** The
+   "structural" score is defined at `circuits.py:528` as
+   `−log p(x_c | x_−c) + log p(x_c)` — pointwise mutual information, i.e.
+   exactly the learned dependency mass. From the same crossed sweep:
+
+   | vtree | structural-only AUROC, lc=1 | lc=3 |
+   |---|---|---|
+   | `chain` | **0.5820±0.0030** | 0.7791±0.0027 |
+   | `chain_perm_blocks` | 0.5706±0.0068 | 0.7832±0.0079 |
+   | `chain_perm_features` | 0.6788±0.0035 | 0.7805±0.0149 |
+
+   **0.58 is chance.** In that cell the density is close to a product of
+   independent marginals.
+4. No dependencies ⟹ τ ⊥ x under the model ⟹ `p(τ|x) = p(τ)`, the same curve
+   for every engine ⟹ `E[τ|x]` constant. Measured by the guardrail: sd **0.759
+   cycles** against a target spread of 34.5.
+
+**The guardrail message and the 0.5820 structural score are the same fact
+measured two ways.**
+
+**Why AD survived and RUL did not.** The anomaly score is `−log p(x)`, carried
+mostly by the leaf MARGINALS. A product of independent Gaussians is still a
+working detector — it is literally the `diagonal Gaussian` baseline. So AD
+degrades *gracefully*, down to roughly its own baseline (0.7528). RUL has no
+marginal fallback: `p(τ)` alone says nothing about a specific engine. Strip the
+dependencies and AD limps; RUL goes to a constant. That is why RUL is the most
+sensitive detector of this defect in the whole pipeline, and why it fails on
+some seeds and not others — whether the latent posterior fully collapses
+depends on init jitter.
+
+This also explains the accuracy gap with no extra hypothesis. Target spread
+~34.5; the circuit gets RMSE ~25; ridge gets ~18. A model near "predict the
+global mean" scores close to the target's own spread. The circuit is much
+nearer that than to a model actually reading the sensors.
+
+**CAVEAT, and the check that settles it.** The 0.5820 comes from the crossed
+sweep's AD stage at `K=8`, NOT from the RUL runs, which use `rul_K: 12` and the
+τ-augmented structure. It is the closest matched cell, not a direct measurement
+of the failing model. The decisive test is one config line: run `cmapss_rul` at
+`leaf_components: 3`. If this account is right the degeneracy failures should
+largely vanish and RMSE should fall toward the baselines. **If they persist at
+lc=3, RUL has an independent defect and the τ coupling itself is the suspect.**
+
+### D.4 What tonight's headline batch exposed anyway
+
+All of the below was produced in the dead cell and is void as measurement, but
+three of the four are bugs that survive the cell and must be fixed regardless.
+
+**(a) RUL: 5 ok, 0 skipped, 7 FAILED in 67.7 min.** Every failure is the §B.5
+guardrail firing with `DegenerateModelError`, sd of `E[τ|x]` at 0.759–1.32
+cycles against target spreads of 33.2–38.2. This is a **7th degeneracy**, and
+the first one caught by a guardrail instead of shipped as a result. The
+guardrail worked exactly as designed.
+
+**(b) The RUL summary table is CONTAMINATED — fix before reading anything.**
+The aggregator reads run directories; a failed re-run leaves the PREVIOUS
+`metrics.json` in place. Concretely:
+`logs/ts/cmapss_rul/censor_frac-0.7/seed1/metrics.json` is dated **4 Aug 15:59**
+next to a `status.json` reading `failed` at **2026-08-11T17:52:19**. That is why
+rows still report "3 seeds" when 7 of 12 runs died. The table is a blend of
+tonight's 5 survivors and stale 4-August numbers, which per §A are themselves
+pre-σ-floor and void. **A failed run must not contribute to a summary.**
+
+**(c) The conformal path IGNORES `alpha`.** From
+`logs/ts/cmapss_calibration/summary.md`, FD001:
+
+```
+SurvivalPC + split conformal (cqr) · a=0.10   PICP 0.9702±0.0043   MPIW 73.6706±1.6896
+SurvivalPC + split conformal (cqr) · a=0.20   PICP 0.9702±0.0043   MPIW 73.6706±1.6896
+```
+
+Identical intervals for two different requested coverages (FD002 likewise:
+0.9850 / 96.2659 both). `interval_score` differs (80.54 vs 77.10) only because
+the SCORE formula uses alpha. The CQR baseline responds correctly
+(0.8545 → 0.7465), so this is specific to the PC conformal path: alpha reaches
+the scoring but not the interval construction. **The §C.3 conformal result is
+real but currently pinned at one coverage level regardless of what is asked
+for.** Every conformal number on record needs re-reading after this is fixed.
+
+**(d) The censoring feature still loses to deleting data.** At `[last]` with
+70% censoring — where exact censored likelihood should win biggest — it is
+**35.08±1.65 RMSE vs 27.42±0.67** for simply dropping censored rows. It does win
+at `[all]` (24.98 vs 27.25 at 0.5), so the effect flips by endpoint.
+
+A mechanism for (d), offered as HYPOTHESIS, not measurement: if `p(τ|x)` has no
+x-dependence, the censored-likelihood term — which integrates `P(τ > t | x)`
+over the tail — cannot sharpen per-engine prediction, so its gradient lands on
+the only component with capacity, the shared τ MARGINAL, dragging it toward
+longer lives. Dropping censored rows instead trains on clean fully-observed
+targets. The prediction is that the damage scales with how much the tail term
+dominates, which matches: worst at `[last]` + 0.7. **This is consistent with
+T1's death (§2) but does not re-open it** — it says the censoring machinery is
+doing correct work on a model with no capacity to use it, so T1 has not yet had
+a fair test at a healthy cell.
+
+**(e) Not a bug, but do not tune for it.** RUL is ~250–345 s per run against
+ridge's ~0.4 ms. `log_pmf` (`circuits.py:818`) runs one full circuit evaluation
+PER BIN — reading an exact conditional off a discretised joint costs `n_bins` ×
+a density evaluation, every batch. That is the price of the exact-conditional
+formulation, not something tuning will recover.
+
+### D.5 What to run, in order (SUPERSEDES §C.6)
+
+```bash
+# 0. THE THREE FIXES FIRST — all three survive the cell choice
+#    (i)   failed runs must not contribute to summaries (§D.4b)
+#    (ii)  plumb `alpha` into the PC conformal interval, not just the score (§D.4c)
+#    (iii) nothing else — do NOT touch the guardrails
+
+# 1. clear the lc=3 confound (§D.2): chow_liu/time/random only, more epochs
+#    if their NLL drops below the lc=1 values, re-read D.1 before proceeding
+
+# 2. the RUL root-cause test (§D.3) — ONE config line, decides the diagnosis
+#    set leaf_components: 3 in config/ts/cmapss_rul.yaml, then:
+bash poc/time_series/launch/run_config.sh config/ts/cmapss_rul.yaml
+#    expect: the 7 DegenerateModelError failures largely vanish, RMSE falls
+#    toward ~18. If they PERSIST, the tau coupling is the suspect, not the cell.
+
+# 3. ONLY THEN patch leaf_components in the four headline configs and re-run.
+#    This is the step that was skipped tonight (§D.0). Skipping it again wastes
+#    another 4 h.
+JOBS=3 THREADS=4 DEVICE=cpu TIERS="1 2 5" bash poc/time_series/launch/run_workstation.sh
+PYTHONPATH=. python -m poc.time_series.aggregate logs/ts
+```
+
+**Still do NOT draft the Paper A section.** What survives untouched: exact
+attribution 0.902 vs 0.498 sampling-SHAP, completeness at 1.5e-5 nats,
+box-query exactness at 6e-6, T1's death, and now D.1's parameter-efficiency
+result. Everything else waits on step 3.
+
+### D.6 Corrections to this file's own record
+
+- **§C.1 Inversion 2 ("channel BLOCKING is the defect")** — DEAD (§D.1). It was
+  measured inside the degenerate cell; at lc=3 the effect is +0.008, ~1σ. Both
+  it and the §B.3 synthetic claim it reversed are artefacts. The surviving
+  statement is the null: order and blocking both do nothing at a healthy cell.
+- **§C.1 Inversion 1 ("the chain wins" is dead)** — stands, but weaken it. At
+  lc=3 `chain` (32k params) ties `chow_liu` (174k). The chain is not a better
+  structure; it is a cheaper one that is no worse.
+- **§C.1 Inversion 3 (curvature vtrees dead)** — untouched by tonight's run;
+  curvature arms were deliberately excluded from the crossed sweep.
+- **§C.2 "what to read off it"** — all three questions now answered in §D.1.
+  The section is superseded, not wrong.
+- **§C.3 conformal results** — every PICP/MPIW figure needs re-reading after the
+  alpha fix (§D.4c). The *relative* result (conformal beats raw predictive, and
+  beats the CQR baseline on width) is unlikely to change sign; the levels will.
+- **§C.6** — superseded by §D.5. Its step 2 was the one that mattered and it was
+  the one skipped.
+- **§B.5 "two blind guardrails"** — the RUL degeneracy guardrail is no longer
+  blind: it caught 7 real failures tonight (§D.4a) that would otherwise have
+  been reported as numbers.
+
+---
+
+## C. 2026-08-11 (earlier) — the void batch, and the conformal layer
 
 ### C.0 Why this section exists
 

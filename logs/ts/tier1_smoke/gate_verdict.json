@@ -1,0 +1,103 @@
+{
+  "stats": [
+    {
+      "vtree": "random",
+      "auroc_mean": 0.7113924050632912,
+      "auroc_std": 0.0,
+      "ap_mean": 0.6450917901377382,
+      "ap_std": 0.0,
+      "val_nll_mean": 61.357139587402344,
+      "val_nll_std": 0.0,
+      "params_mean": 3344.0,
+      "params_std": 0.0,
+      "K_mean": 4.0,
+      "K_std": 0.0,
+      "fit_s_mean": 0.4,
+      "fit_s_std": 0.0,
+      "best_epoch_mean": 4.0,
+      "best_epoch_std": 0.0,
+      "dependence_nats_mean": 0.0003188451228197664,
+      "dependence_nats_std": 0.0,
+      "n_seeds": 1,
+      "seeds": [
+        0
+      ]
+    },
+    {
+      "vtree": "channel_blocked",
+      "auroc_mean": 0.7094233473980309,
+      "auroc_std": 0.0,
+      "ap_mean": 0.6443661270023657,
+      "ap_std": 0.0,
+      "val_nll_mean": 61.33888244628906,
+      "val_nll_std": 0.0,
+      "params_mean": 3344.0,
+      "params_std": 0.0,
+      "K_mean": 4.0,
+      "K_std": 0.0,
+      "fit_s_mean": 1.4,
+      "fit_s_std": 0.0,
+      "best_epoch_mean": 4.0,
+      "best_epoch_std": 0.0,
+      "dependence_nats_mean": 2.47955313170678e-06,
+      "dependence_nats_std": 0.0,
+      "n_seeds": 1,
+      "seeds": [
+        0
+      ]
+    },
+    {
+      "vtree": "chow_liu",
+      "auroc_mean": 0.7091420534458509,
+      "auroc_std": 0.0,
+      "ap_mean": 0.6426476021659657,
+      "ap_std": 0.0,
+      "val_nll_mean": 61.33467483520508,
+      "val_nll_std": 0.0,
+      "params_mean": 3344.0,
+      "params_std": 0.0,
+      "K_mean": 4.0,
+      "K_std": 0.0,
+      "fit_s_mean": 0.4,
+      "fit_s_std": 0.0,
+      "best_epoch_mean": 4.0,
+      "best_epoch_std": 0.0,
+      "dependence_nats_mean": 2.7974447220913135e-06,
+      "dependence_nats_std": 0.0,
+      "n_seeds": 1,
+      "seeds": [
+        0
+      ]
+    }
+  ],
+  "verdict": {
+    "verdict": "VOID",
+    "rule": "max dependence >= 0.001 nats before any comparison",
+    "candidate": "channel_blocked",
+    "dependence_nats": {
+      "random": 0.0003188451228197664,
+      "channel_blocked": 2.47955313170678e-06,
+      "chow_liu": 2.7974447220913135e-06
+    },
+    "reason": "every arm is factorised across channels (max dependence 3.19e-04 < 0.001 nats), so the structure comparison \u2014 and every relational quantity below it \u2014 is identically empty",
+    "n_seeds": [
+      0
+    ],
+    "pre_registered": {
+      "gate_max_auroc_loss": 0.02,
+      "gate_max_nll_loss_frac": 0.05,
+      "gate_candidate": "channel_blocked",
+      "gate_reference": "chow_liu",
+      "config_path": "config/ts/tier1_smoke.yaml"
+    }
+  },
+  "provenance": {
+    "rows_total": 21,
+    "rows_used": 21,
+    "rows_dropped": 0,
+    "runs_by_status": {
+      "ok": 1
+    },
+    "incomplete_runs": []
+  }
+}

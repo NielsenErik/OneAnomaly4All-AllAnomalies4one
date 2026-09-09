@@ -16,9 +16,11 @@ is somebody else's.
              missions, annotated by spacecraft operations engineers, PER
              CHANNEL.  That last point is what makes it uniquely valuable
              here: it is the only source in the whole catalogue that gives
-             REAL localisation ground truth, so the exact-attribution result
-             (0.902 vs 0.498 for sampling-SHAP on injected faults) can be
-             re-run against faults nobody in this project designed.
+             REAL localisation ground truth, so the attribution comparison can
+             be re-run against faults nobody in this project designed.  (The
+             recorded 0.902-vs-0.498 gap was against a replacement-sensitivity
+             baseline mislabelled as sampling-SHAP; it is withdrawn as a
+             SHAP comparison — review §2.B.)
     opssat   OPSSAT-AD (ESA CubeSat) — 2123 short single-channel segments,
              ~20% anomalous, segment-level labels.  Small, univariate, messy
              (gaps, sampling-rate changes); a robustness check, not a

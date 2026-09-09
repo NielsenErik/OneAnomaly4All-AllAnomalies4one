@@ -39,6 +39,7 @@ import socket
 import subprocess
 import sys
 import time
+import uuid
 import traceback
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -166,6 +167,16 @@ class RunLogger:
         self._results: List[dict] = []
         self._metrics: Dict[str, Any] = {}
         self.failed = False
+        # Immutable identity for THIS attempt.  A run directory is reused by
+        # every re-run, so "which execution produced this row" is otherwise
+        # unanswerable after the fact — and the aggregate has already once
+        # mixed rows from before and after the fix being tested.
+        self.attempt = (time.strftime("%Y%m%dT%H%M%S") + "-"
+                        + uuid.uuid4().hex[:6])
+        # stage -> "ok" | "failed".  Written incrementally, so a crash in a
+        # later stage leaves the earlier stages' verdicts on disk instead of
+        # condemning the whole directory.
+        self._stages: Dict[str, str] = {}
 
     # ── paths ────────────────────────────────────────────────────────────
 
@@ -196,7 +207,7 @@ class RunLogger:
             sys.stdout = sys.stderr = self._fh             # type: ignore[assignment]
 
         self._write("config.json", {"seed": self.seed, "config_hash": self.hash,
-                                    **self.config})
+                                    "attempt": self.attempt, **self.config})
         self._write("env.json", environment_report())
         self._status("running")
         self.info(f"=== run start · {os.path.basename(self.run_dir)} · "
@@ -211,6 +222,7 @@ class RunLogger:
             "peak_rss_gb": self._peak_rss_gb(),
             "peak_gpu_gb": self._peak_gpu_gb(),
         }
+        info["stages"] = dict(self._stages)
         if exc is not None:
             self.failed = True
             info["error"] = f"{exc_type.__name__}: {exc}"
@@ -248,9 +260,20 @@ class RunLogger:
             self.info(f"  {tag}: first={float(values[0]):.4f} "
                       f"last={float(values[-1]):.4f} ({len(values)} epochs)")
 
+    def stage_ok(self, stage: str) -> None:
+        """Mark a stage as having run to completion, and persist that now."""
+        self._stages[str(stage)] = "ok"
+        self._status("running", stages=dict(self._stages))
+
+    def stage_failed(self, stage: str, error: str = "") -> None:
+        """Mark a stage as having crashed part-way through."""
+        self._stages[str(stage)] = "failed"
+        self._status("running", stages=dict(self._stages),
+                     stage_error={str(stage): str(error)[:300]})
+
     def result(self, row: Dict[str, Any]) -> None:
         """One comparable row (stage, method, metric...) → results.jsonl."""
-        row = {"seed": self.seed, **row}
+        row = {"seed": self.seed, "attempt": self.attempt, **row}
         self._results.append(row)
         with open(self.path("results.jsonl"), "a") as f:
             f.write(json.dumps(row, default=_jsonable) + "\n")
@@ -280,6 +303,7 @@ class RunLogger:
     def _status(self, status: str, **extra) -> None:
         self._write("status.json", {"status": status, "seed": self.seed,
                                     "config_hash": self.hash,
+                                    "attempt": self.attempt,
                                     "updated": time.strftime("%Y-%m-%dT%H:%M:%S"),
                                     **extra})
 
@@ -350,8 +374,41 @@ def is_complete(run_dir: str, config: Dict[str, Any]) -> bool:
                 and st.get("config_hash") == config_hash(config))
 
 
-def read_results(root: str) -> List[dict]:
-    """Every results.jsonl row under `root`, annotated with its run directory."""
+def row_is_trustworthy(row: dict, status: Optional[dict]) -> bool:
+    """
+    Whether one result row may enter a headline table.
+
+    A row qualifies when the run finished ("ok"), or when the run failed later
+    but THIS row's stage was marked complete before the crash.  Everything else
+    — a run still running, a run that died inside this row's own stage, a
+    directory with no status at all — is partial output.
+
+    This is the aggregation defect from the review.  `results.jsonl` is
+    truncated at the start of each attempt and appended to as stages finish, so
+    a failed directory holds genuinely new partial rows; `metrics.json` is
+    written only on a clean exit, so it can simultaneously hold a stale summary
+    from an older attempt.  Reading the rows without consulting status mixed
+    partial results into the tables, and reading metrics.json instead would
+    have reported an older run.  Neither file answers "is this finished" —
+    status.json does.
+    """
+    if status is None:
+        return False
+    if status.get("status") == "ok":
+        return True
+    return status.get("stages", {}).get(str(row.get("stage"))) == "ok"
+
+
+def read_results(root: str, require_ok: bool = True) -> List[dict]:
+    """
+    Every results.jsonl row under `root`, annotated with its run directory and
+    with the provenance of the attempt that produced it (`run_status`,
+    `run_attempt`, `trustworthy`).
+
+    `require_ok` (the default) drops rows that are not trustworthy in the sense
+    above.  Pass False to inspect what a failed run did manage to produce —
+    useful for debugging, never for a table.
+    """
     rows: List[dict] = []
     for dirpath, _, files in os.walk(root):
         if "results.jsonl" not in files:
@@ -365,6 +422,7 @@ def read_results(root: str) -> List[dict]:
                     cfg = json.load(f)
             except Exception:
                 cfg = {}
+        st = run_status(dirpath)
         with open(os.path.join(dirpath, "results.jsonl")) as f:
             for line in f:
                 if not line.strip():
@@ -373,8 +431,36 @@ def read_results(root: str) -> List[dict]:
                 row.setdefault("run_dir", rel)
                 row.setdefault("variant", cfg.get("variant", rel.split(os.sep)[0]))
                 row.setdefault("experiment", cfg.get("name"))
+                row["run_status"] = (st or {}).get("status", "missing")
+                row["run_attempt"] = row.get("attempt", (st or {}).get("attempt"))
+                row["trustworthy"] = row_is_trustworthy(row, st)
+                if require_ok and not row["trustworthy"]:
+                    continue
                 rows.append(row)
     return rows
+
+
+def provenance_report(root: str) -> Dict[str, Any]:
+    """
+    What `read_results` kept and what it refused, per run directory.  Printed
+    above every aggregate so that "12 runs" never again means "5 finished, 7
+    crashed part-way and contributed whatever they had reached".
+    """
+    kept = len(read_results(root, require_ok=True))
+    all_rows = read_results(root, require_ok=False)
+    by_status: Dict[str, int] = {}
+    dirs: Dict[str, str] = {}
+    for dirpath, _, files in os.walk(root):
+        if "results.jsonl" not in files:
+            continue
+        st = run_status(dirpath) or {}
+        s = st.get("status", "missing")
+        by_status[s] = by_status.get(s, 0) + 1
+        dirs[os.path.relpath(dirpath, root)] = s
+    return {"rows_total": len(all_rows), "rows_used": kept,
+            "rows_dropped": len(all_rows) - kept,
+            "runs_by_status": by_status,
+            "incomplete_runs": sorted(d for d, s in dirs.items() if s != "ok")}
 
 
 # ═══════════════════════════════════════════════════════════════════════════

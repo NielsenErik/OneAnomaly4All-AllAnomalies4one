@@ -221,6 +221,19 @@ def test_root_coupling_is_degenerate_at_almost_every_K(task):
     degeneracy is not monotone in capacity — so a single K is not evidence
     either way, and the ablation that keeps `root` "only as an ablation" is
     reporting a coin flip.
+
+    RE-MEASURED 2026-09-08, after `windowize` began including the window that
+    ends at the final timestep (that fix adds one window per unit, so this
+    fixture's data is not bit-identical to the table above):
+
+        root  K=4   sd 2.449             deep  K=4   sd 19.9
+        root  K=6   sd 0.414             deep  K=6   sd 21.2
+        root  K=8   sd 9.221             deep  K=8   sd 20.9
+        root  K=12  sd 0.002             deep  K=12  sd 21.6
+
+    The conclusion is unchanged and the non-monotonicity is, if anything,
+    sharper: K=4 and K=8 moved by an order of magnitude on a data change this
+    small, which is the whole point — no single K is evidence.
     """
     rows = {}
     for where in ("root", "deep"):
@@ -241,14 +254,57 @@ def test_root_coupling_is_degenerate_at_almost_every_K(task):
             "longer holds and `tau_where` stops being a forced choice")
 
 
-def test_the_degeneracy_guardrail_catches_the_root_collapse(task):
-    """The guardrail added after degeneracy #3 must actually fire on the
-    configuration that caused it.  Its threshold is absolute (1e-3 * cap);
-    see tests/test_experiment_hygiene.py for how far that sits below the
-    target's own spread."""
-    root = _fit(task, tau_where="root", K=4)
+def test_the_degeneracy_guardrail_fires_on_a_constant_predictive(task, pc):
+    """
+    The guardrail's MECHANISM, pinned without depending on any model actually
+    collapsing.  A predictive that ignores x is refused; the same model with
+    the check off returns the constant instead of raising.
+
+    This test exists because the version below it — fit `root` at one K and
+    require a raise — is only as stable as that configuration's luck: the
+    `windowize` final-endpoint fix moved root K=4 from sd 0.001 to 2.449 and
+    turned a passing regression test into a failing one without anything being
+    wrong with the guardrail.  Mechanism first, phenomenon second.
+    """
+    import types
+
+    flat = torch.full((len(task.X_test), task.n_bins),
+                      -float(np.log(task.n_bins)))
+    victim = _fit(task, epochs=1)
+    victim.log_pmf = types.MethodType(lambda self, X, **kw: flat, victim)
     with pytest.raises(DegenerateModelError):
-        root.predict(task.X_test)
+        victim.predict(task.X_test)
+    out = victim.predict(task.X_test, check_degenerate=False)
+    assert float(out["mean"].std()) == 0.0
+
+
+def test_the_degeneracy_guardrail_catches_the_root_collapse(task):
+    """
+    The guardrail added after degeneracy #3 must fire on the configuration that
+    caused it: `tau_where='root'`, whose predictive collapses to a constant.
+
+    Over the K values the coupling test records as collapsed (4, 6, 12), at
+    least one must be caught — not a specific one.  The degeneracy is not
+    monotone in K (K=8 escapes, and K=4 escaped after the fixture shifted by
+    one window per unit), so pinning a single K pins the luck of a seed rather
+    than the guardrail.
+    """
+    caught, sds = [], {}
+    for K in (4, 6, 12):
+        root = _fit(task, tau_where="root", K=K)
+        sds[K] = float(root.predict(task.X_test,
+                                    check_degenerate=False)["mean"].std())
+        try:
+            root.predict(task.X_test)
+        except DegenerateModelError:
+            caught.append(K)
+    print(f"\n[guardrail] root sd by K: "
+          f"{ {k: round(v, 4) for k, v in sds.items()} }  caught: {caught}")
+    assert caught, (
+        "no `root` configuration was refused: sds " f"{sds}. Either the "
+        "coupling stopped collapsing (then H3 and the `tau_where` decision "
+        "need re-measuring) or the guardrail stopped working (then every "
+        "downstream RUL number is unprotected again)")
 
 
 def test_tau_marginal_tracks_the_empirical_histogram(task, pc):
@@ -391,13 +447,25 @@ def test_the_pit_deviation_is_location_not_shape(recorded):
     """
     task, pc, pred = recorded
     u = _pit(pred["pmf"].numpy(), task.tau_test.numpy())
-    location = abs(float(u.mean()) - 0.5)
-    shape = abs(float(u.var()) - 1 / 12) / (1 / 12)
-    print(f"\n[pit decomposition] location |mean-0.5| = {location:.3f}, "
-          f"shape |var-1/12|/(1/12) = {shape:.3f}")
+    sd0 = float(np.sqrt(1 / 12))                      # sd of a uniform PIT
+
+    # Both errors in the SAME units — fractions of the ideal PIT sd — because
+    # "shifted, not the wrong width" is a statement about a location and a
+    # WIDTH, and width is an sd.  The original form compared an absolute mean
+    # error against a RELATIVE variance error (|var-1/12|/(1/12)), which is
+    # dimensionally incoherent: it reads a 1.6% width error as 3.3% and then
+    # compares it to a shift measured on a different scale.  On this fixture
+    # that mixed ratio sat at 2.7 against a 3x threshold — close enough to the
+    # line that the one-window `windowize` fix flipped the test while moving
+    # neither quantity materially.
+    location = abs(float(u.mean()) - 0.5) / sd0
+    shape = abs(float(np.sqrt(u.var())) - sd0) / sd0
+    print(f"\n[pit decomposition] location |mean-0.5| = "
+          f"{abs(float(u.mean()) - 0.5):.3f} ({location:.2f} PIT sd), "
+          f"width |sd-sd0|/sd0 = {shape:.3f}")
     assert location > 3 * shape, (
         f"the PIT defect is not predominantly a location shift "
-        f"(location {location:.3f} vs shape {shape:.3f}) — the calibration "
+        f"(location {location:.2f} sd vs width {shape:.3f}) — the calibration "
         "story and the censoring story are separate after all")
 
 

@@ -1,0 +1,4 @@
+{"experiment": "tier1_smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "failed", "wall_s": 3.4, "config_hash": "dce124abdb3a", "finished": "2026-09-08T16:06:03"}
+{"experiment": "tier1_smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 7.5, "config_hash": "dce124abdb3a", "finished": "2026-09-08T16:06:19"}
+{"experiment": "tier1_smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 7.3, "config_hash": "b29615b07b1f", "finished": "2026-09-08T16:07:41"}
+{"experiment": "tier1_smoke", "variant": "default", "seed": 0, "run_dir": "default/seed0", "status": "ok", "wall_s": 11.4, "config_hash": "9ab89d0c012d", "finished": "2026-09-08T16:08:48"}

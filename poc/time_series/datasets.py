@@ -51,6 +51,7 @@ from .data import (
     make_ad_task,
     make_rul_task,
     simulate_fleet,
+    split_fit_val_units,
     windowize,
 )
 from .catalog import SOURCES, Source, get_source, supports
@@ -166,6 +167,7 @@ def build_ad_task(pair: FleetPair, spec: Dict[str, Any], seed: int = 0) -> ADTas
             strength=float(spec.get("strength", 1.0)),
             max_train_windows=spec.get("max_train_windows"),
             max_test_windows=spec.get("max_test_windows"),
+            val_units=float(spec.get("val_units", 0.2)),
             seed=seed)
         task.meta.update({"dataset": pair.name, **pair.meta})
         return task
@@ -175,6 +177,7 @@ def build_ad_task(pair: FleetPair, spec: Dict[str, Any], seed: int = 0) -> ADTas
         organic_frac=float(spec.get("organic_frac", 0.85)),
         inject_rate=float(spec.get("inject_rate", 0.12)),
         strength=float(spec.get("strength", 1.0)),
+        val_units=float(spec.get("val_units", 0.2)),
         seed=seed,
     )
     if pair.test is None:
@@ -200,6 +203,7 @@ def make_ad_task_split(
     strength: float = 1.0,
     per_regime: bool = False,
     max_test_windows: Optional[int] = None,
+    val_units: float = 0.2,
     seed: int = 0,
 ) -> ADTask:
     """
@@ -214,28 +218,41 @@ def make_ad_task_split(
     benchmarks for.  A fraction `inject_rate` of the healthy test windows
     receives one synthetic anomaly with recorded ground-truth channels — the
     only source of localisation truth available on real data.
+
+    `val_units` of the TRAINING units are held out as validation engines: their
+    healthy windows become `task.X_val`, and they are kept out of the
+    standardiser as well as out of fitting, so the reported held-out likelihood
+    and any checkpoint chosen with it are honest.
     """
     rng = np.random.default_rng(seed)
-    std = Standardizer(per_regime=per_regime).fit(train_fleet, range(len(train_fleet)))
+    fit_ids, val_ids = split_fit_val_units(range(len(train_fleet)), val_units, rng)
+    std = Standardizer(per_regime=per_regime).fit(train_fleet, fit_ids)
 
-    X_train = []
-    for u in range(len(train_fleet)):
-        x = std.transform(train_fleet.series[u], train_fleet.regime[u])
-        W, right = windowize(x, window, stride)
-        if not len(W):
-            continue
-        h = train_fleet.health[u][right]
-        W = W[h < healthy_frac]
-        if len(W):
-            X_train.append(W)
+    def healthy_windows(ids):
+        Ws, us = [], []
+        for u in ids:
+            x = std.transform(train_fleet.series[u], train_fleet.regime[u])
+            W, right = windowize(x, window, stride)
+            if not len(W):
+                continue
+            sel = train_fleet.health[u][right] < healthy_frac
+            if sel.any():
+                Ws.append(W[sel]); us.append(np.full(int(sel.sum()), int(u)))
+        return Ws, us
+
+    X_train, unit_train = healthy_windows(fit_ids)
+    X_val, unit_val = healthy_windows(val_ids)
     if not X_train:
         raise ValueError(
             "no healthy training windows: healthy_frac is too strict for this "
             "fleet, or `window` exceeds the shortest trajectory")
     X_train = np.concatenate(X_train, axis=0)
+    unit_train = np.concatenate(unit_train, axis=0)
+    X_val = np.concatenate(X_val, axis=0) if X_val else None
+    unit_val = np.concatenate(unit_val, axis=0) if unit_val else None
 
     donor_pool = X_train
-    X_test, y_test, kinds, affected = [], [], [], []
+    X_test, y_test, kinds, affected, unit_test = [], [], [], [], []
     for u in range(len(test_fleet)):
         x = std.transform(test_fleet.series[u], test_fleet.regime[u])
         W, right = windowize(x, window, stride)
@@ -246,6 +263,7 @@ def make_ad_task_split(
             if h[i] > organic_frac:
                 X_test.append(W[i]); y_test.append(1)
                 kinds.append("organic"); affected.append([])
+                unit_test.append(int(u))
             elif h[i] < healthy_frac:
                 if rng.random() < inject_rate:
                     seg = W[i].reshape(window, -1)
@@ -257,12 +275,14 @@ def make_ad_task_split(
                 else:
                     X_test.append(W[i]); y_test.append(0)
                     kinds.append("normal"); affected.append([])
+                unit_test.append(int(u))
 
     if max_test_windows and len(X_test) > max_test_windows:
         sel = rng.permutation(len(X_test))[:max_test_windows]
         sel = sorted(int(i) for i in sel)
         X_test = [X_test[i] for i in sel]; y_test = [y_test[i] for i in sel]
         kinds = [kinds[i] for i in sel]; affected = [affected[i] for i in sel]
+        unit_test = [unit_test[i] for i in sel]
 
     return ADTask(
         X_train=torch.from_numpy(np.asarray(X_train, dtype=np.float32)),
@@ -273,9 +293,17 @@ def make_ad_task_split(
         window=window,
         n_channels=train_fleet.n_channels,
         channel_groups=train_fleet.channel_groups or [list(range(train_fleet.n_channels))],
-        meta={"train_units": len(train_fleet), "test_units": len(test_fleet),
+        meta={"train_units": len(fit_ids), "val_units": len(val_ids),
+              "test_units": len(test_fleet),
+              "n_val_windows": 0 if X_val is None else int(len(X_val)),
               "n_regimes": train_fleet.n_regimes, "seed": seed,
               "per_regime_norm": per_regime, "official_test_fleet": True},
+        X_val=(None if X_val is None
+               else torch.from_numpy(np.asarray(X_val, dtype=np.float32))),
+        unit_train=torch.from_numpy(unit_train.astype(np.int64)),
+        unit_val=(None if unit_val is None
+                  else torch.from_numpy(unit_val.astype(np.int64))),
+        unit_test=torch.tensor(unit_test, dtype=torch.long),
     )
 
 
@@ -296,6 +324,7 @@ def make_ad_task_labeled(
     strength: float = 1.0,
     max_train_windows: Optional[int] = None,
     max_test_windows: Optional[int] = None,
+    val_units: float = 0.2,
     seed: int = 0,
 ) -> ADTask:
     """
@@ -334,7 +363,8 @@ def make_ad_task_labeled(
         raise ValueError("an annotated source must provide a held-out fleet; "
                          "its split is chronological and cannot be re-drawn here")
     rng = np.random.default_rng(seed)
-    std = Standardizer(per_regime=per_regime).fit(train_fleet, range(len(train_fleet)))
+    fit_ids, val_ids = split_fit_val_units(range(len(train_fleet)), val_units, rng)
+    std = Standardizer(per_regime=per_regime).fit(train_fleet, fit_ids)
 
     positive = {ANOMALY}
     if rare_events == "anomaly":
@@ -355,27 +385,39 @@ def make_ad_task_labeled(
         return W, codes, right
 
     # ── fitting set ──────────────────────────────────────────────────────
-    X_train = []
     n_contaminated = 0
-    for u in range(len(train_fleet)):
-        W, codes, _ = windows_and_codes(train_fleet, u)
-        if W is None:
-            continue
-        dirty = (codes > NOMINAL).any(axis=(1, 2))
-        n_contaminated += int(dirty.sum())
-        X_train.append(W[~dirty] if train_on_clean else W)
-    X_train = [w for w in X_train if len(w)]
+
+    def fit_windows(ids):
+        nonlocal n_contaminated
+        Ws, us = [], []
+        for u in ids:
+            W, codes, _ = windows_and_codes(train_fleet, u)
+            if W is None:
+                continue
+            dirty = (codes > NOMINAL).any(axis=(1, 2))
+            n_contaminated += int(dirty.sum())
+            keep = ~dirty if train_on_clean else np.ones(len(W), dtype=bool)
+            if keep.any():
+                Ws.append(W[keep]); us.append(np.full(int(keep.sum()), int(u)))
+        return Ws, us
+
+    X_train, unit_train = fit_windows(fit_ids)
+    X_val, unit_val = fit_windows(val_ids)
     if not X_train:
         raise ValueError("no training windows survived: the whole fitting half "
                          "is annotated, or `window` exceeds every segment")
     X_train = np.concatenate(X_train, axis=0)
+    unit_train = np.concatenate(unit_train, axis=0)
+    X_val = np.concatenate(X_val, axis=0) if X_val else None
+    unit_val = np.concatenate(unit_val, axis=0) if unit_val else None
     if max_train_windows and len(X_train) > max_train_windows:
         step = int(np.ceil(len(X_train) / max_train_windows))
         X_train = X_train[::step]                 # stride, never shuffle
+        unit_train = unit_train[::step]
 
     # ── test set ─────────────────────────────────────────────────────────
     donor_pool = X_train
-    X_test, y_test, kinds, affected = [], [], [], []
+    X_test, y_test, kinds, affected, unit_test = [], [], [], [], []
     for u in range(len(test_fleet)):
         W, codes, _ = windows_and_codes(test_fleet, u)
         if W is None:
@@ -406,6 +448,7 @@ def make_ad_task_labeled(
             else:
                 X_test.append(W[i]); y_test.append(0)
                 kinds.append("normal"); affected.append([])
+            unit_test.append(int(u))
 
     if not X_test:
         raise ValueError("no test windows — check `window` against segment lengths")
@@ -421,6 +464,7 @@ def make_ad_task_labeled(
         sel = sorted(pos + neg)
         X_test = [X_test[i] for i in sel]; y_test = [y_test[i] for i in sel]
         kinds = [kinds[i] for i in sel]; affected = [affected[i] for i in sel]
+        unit_test = [unit_test[i] for i in sel]
 
     n_pos = int(sum(y_test))
     if n_pos == 0:
@@ -438,7 +482,9 @@ def make_ad_task_labeled(
         window=window,
         n_channels=train_fleet.n_channels,
         channel_groups=train_fleet.channel_groups or [list(range(train_fleet.n_channels))],
-        meta={"train_segments": len(train_fleet), "test_segments": len(test_fleet),
+        meta={"train_segments": len(fit_ids), "val_segments": len(val_ids),
+              "test_segments": len(test_fleet),
+              "n_val_windows": 0 if X_val is None else int(len(X_val)),
               "n_regimes": train_fleet.n_regimes, "seed": seed,
               "per_regime_norm": per_regime, "labels_are_real": True,
               "train_on_clean": train_on_clean,
@@ -454,6 +500,12 @@ def make_ad_task_labeled(
               # metrics score a constant answer as perfect.
               "localisation_truth": bool(
                   any(0 < len(a) < train_fleet.n_channels for a in affected))},
+        X_val=(None if X_val is None
+               else torch.from_numpy(np.asarray(X_val, dtype=np.float32))),
+        unit_train=torch.from_numpy(unit_train.astype(np.int64)),
+        unit_val=(None if unit_val is None
+                  else torch.from_numpy(unit_val.astype(np.int64))),
+        unit_test=torch.tensor(unit_test, dtype=torch.long),
     )
 
 
@@ -573,6 +625,7 @@ def describe_task(task) -> Dict[str, Any]:
         for k in task.kind_test:
             kinds[k] = kinds.get(k, 0) + 1
         return {"kind": "ad", "n_train": int(len(task.X_train)),
+                "n_val": 0 if task.X_val is None else int(len(task.X_val)),
                 "n_test": int(len(task.X_test)), "d": int(task.X_train.shape[1]),
                 "window": task.window, "n_channels": task.n_channels,
                 "anomaly_rate": float(task.y_test.float().mean()),

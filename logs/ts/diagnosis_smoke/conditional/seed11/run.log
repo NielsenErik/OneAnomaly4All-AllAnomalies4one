@@ -1,0 +1,40 @@
+[16:22:28] === run start · seed11 · seed 11 · hash c461082509de ===
+[16:22:28] stages ['diagnosis'] · device cpu · dataset synthetic
+[16:22:28] --- stage: diagnosis ---
+    [pc] epoch   0  nll    8.726  val    8.636
+    [pc] epoch   1  nll    8.673  val    8.651
+    [pc] epoch   2  nll    8.665  val    8.647
+    [pc] restored epoch 0 (selected by objective; val nll 8.636, last 8.647)
+[16:22:28]   pc_train_nll: first=8.7258 last=8.6650 (3 epochs)
+[16:22:28]   pc_train_objective: first=10.4483 last=10.4181 (3 epochs)
+[16:22:28]   pc_selection_loss: first=10.3637 last=10.3763 (3 epochs)
+[16:22:28]   pc_val_nll: first=8.6364 last=8.6469 (3 epochs)
+[16:22:28]   pc: fit 0.0s · 60 params · score sd 2.822 · device cpu · layered · 9,940 win/s
+[16:22:28]   pc: validation on 20 windows from explicit subset of held-out units · best epoch 0 of 3 · val nll 8.636
+[16:22:28]   diagnosis: full, 3 observed, 40 paired windows
+[16:22:28]   diagnosis: random1:0, 2 observed, 40 paired windows
+[16:22:28]   diagnosis: bank0:0, 2 observed, 40 paired windows
+[16:22:28]   diagnosis: single_sensor_0, 1 observed, 40 paired windows
+[16:22:28]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:22:28] --- stage diagnosis done in 0.1s ---
+[16:22:28] === run ok · 0.1s · peak RSS 0.325 GB ===
+[16:25:15] === run start · seed11 · seed 11 · hash c461082509de ===
+[16:25:15] stages ['diagnosis'] · device cpu · dataset synthetic
+[16:25:15] --- stage: diagnosis ---
+    [pc] epoch   0  nll    8.726  val    8.636
+    [pc] epoch   1  nll    8.673  val    8.651
+    [pc] epoch   2  nll    8.665  val    8.647
+    [pc] restored epoch 0 (selected by objective; val nll 8.636, last 8.647)
+[16:25:15]   pc_train_nll: first=8.7258 last=8.6650 (3 epochs)
+[16:25:15]   pc_train_objective: first=10.4483 last=10.4181 (3 epochs)
+[16:25:15]   pc_selection_loss: first=10.3637 last=10.3763 (3 epochs)
+[16:25:15]   pc_val_nll: first=8.6364 last=8.6469 (3 epochs)
+[16:25:15]   pc: fit 0.0s · 60 params · score sd 2.822 · device cpu · layered · 11,133 win/s
+[16:25:15]   pc: validation on 20 windows from explicit subset of held-out units · best epoch 0 of 3 · val nll 8.636
+[16:25:15]   diagnosis: full, 3 observed, 40 paired windows
+[16:25:15]   diagnosis: random1:0, 2 observed, 40 paired windows
+[16:25:15]   diagnosis: bank0:0, 2 observed, 40 paired windows
+[16:25:15]   diagnosis: single_sensor_0, 1 observed, 40 paired windows
+[16:25:15]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:25:15] --- stage diagnosis done in 0.1s ---
+[16:25:15] === run ok · 0.1s · peak RSS 0.322 GB ===

@@ -1,0 +1,52 @@
+# Exploratory known-law experiment. Gaussian oracle supplies power/negative controls.
+name: diagnosis_controls
+description: Dependence, interface capacity and exact conditional objective on known-law independent windows.
+seeds: [11, 12, 13]
+device: cpu
+stages: [diagnosis]
+log_root: logs/ts/diagnosis_controls
+dataset:
+  source: synthetic
+  window: 4
+  channels: 4
+model:
+  vtree: channel_blocked
+  K: 4
+  leaf_components: 3
+  epochs: 150
+  min_epochs: 60
+  patience: 25
+  batch_size: 128
+  lr: 0.02
+variants:
+  - name: blocked
+  - name: interface
+    model: {boundary_K: 8, upper_K: 8}
+  - name: mixture
+    model: {channel_mixture: true, boundary_K: 8}
+  - name: conditional
+    model: {conditional_weight: 0.2, select_metric: objective}
+  - name: conditional_nll_selection
+    model: {conditional_weight: 0.2, select_metric: nll}
+  - name: within_capacity
+    model: {K: 8, boundary_K: 4, upper_K: 4}
+  - name: uniform_wide
+    model: {K: 8}
+  - name: interface_conditional
+    model: {boundary_K: 8, upper_K: 8, conditional_weight: 0.2, select_metric: objective}
+  - name: unblocked
+    model: {vtree: chow_liu}
+  - name: random
+    model: {vtree: random}
+eval:
+  diagnosis_control: true
+  control_train: 1024
+  control_val: 600
+  control_cross: 0.8
+  control_temporal: 0.6
+  diagnosis_max_windows: 200
+  diagnosis_alpha: 0.05
+  mask_ks: [1, 2, 3]
+  masks_per_k: 1
+  oracle_check_windows: 16
+  plots: false

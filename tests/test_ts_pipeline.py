@@ -202,11 +202,22 @@ def test_aggregate_writes_tables(tmp_path):
             f.write(json.dumps({"stage": "ad", "experiment": "e", "variant": "v",
                                 "dataset": "synthetic", "method": f"m{a}",
                                 "auroc": a, "seed": s}) + "\n")
+    # A run directory is now only a result if it says it finished: aggregation
+    # reads status.json and refuses rows from attempts that did not complete
+    # (Tier 0.2).  Rows without one are output of unknown provenance.
+    with open(run / "status.json", "w") as f:
+        json.dump({"status": "ok", "seed": 0, "attempt": "test",
+                   "stages": {"ad": "ok"}}, f)
     stats = agg_mod.aggregate_root(str(tmp_path), print_tables=False)
     assert stats and os.path.exists(tmp_path / "summary.csv")
     assert os.path.exists(tmp_path / "summary.md")
     table = agg_mod.format_table("ad", stats)
     assert "auroc" in table
+    assert "rows dropped as incomplete" in (tmp_path / "summary.md").read_text()
+
+    # ... and the same directory without that file contributes nothing
+    os.remove(run / "status.json")
+    assert agg_mod.aggregate_root(str(tmp_path), print_tables=False) == []
 
 
 # ═══════════════════════════════════════════════════════════════════════════

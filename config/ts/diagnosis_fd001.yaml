@@ -1,0 +1,46 @@
+# Exploratory only; donor windows are NOT context-matched. See test plan.
+# Extra capacity is not parameter-matched: compare the measured frontier.
+name: diagnosis_fd001
+description: Circuit score/architecture study on held-out FD001 engines; official test fleet unused.
+seeds: [11, 12, 13]
+device: auto
+stages: [diagnosis]
+log_root: logs/ts/diagnosis_fd001
+skip_if_missing_data: false
+dataset:
+  source: cmapss
+  subset: FD001
+  window: 20
+  stride: 2
+  val_units: 0.3
+  cap: 125
+model:
+  vtree: channel_blocked
+  K: 8
+  leaf_components: 3
+  epochs: 180
+  min_epochs: 60
+  patience: 30
+  batch_size: 256
+  lr: 0.02
+variants:
+  - name: blocked
+  - name: interface
+    model: {boundary_K: 12, upper_K: 12}
+  - name: mixture
+    model: {channel_mixture: true, boundary_K: 12}
+  - name: conditional
+    model: {conditional_weight: 0.2, select_metric: objective}
+  - name: unblocked
+    model: {vtree: chow_liu}
+  - name: random
+    model: {vtree: random}
+eval:
+  diagnosis_max_windows: 512
+  # 30 validation engines -> about 10 calibration engines. At alpha=.05
+  # the valid threshold is infinite: do NOT clip it or pool overlapping windows.
+  diagnosis_alpha: 0.10
+  mask_ks: [1, 3, 7]
+  masks_per_k: 1
+  oracle_check_windows: 16
+  plots: false

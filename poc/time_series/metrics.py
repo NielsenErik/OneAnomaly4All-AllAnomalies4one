@@ -54,14 +54,30 @@ def auroc(scores, y) -> float:
 
 
 def average_precision(scores, y) -> float:
-    """Area under the precision-recall curve (step interpolation)."""
+    """
+    Area under the precision-recall curve, with TIED SCORES GROUPED.
+
+    Ties are not a corner case here.  A quantised, saturated or degenerate
+    detector produces them in bulk, and walking tied examples one at a time
+    makes AP depend on the sort's tie-break rather than on the scores: four
+    identical scores carrying two positives give 1.0 or 0.4167 example-wise
+    depending on the order they happen to arrive in, and 0.5 threshold-wise.
+    Only the last of those is a property of the detector.  Every DISTINCT
+    score is one threshold and all examples sharing it enter together, which
+    is also what `auroc` below already does with its rank averaging.
+    """
     s, y = _np(scores), _np(y)
+    n_pos = float(y.sum())
+    if not n_pos:
+        return float("nan")
     order = np.argsort(-s, kind="mergesort")
-    y = y[order]
-    tp = np.cumsum(y)
-    precision = tp / np.arange(1, len(y) + 1)
-    n_pos = y.sum()
-    return float((precision * y).sum() / n_pos) if n_pos else float("nan")
+    s, y = s[order], y[order]
+    ends = np.flatnonzero(np.append(np.diff(s) != 0, True))   # last index of each tie group
+    tp = np.cumsum(y)[ends]
+    precision = tp / (ends + 1.0)
+    recall = tp / n_pos
+    d_recall = np.diff(np.concatenate(([0.0], recall)))
+    return float((precision * d_recall).sum())
 
 
 def detection_report(scores, y, kinds: Sequence[str] = ()) -> Dict[str, float]:

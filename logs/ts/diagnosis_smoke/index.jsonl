@@ -1,0 +1,10 @@
+{"experiment": "diagnosis_smoke", "variant": "blocked", "seed": 11, "run_dir": "blocked/seed11", "status": "ok", "wall_s": 1.2, "config_hash": "f09e866b81f1", "finished": "2026-09-09T16:22:28"}
+{"experiment": "diagnosis_smoke", "variant": "upper_capacity", "seed": 11, "run_dir": "upper_capacity/seed11", "status": "ok", "wall_s": 0.1, "config_hash": "9c2d0e2757e2", "finished": "2026-09-09T16:22:28"}
+{"experiment": "diagnosis_smoke", "variant": "mixture", "seed": 11, "run_dir": "mixture/seed11", "status": "ok", "wall_s": 0.1, "config_hash": "b14f24fbfa2d", "finished": "2026-09-09T16:22:28"}
+{"experiment": "diagnosis_smoke", "variant": "conditional", "seed": 11, "run_dir": "conditional/seed11", "status": "ok", "wall_s": 0.1, "config_hash": "c461082509de", "finished": "2026-09-09T16:22:28"}
+{"experiment": "diagnosis_smoke", "variant": "unblocked", "seed": 11, "run_dir": "unblocked/seed11", "status": "ok", "wall_s": 0.1, "config_hash": "72f616c54416", "finished": "2026-09-09T16:22:28"}
+{"experiment": "diagnosis_smoke", "variant": "blocked", "seed": 11, "run_dir": "blocked/seed11", "status": "ok", "wall_s": 1.1, "config_hash": "f09e866b81f1", "finished": "2026-09-09T16:25:15"}
+{"experiment": "diagnosis_smoke", "variant": "upper_capacity", "seed": 11, "run_dir": "upper_capacity/seed11", "status": "ok", "wall_s": 0.1, "config_hash": "9c2d0e2757e2", "finished": "2026-09-09T16:25:15"}
+{"experiment": "diagnosis_smoke", "variant": "mixture", "seed": 11, "run_dir": "mixture/seed11", "status": "ok", "wall_s": 0.1, "config_hash": "b14f24fbfa2d", "finished": "2026-09-09T16:25:15"}
+{"experiment": "diagnosis_smoke", "variant": "conditional", "seed": 11, "run_dir": "conditional/seed11", "status": "ok", "wall_s": 0.1, "config_hash": "c461082509de", "finished": "2026-09-09T16:25:15"}
+{"experiment": "diagnosis_smoke", "variant": "unblocked", "seed": 11, "run_dir": "unblocked/seed11", "status": "ok", "wall_s": 0.1, "config_hash": "72f616c54416", "finished": "2026-09-09T16:25:15"}

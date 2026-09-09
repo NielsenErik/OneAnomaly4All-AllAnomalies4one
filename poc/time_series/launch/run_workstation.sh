@@ -6,6 +6,7 @@
 #
 #   bash poc/time_series/launch/run_workstation.sh              # everything
 #   TIERS="1 2"  bash poc/time_series/launch/run_workstation.sh # real-data core
+#   TIERS="6"    bash poc/time_series/launch/run_workstation.sh # plan Tier 1: kill gate, then the relational method on PASS
 #   JOBS=3 DEVICE=cpu bash poc/time_series/launch/run_workstation.sh
 #   SEEDS="0 1 2 3 4" bash poc/time_series/launch/run_workstation.sh
 #   DRY=1 bash poc/time_series/launch/run_workstation.sh         # print the plan
@@ -40,7 +41,7 @@
 
 source "$(dirname "${BASH_SOURCE[0]}")/_common.sh"
 
-TIERS="${TIERS:-1 2 3 4 5}"
+TIERS="${TIERS:-1 2 3 4 5}"   # 6 = the 2026-09-08 plan Tier 1 (gate + relational), opt-in
 [ -n "${FORCE:-}" ] && EXTRA="$EXTRA --force"
 [ -n "${DRY:-}" ] && EXTRA="$EXTRA --dry-run"
 
@@ -124,6 +125,36 @@ if has_tier 5; then
   queue_config config/ts/cmapss_structure.yaml
   queue_config config/ts/capacity_sweep.yaml
   flush_queue
+fi
+
+# ── tier 6: the 2026-09-08 plan's Tier 1 — the kill gate, THEN the method ──
+#
+# NOTE the two numberings: these launcher tiers are batch groups, the plan's
+# tiers are the work packages of IMPLEMENTATION_PLAN_2026-09-08.md.  This group
+# runs the plan's Tier 1, and it is the one group with an ORDER that matters.
+#
+# The gate is not decoration.  Every relational query needs each channel's
+# timesteps to be one region, and the 2026-08-06 re-measurement found that
+# blocking HURT detection.  So the gate runs first, its verdict is read with
+# the budget pre-registered in its own config, and the relational config runs
+# ONLY on PASS.  Exit 2 = the structure lost; exit 3 = every arm was factorised
+# and there was nothing to compare (train longer); either way the method
+# numbers would describe a model nobody should use.
+if has_tier 6; then
+  banner "tier 6 — plan Tier 1.2 kill gate, then Tier 1.3-1.6 (gated on PASS)"
+  queue_config config/ts/tier1_kill_gate.yaml
+  flush_queue
+  if "$PY" -m poc.time_series.run_tier1_gate "$OUT/tier1_kill_gate" \
+        | tee "$CONSOLE_DIR/tier1_gate_verdict_${STAMP}.log"; then
+    banner "gate PASSED — running the relational stage"
+    queue_config config/ts/tier1_relational.yaml
+    flush_queue
+  else
+    banner "gate did NOT pass — SKIPPING config/ts/tier1_relational.yaml"
+    echo "see $CONSOLE_DIR/tier1_gate_verdict_${STAMP}.log and"
+    echo "    $OUT/tier1_kill_gate/gate_verdict.json"
+    echo "plan §1.2: write up the negative result plus the benchmark instead."
+  fi
 fi
 
 banner "aggregating everything under $OUT"

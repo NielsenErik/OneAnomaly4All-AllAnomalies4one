@@ -46,7 +46,7 @@ from .explain import (
     plot_case_study,
     plot_deletion_curves,
     plot_localization,
-    sampling_shap,
+    replacement_sensitivity,
     zscore_channel,
 )
 
@@ -70,14 +70,16 @@ def build_all(args, seed):
 def attributions_for(args, task, pc, ae, gc, zs, seed):
     attrs, timing = {}, {}
     t0 = time.time()
-    attrs.update(pc_attributions(pc, task.X_test, shapley_orders=args.shapley))
+    attrs.update(pc_attributions(pc, task.X_test, shapley_orders=args.shapley,
+                                 chain_rule=True))
     timing["pc_exact_s"] = time.time() - t0
     attrs[gc.name] = gc.attribute(task.X_test)
     attrs["AE reconstruction (per channel)"] = ae_channel_error(ae, task.X_test)
     t0 = time.time()
-    attrs[f"AE sampling-SHAP ({args.shap_samples}/ch)"] = sampling_shap(
-        ae, task.X_test, task.X_train, n_samples=args.shap_samples, seed=seed)
-    timing["sampling_shap_s"] = time.time() - t0
+    attrs[f"AE replacement sensitivity ({args.shap_samples}/ch)"] = \
+        replacement_sensitivity(ae, task.X_test, task.X_train,
+                                n_samples=args.shap_samples, seed=seed)
+    timing["replacement_sensitivity_s"] = time.time() - t0
     attrs["z-score (per channel)"] = zscore_channel(zs, task.X_test)
     return attrs, timing
 
@@ -232,8 +234,11 @@ def main(argv=None) -> None:
 
     t = runs[0]["timing"]
     print(f"  cost: PC exact attribution {t['pc_exact_s']:.1f}s for all views; "
-          f"AE sampling-SHAP\n        {t['sampling_shap_s']:.1f}s for ONE "
-          f"approximate view ({args.shap_samples} samples/channel).\n")
+          f"AE replacement sensitivity\n        "
+          f"{t['replacement_sensitivity_s']:.1f}s for ONE view "
+          f"({args.shap_samples} samples/channel).  These are two different "
+          "statistics,\n        not an exact/approximate pair — the second is "
+          "not a Shapley estimator.\n")
 
     if args.plots:
         os.makedirs(args.fig_dir, exist_ok=True)

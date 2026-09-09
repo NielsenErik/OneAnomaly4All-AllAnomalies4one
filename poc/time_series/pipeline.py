@@ -9,10 +9,12 @@ structures and seeds without special cases:
                 baseline suite, run the two queries no baseline can express
                 (dead sensors by exact marginalisation; the exact typed
                 marginal/conditional/structural split)
-  explain       the project's actual contribution: exact attribution vs the
-                strong adversaries (Gaussian conditional, AE reconstruction,
-                sampling-SHAP), scored on correctness / completeness /
-                faithfulness against per-channel ground truth
+  explain       exact attribution vs the strong adversaries (Gaussian
+                conditional, AE reconstruction, AE replacement sensitivity),
+                scored on correctness / completeness / faithfulness against
+                per-channel ground truth.  Completeness is a property of the
+                CHAIN-RULE attribution only; every row carries `additive` and
+                `mean_abs_gap_nats` so the two claims stay separable.
   rul           the joint (window, τ) circuit: censoring ablation, point and
                 distributional accuracy against ridge/MLP/CQR, survival under
                 partial evidence
@@ -28,6 +30,7 @@ comparable.
 """
 from __future__ import annotations
 
+import copy
 import os
 import time
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
@@ -43,6 +46,7 @@ from .baselines import (
 )
 from .circuits import DegenerateModelError, SurvivalPC, WindowPC, resolve_device
 from .conformal import ConformalPredictive, split_units
+from .data import contaminate_windows
 from .datasets import (
     build_ad_task,
     build_rul_task,
@@ -54,6 +58,8 @@ from .datasets import (
 from .explain import (
     GaussianConditional,
     ae_channel_error,
+    ADDITIVE_ATTRIBUTIONS,
+    additivity_gap,
     completeness_error,
     deletion_curve,
     explain_window,
@@ -63,7 +69,7 @@ from .explain import (
     plot_case_study,
     plot_deletion_curves,
     plot_localization,
-    sampling_shap,
+    replacement_sensitivity,
     zscore_channel,
 )
 from .metrics import (
@@ -79,6 +85,7 @@ from .metrics import (
     rmse,
 )
 from .ts_logging import RunLogger
+from src.probabilistic_circuits import BlockStructureError
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -110,7 +117,7 @@ def _row(cfg: Dict[str, Any], stage: str, method: str, **metrics) -> Dict[str, A
 
 
 def _fit_window_pc(cfg: Dict[str, Any], task, seed: int, log: RunLogger,
-                   tag: str = "pc") -> WindowPC:
+                   tag: str = "pc", X_checkpoint: Optional[torch.Tensor] = None) -> WindowPC:
     m = _mcfg(cfg)
     t0 = time.time()
     pc = WindowPC(task.window, task.n_channels, vtree_method=m["vtree"],
@@ -119,25 +126,58 @@ def _fit_window_pc(cfg: Dict[str, Any], task, seed: int, log: RunLogger,
                   channel_groups=task.channel_groups, use_sos=bool(m["sos"]),
                   delta=bool(m["delta"]), weight_jitter=float(m["weight_jitter"]),
                   seed=seed, device=cfg.get("device"),
-                  evaluator=cfg.get("evaluator", "layered"))
+                  evaluator=cfg.get("evaluator", "layered"),
+                  boundary_components=m.get("boundary_K"),
+                  upper_components=m.get("upper_K"),
+                  channel_mixture=bool(m.get("channel_mixture", False)))
+    X_val = X_checkpoint if X_checkpoint is not None else getattr(task, "X_val", None)
     pc.fit(task.X_train, epochs=int(m["epochs"]), lr=float(m["lr"]),
-           batch_size=int(m["batch_size"]), log_every=max(int(m["epochs"]) // 8, 1))
+           batch_size=int(m["batch_size"]), log_every=max(int(m["epochs"]) // 8, 1),
+           X_val=X_val, select_best=bool(m.get("select_best", True)),
+           conditional_weight=float(m.get("conditional_weight", 0.0)),
+           mask_drop_prob=float(m.get("train_mask_drop_prob", 0.25)),
+           select_metric=m.get("select_metric", "nll"),
+           patience=int(m.get("patience", 0)), min_epochs=int(m.get("min_epochs", 1)))
     fit_s = time.time() - t0
     log.history(f"{tag}_train_nll", pc.history)
+    log.history(f"{tag}_train_objective", pc.objective_history)
+    log.history(f"{tag}_selection_loss", pc.val_objective_history)
+    if pc.val_history:
+        log.history(f"{tag}_val_nll", pc.val_history)
     sd = pc.assert_informative(task.X_train)         # loud, not silent (§3)
     # windows/s makes the device AND evaluator choice auditable after the fact.
     # It matters: on the recursive evaluator a GPU run is legitimately slower
     # than CPU, on the layered one it is ~2× faster above batch 128, and the
     # only way to tell which regime a finished run was in is to log it.
-    thr = len(task.X_train) * int(m["epochs"]) / max(fit_s, 1e-9)
+    thr = len(task.X_train) * len(pc.history) / max(fit_s, 1e-9)
     ev = "layered" if pc.compiled is not None else "recursive"
     log.info(f"  {tag}: fit {fit_s:.1f}s · {pc.size()['parameters']:,} params · "
              f"score sd {sd:.3f} · device {pc.device} · {ev} · {thr:,.0f} win/s")
+    if pc.val_history:
+        log.info(f"  {tag}: validation on {len(X_val)} windows from "
+                 f"{len(set(task.unit_val.tolist())) if X_checkpoint is None and getattr(task, 'unit_val', None) is not None else 'explicit subset of'} "
+                 f"held-out units · best epoch {pc.best_epoch} of "
+                 f"{int(m['epochs'])} · val nll {pc.best_val_nll:.3f}")
+    else:
+        log.info(f"  {tag}: NO validation split — the reported likelihood is "
+                 "the training likelihood and selects nothing")
     pc.fit_seconds = fit_s                            # type: ignore[attr-defined]
     return pc
 
 
-def _held_out_nll(pc: WindowPC, X: torch.Tensor, n: int = 1024) -> float:
+def _nll(pc: WindowPC, X: Optional[torch.Tensor], n: int = 1024) -> float:
+    """
+    Mean −log p over the first `n` windows of `X`.  Deliberately unnamed as to
+    which split it is scoring: the CALLER says that, in the column name, and
+    the caller is what got this wrong.  `stage_ad` used to report
+    `train_nll=_held_out_nll(pc, task.X_train)` — a held-out-sounding helper
+    reading the training set — so no recorded run could tell overfitting from
+    undertraining.  Returns NaN when the split does not exist, which is what
+    every downstream table should show rather than a training number wearing a
+    validation label.
+    """
+    if X is None or not len(X):
+        return float("nan")
     with torch.no_grad():
         return float(pc.score(X[:n]).mean())
 
@@ -181,7 +221,11 @@ def stage_ad(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, Any]:
     rep = detection_report(s_pc, y, kinds)
     log.result(_row(cfg, "ad", name, **rep, fit_s=pc.fit_seconds,
                     params=pc.size()["parameters"],
-                    train_nll=_held_out_nll(pc, task.X_train)))
+                    train_nll=_nll(pc, task.X_train),
+                    val_nll=_nll(pc, getattr(task, "X_val", None)),
+                    val_units=len(set(task.unit_val.tolist()))
+                    if getattr(task, "unit_val", None) is not None else 0,
+                    best_epoch=pc.best_epoch))
     out["circuit"] = rep
     scores = {name: s_pc.numpy()}
 
@@ -288,17 +332,20 @@ def stage_explain(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, A
     attrs: Dict[str, np.ndarray] = {}
     t0 = time.time()
     attrs.update(pc_attributions(pc, task.X_test,
-                                 shapley_orders=int(ev["shapley_orders"])))
+                                 shapley_orders=int(ev["shapley_orders"]),
+                                 chain_rule=bool(ev.get("chain_rule_attr", True))))
     pc_exact_s = time.time() - t0
     attrs[gc.name] = gc.attribute(task.X_test)
     attrs["AE reconstruction (per channel)"] = ae_channel_error(ae, task.X_test)
     t0 = time.time()
-    attrs[f"AE sampling-SHAP ({ev['shap_samples']}/ch)"] = sampling_shap(
-        ae, task.X_test, task.X_train, n_samples=int(ev["shap_samples"]), seed=seed)
-    shap_s = time.time() - t0
+    attrs[f"AE replacement sensitivity ({ev['shap_samples']}/ch)"] = \
+        replacement_sensitivity(ae, task.X_test, task.X_train,
+                                n_samples=int(ev["shap_samples"]), seed=seed)
+    rs_s = time.time() - t0
     attrs["z-score (per channel)"] = zscore_channel(zs, task.X_test)
     log.info(f"  attribution cost: PC exact (all views) {pc_exact_s:.1f}s · "
-             f"AE sampling-SHAP (one view) {shap_s:.1f}s")
+             f"AE replacement sensitivity (one view) {rs_s:.1f}s "
+             "— NOT a SHAP comparison, see explain.replacement_sensitivity")
 
     kinds = list(ev["kinds"])
     present = {k for k in task.kind_test}
@@ -309,19 +356,31 @@ def stage_explain(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, A
 
     # ── 1. correctness ───────────────────────────────────────────────────
     per_kind: Dict[str, Dict[str, float]] = {}
+    n_comp = int(ev["n_complete"])
     for n, a in attrs.items():
         rep = localization_report(a, task.affected_test, task.kind_test, kinds)
         pk = {k: localization_report(a, task.affected_test, task.kind_test,
                                      [k])["auroc"] for k in kinds}
         per_kind[n] = pk
+        # Every localisation row says whether that statistic is a
+        # decomposition of the anomaly score or a diagnostic, and by how much
+        # it misses additivity.  The completeness row below belongs to the
+        # additive one alone; without this column the two claims read as one.
+        additive = n in ADDITIVE_ATTRIBUTIONS
+        gap = additivity_gap(pc, task.X_test[:n_comp], a[:n_comp])
         log.result(_row(cfg, "explain", n, loc_auroc=rep["auroc"],
                         prec_at_k=rep["prec_at_k"], n_windows=rep["n"],
+                        additive=additive, **gap,
                         **{f"loc_auroc[{k}]": v for k, v in pk.items()}))
 
-    # ── 2. completeness (a theorem for the circuit, a target for SHAP) ────
-    comp = completeness_error(pc, task.X_test[: int(ev["n_complete"])])
-    log.info(f"  completeness: max residual {comp['max_residual_nats']:.2e} nats, "
-             f"mean {comp['mean_residual_nats']:.2e}")
+    # ── 2. completeness — of the CHAIN-RULE attribution, and of nothing else
+    comp = completeness_error(pc, task.X_test[:n_comp])
+    log.info(f"  completeness of {comp['attribution']}: max residual "
+             f"{comp['max_residual_nats']:.2e} nats, mean "
+             f"{comp['mean_residual_nats']:.2e}")
+    log.info("  the other attributions are not decompositions of the score; "
+             "their `mean_abs_gap_nats` column says how far each is from "
+             "summing to it")
     log.result(_row(cfg, "explain", "PC chain-rule completeness", **comp))
 
     # ── 3. faithfulness ──────────────────────────────────────────────────
@@ -362,7 +421,8 @@ def stage_explain(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, A
             log.artifact_json("deletion_curves",
                               {k: np.asarray(v).tolist() for k, v in curves.items()})
     return {"per_kind": per_kind, "completeness": comp,
-            "cost_s": {"pc_exact": pc_exact_s, "sampling_shap": shap_s}}
+            "cost_s": {"pc_exact": pc_exact_s,
+                       "replacement_sensitivity": rs_s}}
 
 
 def _worked_examples(pc, task, kinds: Sequence[str], fig_dir: str,
@@ -427,26 +487,34 @@ def _eval_survival(pc: SurvivalPC, task, alpha: float
       pit_*                  the density's own calibration, with no
                              discrete-vs-continuous mismatch in it at all
 
+    All interval columns are taken at the endpoints of the REQUESTED level and
+    the level is recorded next to them in `nominal_level`.  They used to read
+    `q05`/`q95` unconditionally while passing α into the interval-score
+    penalty, so an α=0.20 row scored the 90% endpoints under an 80% penalty and
+    called the result an 80% interval.  At α=0.10 — every recorded run — the
+    endpoints are the same ones as before and the numbers are unchanged.
+
     Read them together.  A large picp_edge − picp gap with pit_var near 1/12
     means the model was fine and the interval was being read wrong; a low
     picp_edge with pit_var well above 1/12 means the predictive really is
     overconfident.  Reporting only the first column cannot distinguish these,
     which is how "exact != calibrated" got as far as it did.
     """
-    pred = pc.predict(task.X_test)                    # raises if degenerate (§3)
+    pred = pc.predict(task.X_test, alpha=alpha)       # raises if degenerate (§3)
     true = task.rul_test
     bw = task.cap / task.n_bins
     m = {
         "rmse": rmse(pred["mean"], true), "mae": mae(pred["mean"], true),
         "nasa": nasa_score(pred["mean"], true),
         "crps": crps_from_pmf(pred["pmf"], task.tau_test, bw),
-        "picp": picp(pred["q05"], pred["q95"], true),
-        "mpiw": mpiw(pred["q05"], pred["q95"]),
-        "interval_score": crps_from_interval(pred["q05"], pred["q95"], true, alpha),
-        "picp_edge": picp(pred["q05_edge"], pred["q95_edge"], true),
-        "mpiw_edge": mpiw(pred["q05_edge"], pred["q95_edge"]),
+        "nominal_level": round(1.0 - alpha, 4),
+        "picp": picp(pred["q_lo"], pred["q_hi"], true),
+        "mpiw": mpiw(pred["q_lo"], pred["q_hi"]),
+        "interval_score": crps_from_interval(pred["q_lo"], pred["q_hi"], true, alpha),
+        "picp_edge": picp(pred["q_lo_edge"], pred["q_hi_edge"], true),
+        "mpiw_edge": mpiw(pred["q_lo_edge"], pred["q_hi_edge"]),
         "interval_score_edge": crps_from_interval(
-            pred["q05_edge"], pred["q95_edge"], true, alpha),
+            pred["q_lo_edge"], pred["q_hi_edge"], true, alpha),
         "calib_err": calibration_error(pred["pmf"], task.tau_test),
         "pred_sd": float(pred["mean"].std()),
     }
@@ -530,6 +598,11 @@ def stage_rul(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, Any]:
                     q05=pred["q05"].numpy(), q95=pred["q95"].numpy(),
                     q05_edge=pred["q05_edge"].numpy(),
                     q95_edge=pred["q95_edge"].numpy(),
+                    # the endpoints this run's metrics were actually scored at
+                    alpha=float(alpha),
+                    q_lo=pred["q_lo"].numpy(), q_hi=pred["q_hi"].numpy(),
+                    q_lo_edge=pred["q_lo_edge"].numpy(),
+                    q_hi_edge=pred["q_hi_edge"].numpy(),
                     rul_true=view.rul_test.numpy(),
                     tau_true=view.tau_test.numpy(),
                     bin_edges=np.linspace(0.0, view.cap, view.n_bins + 1))
@@ -609,6 +682,10 @@ def _partial_evidence(pc: SurvivalPC, task, n_dead: int, cfg, log) -> Dict[str, 
 
     res = {
         "n_dead": len(dead),
+        # This comparison is fixed at 90%: all three arms use the same 5/95
+        # endpoints, so the level is a property of the table, not of a config
+        # knob.  Stated rather than implied, since the columns are named picp.
+        "nominal_level": 0.90,
         "crps_full": crps_from_pmf(full["pmf"], task.tau_test, bw),
         "crps_exact_marginal": crps_from_pmf(p, task.tau_test, bw),
         "crps_imputed": crps_from_pmf(imp["pmf"], task.tau_test, bw),
@@ -775,6 +852,452 @@ def _subset_rul_task(task, mask: np.ndarray):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# Stage: structure gate — Tier 1.2, the kill gate
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# The 2026-08-06 re-measurement found that channel BLOCKING hurt real-data
+# detection (removing it gained +0.040 AUROC and 27 nats) and that Chow-Liu at
+# one leaf component topped the FD001 sweep.  Tier 1's queries all need
+# blocking.  So the frontier is measured BEFORE anything is built on it, at
+# matched parameters, on the validation split — and the tolerable loss is
+# written down in the config, before the run, where it can be read back.
+#
+# What this stage does NOT do: touch the test set.  A structure chosen on the
+# test split makes every later number a selection artefact (plan §3.3).
+
+def _val_halves(task) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Split the validation windows in two, ENGINE-disjoint where unit ids exist.
+
+    Half A carries the held-out likelihood and the checkpoint choice; half B is
+    contaminated to give the gate a labelled detection score.  Keeping them
+    disjoint stops the arm that overfits the injector from also picking its own
+    checkpoint on the same windows.
+    """
+    X = task.X_val
+    units = getattr(task, "unit_val", None)
+    if X is None or not len(X):
+        raise ValueError(
+            "the structure gate needs a validation split (dataset.val_units > 0): "
+            "choosing a structure on the test set is what Tier 0 removed")
+    if units is None:
+        cut = len(X) // 2
+        idx_a = torch.arange(0, cut)
+        idx_b = torch.arange(cut, len(X))
+    else:
+        uids = sorted(set(units.tolist()))
+        first = set(uids[: max(len(uids) // 2, 1)])
+        sel = torch.tensor([int(u) in first for u in units.tolist()])
+        idx_a, idx_b = torch.nonzero(sel).ravel(), torch.nonzero(~sel).ravel()
+        if not len(idx_b):                     # only one validation engine
+            cut = len(X) // 2
+            idx_a, idx_b = torch.arange(0, cut), torch.arange(cut, len(X))
+    return X[idx_a], X[idx_b], idx_b
+
+
+def channel_dependence(pc: WindowPC, X: torch.Tensor, n: int = 512) -> float:
+    """Legacy gate diagnostic: mean absolute log-ratio to product marginals.
+
+    This empirical finite-sample diagnostic is not total correlation, a
+    dependence-accuracy measure, or a proof of global factorization. Retained
+    under its original name for compatibility with historical gate artifacts.
+    New studies record signed and absolute discrepancies separately.
+    """
+    W, C = pc.window, pc.n_channels
+    Xp = pc._prep(X[:n])
+    with torch.no_grad():
+        joint = pc.pc.log_prob(Xp)
+        tot = torch.zeros_like(joint)
+        for c in range(C):
+            others = [t * C + k for t in range(W) for k in range(C) if k != c]
+            tot = tot + pc.pc.log_marginal(Xp, others)
+    return float((tot - joint).abs().mean())
+
+
+def stage_structure_gate(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, Any]:
+    from .circuits import match_K, structure_param_count
+    ev, m = _ecfg(cfg), _mcfg(cfg)
+    pair, task = prepare_task(cfg, seed, log, "ad")
+    X_fit_val, X_lab_val, _ = _val_halves(task)
+    Xc, y_val, kinds_val, affected_val = contaminate_windows(
+        X_lab_val, task.window, task.n_channels,
+        inject_rate=float(ev["gate_inject_rate"]),
+        strength=float(_dcfg(cfg)["strength"]),
+        kinds=tuple(ev["kinds"]), donors=task.X_train, seed=seed + 1000)
+    log.info(f"  gate: {len(X_fit_val)} clean val windows for NLL/checkpoint, "
+             f"{len(Xc)} labelled val windows "
+             f"({int(y_val.sum())} anomalous) for detection")
+
+    ref = str(ev["gate_reference"])
+    k_grid = [int(k) for k in ev["gate_k_grid"]]
+    target = structure_param_count(task.window, task.n_channels, ref, int(m["K"]),
+                                   leaf_components=int(m["leaf_components"]),
+                                   X=task.X_train[:512],
+                                   channel_groups=task.channel_groups, seed=seed)
+    log.info(f"  gate: matching every structure to {ref} K={m['K']} = "
+             f"{target:,} parameters")
+
+    rows: List[Dict[str, Any]] = []
+    for method in ev["gate_structures"]:
+        K, n_par = match_K(task.window, task.n_channels, method, target,
+                           k_grid=k_grid, leaf_components=int(m["leaf_components"]),
+                           X=task.X_train[:512],
+                           channel_groups=task.channel_groups, seed=seed)
+        sub = copy.deepcopy(cfg)
+        sub["model"]["vtree"], sub["model"]["K"] = method, K
+        t0 = time.time()
+        pc = _fit_window_pc(sub, task, seed, log, tag=f"gate_{method}",
+                            X_checkpoint=X_fit_val)
+        fit_s = time.time() - t0
+        val_nll = _nll(pc, X_fit_val, n=4096)
+        s = pc.score(Xc)
+        rep = detection_report(s, y_val, kinds_val)
+        dep = channel_dependence(pc, X_fit_val)
+        row = dict(vtree=method, K=K, params=n_par,
+                   param_ratio=round(n_par / max(target, 1), 4),
+                   val_nll=val_nll, fit_s=round(fit_s, 1),
+                   dependence_nats=dep,
+                   blocked=bool(pc.is_channel_blocked),
+                   best_epoch=pc.best_epoch, **rep)
+        rows.append(row)
+        log.result(_row(cfg, "structure_gate", f"{method} [K={K}]", **row))
+        log.info(f"  {method:<16} K={K:<3} params {n_par:>8,}  "
+                 f"val_nll {val_nll:8.3f}  val_auroc {rep['auroc']:.4f}  "
+                 f"dependence {dep:7.3f} nats  blocked={row['blocked']}")
+
+    # Per-seed, and labelled as such in the table: the decision is taken on the
+    # seed AVERAGE by `run_tier1_gate.py`, which recomputes it from the arm rows
+    # above.  A single seed's verdict is a progress indicator, not the gate.
+    verdict = gate_verdict(rows, ev)
+    log.result(_row(cfg, "structure_gate",
+                    "VERDICT (this seed only — run_tier1_gate is authoritative)",
+                    **verdict))
+    log.metrics({"structure_gate_verdict": verdict})
+    log.info(f"  GATE ({verdict['rule']}): {verdict['verdict']} — "
+             f"{verdict['reason']}")
+    return {"rows": rows, "verdict": verdict}
+
+
+def gate_verdict(rows: Sequence[Dict[str, Any]], ev: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Apply the PRE-REGISTERED budget to one seed's gate rows.
+
+    Both halves must hold for the blocked structure to survive: it may lose at
+    most `gate_max_auroc_loss` detection AUROC against the best unblocked arm,
+    and its held-out NLL may exceed the best arm's by at most
+    `gate_max_nll_loss_frac` (relative, because the nat scale moves with window
+    length and channel count).  A relative NLL budget is the only one that
+    transfers across datasets; an absolute one would silently mean something
+    different on every subset.
+
+    `poc/time_series/run_tier1_gate.py` applies the same rule to the seed
+    AVERAGE, which is the number the decision is actually taken on — one seed
+    is not a decision.
+    """
+    cand = str(ev["gate_candidate"])
+    got = {r["vtree"]: r for r in rows}
+    if cand not in got:
+        return {"verdict": "ERROR", "rule": "n/a",
+                "reason": f"candidate {cand!r} not among {sorted(got)}"}
+    # The comparison set is the arms that are NOT channel-blocked, which is what
+    # the pre-registration says and what the question is: what does BLOCKING
+    # cost?  A blocked arm that beats the candidate says the channel ORDER is
+    # wrong, not that the boundary is unaffordable — a different (and cheaper)
+    # problem, and failing the gate on it would stop the wrong thing.
+    #
+    # [2026-09-08, mid-run] This originally compared against every other arm.
+    # The mismatch with the config's own wording was found while the first
+    # seed was still running and is corrected here; `delta_auroc_vs_any` keeps
+    # the stricter number visible so nothing is hidden by the fix.
+    rest = [r for r in rows if r["vtree"] != cand]
+    others = [r for r in rest if not r.get("blocked", False)]
+    if not rest:
+        return {"verdict": "ERROR", "rule": "n/a",
+                "reason": "no comparison structures were run"}
+    # Before comparing structures, check there is anything for a structure to
+    # do.  A circuit that carries no cross-channel dependence is a product of
+    # per-channel marginals: every vtree gives the same function, so the
+    # comparison is empty and so is every relational quantity built on it.
+    floor = float(ev.get("gate_min_dependence_nats", 1e-3))
+    # (computed before the comparator check so a VOID sweep is reported as VOID
+    # rather than as a missing comparator)
+    deps = {r["vtree"]: float(r.get("dependence_nats", float("nan"))) for r in rows}
+    finite = [v for v in deps.values() if np.isfinite(v)]
+    if finite and max(finite) < floor:
+        return {"verdict": "VOID",
+                "rule": f"max dependence >= {floor} nats before any comparison",
+                "candidate": cand, "dependence_nats": deps,
+                "reason": (f"every arm is factorised across channels "
+                           f"(max dependence {max(finite):.2e} < {floor} nats), so "
+                           "the structure comparison — and every relational "
+                           "quantity below it — is identically empty")}
+    if not others:
+        return {"verdict": "NO_COMPARATOR",
+                "rule": "compare against the best NON-blocked structure",
+                "candidate": cand, "dependence_nats": deps,
+                "blocked": {r["vtree"]: bool(r.get("blocked", False)) for r in rows},
+                "reason": ("every arm in the sweep turned out to be "
+                           "channel-blocked, so the budget has nothing to "
+                           "measure the blocking against. That is itself a "
+                           "result — the learners chose the boundary — but it "
+                           "is not a PASS; add an arm that provably splits a "
+                           "channel (e.g. 'time') and re-run")}
+    best_auroc = max(float(r["auroc"]) for r in others)
+    best_nll = min(float(r["val_nll"]) for r in others)
+    any_auroc = max(float(r["auroc"]) for r in rest)
+    any_nll = min(float(r["val_nll"]) for r in rest)
+    d_auroc = float(got[cand]["auroc"]) - best_auroc
+    d_nll = (float(got[cand]["val_nll"]) - best_nll) / max(abs(best_nll), 1e-9)
+    max_loss = float(ev["gate_max_auroc_loss"])
+    max_nll = float(ev["gate_max_nll_loss_frac"])
+    auroc_ok = d_auroc >= -max_loss
+    nll_ok = d_nll <= max_nll
+    ok = auroc_ok and nll_ok
+    return {
+        "verdict": "PASS" if ok else "FAIL",
+        "rule": (f"delta_auroc >= -{max_loss} and delta_nll_frac <= {max_nll}, "
+                 f"against the best NON-blocked arm "
+                 f"({', '.join(r['vtree'] for r in others)})"),
+        "dependence_nats": deps,
+        "candidate": cand,
+        "delta_auroc": round(d_auroc, 5),
+        "delta_nll_frac": round(d_nll, 5),
+        "best_other_auroc": round(best_auroc, 5),
+        "best_other_nll": round(best_nll, 4),
+        "comparators": [r["vtree"] for r in others],
+        # the stricter comparison, reported but NOT the rule: against every
+        # other arm including the blocked ones
+        "delta_auroc_vs_any": round(float(got[cand]["auroc"]) - any_auroc, 5),
+        "delta_nll_frac_vs_any": round(
+            (float(got[cand]["val_nll"]) - any_nll) / max(abs(any_nll), 1e-9), 5),
+        "candidate_auroc": round(float(got[cand]["auroc"]), 5),
+        "candidate_nll": round(float(got[cand]["val_nll"]), 4),
+        # WHICH half broke.  The two can point in opposite directions — a
+        # structure that buys density and sells detection is a different
+        # situation from one that is simply worse, and a bare PASS/FAIL would
+        # hide the difference from the person deciding what to do next.
+        "auroc_ok": bool(auroc_ok),
+        "nll_ok": bool(nll_ok),
+        "failed_on": ([] if ok else
+                      ([] if auroc_ok else ["detection AUROC"])
+                      + ([] if nll_ok else ["held-out NLL"])),
+        "reason": (f"{cand} is {d_auroc:+.4f} AUROC and {d_nll:+.2%} NLL from "
+                   f"the best unblocked structure" + _budget_clause(auroc_ok, nll_ok)),
+    }
+
+
+def _budget_clause(auroc_ok: bool, nll_ok: bool) -> str:
+    """Which half of the pre-registered budget held, in words."""
+    if auroc_ok and nll_ok:
+        return "; inside both budgets"
+    if auroc_ok:
+        return "; inside the detection budget, outside the NLL one"
+    if nll_ok:
+        return "; inside the NLL budget, outside the detection one"
+    return "; outside both budgets"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Stage: relational diagnosis — Tier 1.3-1.6
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _mask_localization(attr: np.ndarray, affected: Sequence[Sequence[int]],
+                       kinds: Sequence[str], keep: Sequence[str],
+                       mask: torch.Tensor) -> Dict[str, float]:
+    """
+    Localisation restricted to the sensors that are actually present.
+
+    Two things must happen or the number is a fiction: a channel that is not
+    observed can never be ranked (its score is nan), and a window whose
+    corrupted channels are ALL dead has no findable truth left and is dropped
+    rather than counted as a miss.  `n_unfindable` reports how many that was —
+    it is a property of the mask, not of the method, and hiding it would make
+    aggressive masks look easy.
+    """
+    obs = [c for c in range(len(mask)) if bool(mask[c])]
+    a2, k2, rows = [], [], []
+    unfindable = 0
+    for i, (a, k) in enumerate(zip(affected, kinds)):
+        if not a or k not in keep:
+            continue
+        vis = [c for c in a if c in obs]
+        if not vis:
+            unfindable += 1
+            continue
+        rows.append(attr[i, obs])
+        a2.append([obs.index(c) for c in vis])
+        k2.append(k)
+    if not rows:
+        return {"auroc": float("nan"), "prec_at_k": float("nan"), "n": 0,
+                "n_unfindable": unfindable}
+    out = localization_report(np.stack(rows), a2, k2, keep)
+    out["n_unfindable"] = unfindable
+    return out
+
+
+def stage_relational(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, Any]:
+    from .relational import (MaskCalibrator, mask_library, naive_subset_search,
+                             subset_search)
+    from .diagnosis import validation_partitions, one_per_unit
+    ev = _ecfg(cfg)
+    pair, task = prepare_task(cfg, seed, log, "ad")
+    cap = int(ev["max_explain_windows"] or 0)
+    if cap and len(task.X_test) > cap:
+        idx = np.linspace(0, len(task.X_test) - 1, cap).astype(int)
+        task.X_test, task.y_test = task.X_test[idx], task.y_test[idx]
+        task.kind_test = [task.kind_test[i] for i in idx]
+        task.affected_test = [task.affected_test[i] for i in idx]
+        log.info(f"  relational: capped test set to {cap} windows")
+
+    partitions = validation_partitions(task, seed + 701)
+    pc = _fit_window_pc(cfg, task, seed, log,
+                        X_checkpoint=task.X_val[partitions["checkpoint"]])
+    if not pc.is_channel_blocked:
+        raise BlockStructureError(
+            f"stage 'relational' needs a channel-blocked structure; "
+            f"model.vtree={_mcfg(cfg)['vtree']!r} is not one. The two-pass map "
+            "is exact only through a single channel boundary (Tier 1.1).")
+    out: Dict[str, Any] = {}
+    y, kinds = task.y_test, task.kind_test
+    keep = list(ev["kinds"])
+
+    # ── 1.3 correctness: the two-pass map against the 3·C oracle ─────────
+    n_chk = min(int(ev["oracle_check_windows"]), len(task.X_test))
+    Xchk = task.X_test[:n_chk]
+    t0 = time.time()
+    td = pc.typed_scores(Xchk)
+    oracle_s = time.time() - t0
+    t0 = time.time()
+    rm = pc.relational_map(Xchk)
+    two_s = time.time() - t0
+    diffs = {k: float((td[k] - rm[k]).abs().max()) for k in
+             ("marginal", "conditional", "structural")}
+    worst = max(diffs.values())
+    log.result(_row(cfg, "relational", "two-pass vs 3C oracle",
+                    max_abs_diff_nats=worst, oracle_s=round(oracle_s, 3),
+                    two_pass_s=round(two_s, 3), n=n_chk,
+                    speedup=round(oracle_s / max(two_s, 1e-9), 2),
+                    **{f"diff_{k}": v for k, v in diffs.items()},
+                    **{f"cost_{k}": v for k, v in rm["cost"].as_dict().items()}))
+    log.info(f"  two-pass vs oracle: max |Δ| {worst:.2e} nats over {n_chk} windows "
+             f"({oracle_s:.2f}s oracle → {two_s:.2f}s two-pass)")
+    if worst > float(ev["oracle_tolerance"]):
+        raise AssertionError(
+            f"the two-pass relational map disagrees with the 3·C oracle by "
+            f"{worst:.3e} nats (> {ev['oracle_tolerance']}). Everything "
+            "downstream of it is void until that is explained.")
+    out["oracle_check"] = {"max_abs_diff_nats": worst, **diffs}
+
+    # a factorised circuit makes every relational number identically zero and
+    # says nothing about it in the loss (Tier 0 finding, 2026-09-08)
+    dep = float(np.abs(rm["marginal"].sum(1).numpy()
+                       + rm["log_px"].numpy()).mean())
+    log.result(_row(cfg, "relational", "dependence (Σ marginals − joint)",
+                    dependence_nats=dep))
+    log.info(f"  dependence |Σ log p(x_c) − log p(x)| = {dep:.4f} nats "
+             f"({'FACTORISED — relational scores are empty' if dep < 1e-3 else 'ok'})")
+    out["dependence_nats"] = dep
+
+    # ── 1.4 masks: detection and localisation as sensors drop out ────────
+    lib = mask_library(task.n_channels, task.channel_groups,
+                       ks=tuple(int(k) for k in ev["mask_ks"]),
+                       n_per_k=int(ev["masks_per_k"]), seed=seed)
+    out["masks"] = list(lib)
+    for name, mask in lib.items():
+        s_obs = pc.score_with_masks(task.X_test, mask)
+        cost_det = pc.last_query_cost.as_dict()
+        r = pc.relational_map(task.X_test, mask=mask)
+        attr = np.nan_to_num(r["structural"].numpy(), nan=-np.inf)
+        det = detection_report(s_obs, y, kinds)
+        loc = _mask_localization(attr, task.affected_test, kinds, keep, mask)
+        struct_det = detection_report(
+            torch.from_numpy(np.nanmax(r["structural"].numpy(), axis=1)), y, kinds)
+        log.result(_row(cfg, "relational", f"mask {name}", mask=name,
+                        n_observed=int(mask.sum()), **det,
+                        struct_auroc=struct_det["auroc"],
+                        loc_auroc=loc["auroc"], loc_prec_at_k=loc["prec_at_k"],
+                        loc_n=loc["n"], loc_unfindable=loc["n_unfindable"],
+                        **{f"cost_{k}": v for k, v in r["cost"].as_dict().items()},
+                        det_passes=cost_det["passes"],
+                        det_node_visits=cost_det["node_visits"]))
+        log.info(f"  mask {name:<18} obs={int(mask.sum()):>2}  "
+                 f"auroc {det['auroc']:.4f}  struct {struct_det['auroc']:.4f}  "
+                 f"loc prec@k {loc['prec_at_k']:.3f} (n={loc['n']}, "
+                 f"{loc['n_unfindable']} unfindable)")
+
+    # ── 1.5 subset search, fast vs the per-candidate cost model ──────────
+    rc = pc.relational()
+    sel = [i for i, (a, k) in enumerate(zip(task.affected_test, kinds))
+           if a and k in keep][: int(ev["subset_windows"])]
+    if sel:
+        Xs = task.X_test[torch.tensor(sel)]
+        truth = [set(task.affected_test[i]) for i in sel]
+        for name in ["full"] + [n for n in lib if n != "full"][: int(ev["subset_masks"])]:
+            mask = lib[name]
+            fast = subset_search(rc, pc._prep(Xs), mask=mask,
+                                 max_size=int(ev["subset_max_size"]),
+                                 beam=int(ev["subset_beam"]))
+            vis = [t & {c for c in range(task.n_channels) if bool(mask[c])}
+                   for t in truth]
+            keep_i = [i for i, t in enumerate(vis) if t]
+            exact = float(np.mean([set(fast.subsets[i]) == vis[i] for i in keep_i])) \
+                if keep_i else float("nan")
+            jac = float(np.mean([
+                len(set(fast.subsets[i]) & vis[i]) /
+                max(len(set(fast.subsets[i]) | vis[i]), 1) for i in keep_i])) \
+                if keep_i else float("nan")
+            row = dict(mask=name, n=len(keep_i), exact_set_match=exact,
+                       jaccard=jac, candidates=fast.candidates_scored,
+                       **{f"cost_{k}": v for k, v in fast.cost.as_dict().items()})
+            if bool(ev["subset_naive_baseline"]):
+                slow = naive_subset_search(pc, Xs, mask=mask,
+                                           max_size=int(ev["subset_max_size"]),
+                                           beam=int(ev["subset_beam"]))
+                row["naive_passes"] = slow.cost.passes
+                row["naive_seconds"] = round(slow.cost.seconds, 4)
+                row["value_max_abs_diff"] = float(
+                    np.nanmax(np.abs(fast.values - slow.values)))
+                row["subset_agreement"] = float(np.mean(
+                    [set(a) == set(b) for a, b in zip(fast.subsets, slow.subsets)]))
+            log.result(_row(cfg, "relational", f"subset search · {name}", **row))
+            log.info(f"  subset search {name:<18} exact {exact:.3f} jaccard "
+                     f"{jac:.3f}  candidates {fast.candidates_scored}  "
+                     f"passes {fast.cost.passes}"
+                     + (f" vs naive {row.get('naive_passes')}"
+                        if "naive_passes" in row else ""))
+        out["subset_windows"] = len(sel)
+
+    # ── 1.6 mask-conditional calibration ─────────────────────────────────
+    cal_idx = one_per_unit(partitions["calibration"], task.unit_val, seed + 702)
+    eval_idx = one_per_unit(partitions["evaluation"], task.unit_val, seed + 703)
+    X_a, X_b = task.X_val[cal_idx], task.X_val[eval_idx]
+    log.artifact_json("relational_calibration_protocol", {
+        "sampling_object": "one_random_window_per_engine",
+        "checkpoint_indices": partitions["checkpoint"].tolist(),
+        "calibration_indices": cal_idx.tolist(), "evaluation_indices": eval_idx.tolist(),
+        "mask_assumption": "externally_fixed"})
+    cal = MaskCalibrator(rc, alpha=float(ev["relational_alpha"]))
+    cal.fit(pc._prep(X_a), lib)
+    rows = cal.report(pc._prep(X_b), lib)
+    for r in rows:
+        log.result(_row(cfg, "relational", f"calibration · {r['mask']}", **r))
+    drift_blind = float(np.nanmax([abs(r["fpr_blind"] - r["alpha"]) for r in rows]))
+    drift_mask = float(np.nanmax([abs(r["fpr_masked"] - r["alpha"]) for r in rows]))
+    log.result(_row(cfg, "relational", "calibration · worst drift",
+                    worst_abs_drift_masked=drift_mask,
+                    worst_abs_drift_blind=drift_blind,
+                    alpha=float(ev["relational_alpha"]),
+                    n_masks=len(rows), n_fit=len(X_a), n_eval=len(X_b),
+                    **{f"cost_{k}": v for k, v in cal.cost.as_dict().items()}))
+    log.info(f"  calibration: worst |FPR − α| = {drift_mask:.3f} mask-conditional "
+             f"vs {drift_blind:.3f} mask-blind (α={ev['relational_alpha']}, "
+             f"{len(rows)} masks)")
+    out["calibration"] = {"rows": rows, "worst_drift_masked": drift_mask,
+                          "worst_drift_blind": drift_blind}
+    return out
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # Stage: layout scaling (tree vs DAG)
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -796,8 +1319,14 @@ def stage_scaling(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, A
 # Dispatch
 # ═══════════════════════════════════════════════════════════════════════════
 
+from .diagnosis import stage_diagnosis
+
+
 STAGE_FNS: Dict[str, Callable[..., Dict[str, Any]]] = {
     "ad": stage_ad,
+    "structure_gate": stage_structure_gate,
+    "relational": stage_relational,
+    "diagnosis": stage_diagnosis,
     "explain": stage_explain,
     "rul": stage_rul,
     "calibration": stage_calibration,
@@ -819,7 +1348,17 @@ def run_stages(cfg: Dict[str, Any], seed: int, log: RunLogger) -> Dict[str, Any]
     for stage in cfg["stages"]:
         t0 = time.time()
         log.info(f"--- stage: {stage} ---")
-        results[stage] = STAGE_FNS[stage](cfg, seed, log)
+        try:
+            results[stage] = STAGE_FNS[stage](cfg, seed, log)
+        except Exception as exc:
+            # Mark the stage that died, then re-raise: the run still fails (the
+            # batch runner and `is_complete` must keep seeing that), but the
+            # stages that finished before it stay usable, and the aggregate can
+            # tell "this run crashed in `rul`" from "this run's `ad` numbers
+            # are partial".
+            log.stage_failed(stage, f"{type(exc).__name__}: {exc}")
+            raise
+        log.stage_ok(stage)
         results.setdefault("_timing", {})[stage] = round(time.time() - t0, 2)
         log.info(f"--- stage {stage} done in {time.time() - t0:.1f}s ---")
     log.metrics(results)

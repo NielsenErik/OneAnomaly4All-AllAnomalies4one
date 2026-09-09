@@ -1,0 +1,104 @@
+[19:26:56] === run start · seed1 · seed 1 · hash 929f2e8723f2 ===
+[19:26:56] stages ['structure_gate'] · device mps · dataset cmapss:FD001
+[19:26:56] --- stage: structure_gate ---
+[19:26:56]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.2s)
+[19:26:56]   task: {'kind': 'ad', 'n_train': 4193, 'n_val': 1097, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12502694129943848, 'kind_counts': {'normal': 4059, 'spike': 115, 'desync': 102, 'offset': 105, 'decouple': 107, 'drift': 99, 'organic': 52}, 'train_units': 100, 'val_units': 20, 'test_units': 100, 'n_val_windows': 1097, 'n_regimes': 1, 'seed': 1, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[19:26:56]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+[19:26:56]   gate: 522 clean val windows for NLL/checkpoint, 575 labelled val windows (166 anomalous) for detection
+[19:26:58]   gate: matching every structure to chow_liu K=8 = 174,240 parameters
+    [pc] epoch   0  nll  310.628  val  257.958
+    [pc] epoch   7  nll  144.010  val  139.914
+    fit channel_blocked K=8: 9/60 (15%) · 0.29 it/s · elapsed 00:31 · ETA 02:58
+    [pc] epoch  14  nll   94.234  val   91.492
+    fit channel_blocked K=8: 15/60 (25%) · 0.24 it/s · elapsed 01:02 · ETA 03:06
+    fit channel_blocked K=8: 21/60 (35%) · 0.22 it/s · elapsed 01:36 · ETA 02:59
+    [pc] epoch  21  nll   78.346  val   75.040
+    fit channel_blocked K=8: 27/60 (45%) · 0.21 it/s · elapsed 02:09 · ETA 02:37
+    [pc] epoch  28  nll   63.477  val   61.589
+    fit channel_blocked K=8: 33/60 (55%) · 0.20 it/s · elapsed 02:41 · ETA 02:11
+    [pc] epoch  35  nll   59.158  val   61.274
+    fit channel_blocked K=8: 39/60 (65%) · 0.20 it/s · elapsed 03:12 · ETA 01:43
+    [pc] epoch  42  nll   57.168  val   56.002
+    fit channel_blocked K=8: 45/60 (75%) · 0.20 it/s · elapsed 03:44 · ETA 01:14
+    [pc] epoch  49  nll   54.749  val   61.389
+    fit channel_blocked K=8: 51/60 (85%) · 0.20 it/s · elapsed 04:18 · ETA 00:45
+    [pc] epoch  56  nll   47.190  val   45.091
+    fit channel_blocked K=8: 57/60 (95%) · 0.20 it/s · elapsed 04:51 · ETA 00:15
+    fit channel_blocked K=8: done 60/60 in 05:07
+    [pc] restored epoch 58 (val nll 44.295 < last 48.124)
+[19:32:35]   gate_channel_blocked_train_nll: first=310.6281 last=43.6461 (60 epochs)
+[19:32:35]   gate_channel_blocked_val_nll: first=257.9579 last=48.1239 (60 epochs)
+[19:32:37]   gate_channel_blocked: fit 314.3s · 174,240 params · score sd 25.538 · device mps · layered · 800 win/s
+[19:32:37]   gate_channel_blocked: validation on 1097 windows from 20 held-out units · best epoch 58 of 60 · val nll 44.295
+[19:32:42]   channel_blocked  K=8   params  174,240  val_nll   44.979  val_auroc 0.8057  dependence   5.665 nats  blocked=True
+    [pc] epoch   0  nll  310.703  val  258.364
+    fit channel K=8: 2/60 (3%) · 0.00 it/s · elapsed 08:31 · ETA 4:07:18
+    [pc] epoch   7  nll  134.257  val  130.435
+    fit channel K=8: 14/60 (23%) · 0.03 it/s · elapsed 09:01 · ETA 29:40
+    [pc] epoch  14  nll   87.852  val   85.718
+    [pc] epoch  21  nll   68.234  val   69.740
+    fit channel K=8: 26/60 (43%) · 0.05 it/s · elapsed 09:32 · ETA 12:28
+    [pc] epoch  28  nll   60.475  val   59.650
+    [pc] epoch  35  nll   57.446  val   56.140
+    fit channel K=8: 38/60 (63%) · 0.06 it/s · elapsed 10:03 · ETA 05:49
+    [pc] epoch  42  nll   57.673  val   53.991
+    fit channel K=8: 49/60 (82%) · 0.08 it/s · elapsed 10:34 · ETA 02:22
+    [pc] epoch  49  nll   53.245  val   59.550
+    [pc] epoch  56  nll   49.653  val   49.099
+    fit channel K=8: 57/60 (95%) · 0.09 it/s · elapsed 11:07 · ETA 00:35
+    fit channel K=8: done 60/60 in 11:22
+[19:44:42]   gate_channel_train_nll: first=310.7028 last=46.4897 (60 epochs)
+[19:44:42]   gate_channel_val_nll: first=258.3636 last=45.7359 (60 epochs)
+[19:44:44]   gate_channel: fit 690.4s · 174,240 params · score sd 26.501 · device mps · layered · 364 win/s
+[19:44:44]   gate_channel: validation on 1097 windows from 20 held-out units · best epoch 59 of 60 · val nll 45.736
+[19:44:50]   channel          K=8   params  174,240  val_nll   45.080  val_auroc 0.8001  dependence   3.881 nats  blocked=True
+    [pc] epoch   0  nll  310.000  val  257.261
+    fit chow_liu K=8: 4/60 (7%) · 0.13 it/s · elapsed 00:30 · ETA 07:12
+    [pc] epoch   7  nll  153.621  val  148.068
+    fit chow_liu K=8: 8/60 (13%) · 0.12 it/s · elapsed 01:04 · ETA 07:02
+    fit chow_liu K=8: 12/60 (20%) · 0.12 it/s · elapsed 01:38 · ETA 06:32
+    [pc] epoch  14  nll  103.625  val  100.696
+    fit chow_liu K=8: 16/60 (27%) · 0.12 it/s · elapsed 02:10 · ETA 05:58
+    [pc] epoch  21  nll   78.844  val   79.313
+    fit chow_liu K=8: 22/60 (37%) · 0.13 it/s · elapsed 02:44 · ETA 04:44
+    fit chow_liu K=8: 28/60 (47%) · 0.14 it/s · elapsed 03:15 · ETA 03:43
+    [pc] epoch  28  nll   67.967  val   69.724
+    fit chow_liu K=8: 35/60 (58%) · 0.15 it/s · elapsed 03:49 · ETA 02:44
+    [pc] epoch  35  nll   68.014  val   72.547
+    fit chow_liu K=8: 40/60 (67%) · 0.15 it/s · elapsed 04:21 · ETA 02:10
+    [pc] epoch  42  nll   65.322  val   69.037
+    fit chow_liu K=8: 46/60 (77%) · 0.16 it/s · elapsed 04:53 · ETA 01:29
+    [pc] epoch  49  nll   62.567  val   64.132
+    fit chow_liu K=8: 52/60 (87%) · 0.16 it/s · elapsed 05:27 · ETA 00:50
+    [pc] epoch  56  nll   59.741  val   59.652
+    fit chow_liu K=8: 57/60 (95%) · 0.16 it/s · elapsed 05:59 · ETA 00:18
+    fit chow_liu K=8: done 60/60 in 06:16
+[19:51:41]   gate_chow_liu_train_nll: first=309.9997 last=55.6385 (60 epochs)
+[19:51:41]   gate_chow_liu_val_nll: first=257.2610 last=57.0903 (60 epochs)
+[19:51:42]   gate_chow_liu: fit 383.8s · 174,240 params · score sd 26.390 · device mps · layered · 656 win/s
+[19:51:42]   gate_chow_liu: validation on 1097 windows from 20 held-out units · best epoch 59 of 60 · val nll 57.090
+[19:51:49]   chow_liu         K=8   params  174,240  val_nll   56.395  val_auroc 0.8442  dependence  33.814 nats  blocked=False
+    [pc] epoch   0  nll  310.141  val  257.143
+    [pc] epoch   7  nll  164.416  val  162.537
+    fit random K=8: 8/60 (13%) · 0.24 it/s · elapsed 00:33 · ETA 03:39
+    [pc] epoch  14  nll  111.497  val  110.789
+    fit random K=8: 18/60 (30%) · 0.27 it/s · elapsed 01:06 · ETA 02:36
+    [pc] epoch  21  nll   93.383  val   94.397
+    fit random K=8: 28/60 (47%) · 0.29 it/s · elapsed 01:38 · ETA 01:52
+    [pc] epoch  28  nll   84.568  val   86.794
+    [pc] epoch  35  nll   83.523  val   84.128
+    fit random K=8: 40/60 (67%) · 0.31 it/s · elapsed 02:10 · ETA 01:05
+    [pc] epoch  42  nll   84.882  val   85.569
+    fit random K=8: 48/60 (80%) · 0.30 it/s · elapsed 02:42 · ETA 00:40
+    [pc] epoch  49  nll   79.663  val   83.480
+    [pc] epoch  56  nll   80.257  val   79.290
+    fit random K=8: 57/60 (95%) · 0.30 it/s · elapsed 03:12 · ETA 00:10
+    fit random K=8: done 60/60 in 03:21
+[19:55:33]   gate_random_train_nll: first=310.1413 last=75.1825 (60 epochs)
+[19:55:33]   gate_random_val_nll: first=257.1432 last=75.6701 (60 epochs)
+[19:55:34]   gate_random: fit 207.0s · 174,240 params · score sd 33.929 · device mps · layered · 1,215 win/s
+[19:55:34]   gate_random: validation on 1097 windows from 20 held-out units · best epoch 59 of 60 · val nll 75.670
+[19:55:38]   random           K=8   params  174,240  val_nll   77.873  val_auroc 0.8039  dependence  28.487 nats  blocked=False
+[19:55:38]   GATE (delta_auroc >= -0.02 and delta_nll_frac <= 0.05): FAIL — channel_blocked is -0.0385 AUROC and -0.22% NLL from the best unblocked structure
+[19:55:38] --- stage structure_gate done in 1722.5s ---
+[19:55:38] === run ok · 1722.6s · peak RSS 1.232 GB ===

@@ -35,16 +35,24 @@ from .metrics import auroc
 # 1. Attribution methods — each returns (N, C), higher = more responsible
 # ═══════════════════════════════════════════════════════════════════════════
 
-def pc_attributions(pc, X: torch.Tensor, shapley_orders: int = 0
-                    ) -> Dict[str, np.ndarray]:
+def pc_attributions(pc, X: torch.Tensor, shapley_orders: int = 0,
+                    chain_rule: bool = False) -> Dict[str, np.ndarray]:
     """
     Every exact view the circuit offers, from ONE trained model:
 
       marginal      −log p(x_c)            is this sensor odd on its own?
       conditional   −log p(x_c | x_-c)     is it odd GIVEN the others?
       structural    conditional − marginal  dependence-breaking mass only
+      chain-rule    −Σ_t log p(x_tc | prefix), summed over the channel's
+                    timesteps — the one view that ADDS UP to the window's NLL,
+                    and therefore the only one `completeness_error` describes
       shapley       conditional Shapley over channels (exact terms, sampled
                     ordering) — the completeness-respecting credit assignment
+
+    The first three are diagnostics; only the last two are decompositions.
+    Keeping the additive one out of this table is what let a completeness
+    residual measured on the chain rule be reported beside a localisation
+    AUROC won by the leave-one-out conditional (review §2.C).
     """
     td = pc.typed_scores(X)
     out = {
@@ -52,6 +60,13 @@ def pc_attributions(pc, X: torch.Tensor, shapley_orders: int = 0
         "PC marginal (exact)": td["marginal"].numpy(),
         "PC structural (exact)": td["structural"].numpy(),
     }
+    if chain_rule:
+        # (N, d) log-density terms -> per-channel NLL contributions, summed
+        # over the channel's timesteps.  Summing preserves the identity: the
+        # per-channel terms still add to −log p(x).
+        cr = pc.chain_rule_attribution(X)
+        out["PC chain-rule (exact, additive)"] = \
+            (-cr.reshape(len(cr), pc.window, pc.n_channels).sum(1)).numpy()
     if shapley_orders > 0:
         out["PC Shapley (exact conditionals)"] = \
             pc.shapley_channels(X, n_orders=shapley_orders).numpy()
@@ -97,16 +112,31 @@ def ae_channel_error(ae, X: torch.Tensor) -> np.ndarray:
         return ((ae.net(A) - A) ** 2).mean(dim=2).cpu().numpy()
 
 
-def sampling_shap(ae, X: torch.Tensor, background: torch.Tensor,
-                  n_samples: int = 32, seed: int = 0) -> np.ndarray:
+def replacement_sensitivity(ae, X: torch.Tensor, background: torch.Tensor,
+                            n_samples: int = 32, seed: int = 0) -> np.ndarray:
     """
-    Marginal-sampling attribution on the AE score: expected change in
-    reconstruction error when a channel is replaced by background draws.
+    Mean ABSOLUTE change in the AE reconstruction score when ONE channel is
+    replaced by background draws — a single-channel replacement-sensitivity
+    statistic, and nothing more than that.
 
-    This is what KernelSHAP / permutation-SHAP actually estimate — the value
-    function uses the MARGINAL distribution, because the conditional is
-    unavailable for the model being explained.  Its Monte-Carlo error is
-    exactly what the circuit's closed form removes.
+    It was called `sampling_shap` and compared against the circuit's exact
+    attributions as "approximate SHAP".  It is not SHAP and it does not
+    converge to a Shapley value at any sample size:
+
+      * it perturbs one channel at a time, so no coalition of size > 1 is ever
+        formed and no permutation is ever averaged over;
+      * it accumulates |e − base|, an absolute value, where a Shapley value
+        averages SIGNED marginal contributions — so cancelling contributions
+        cannot cancel, and the statistic is bounded away from the additive
+        decomposition it was being read as.
+
+    More samples converge to THIS statistic, so the recorded gap against the
+    circuit measures the difference between two different quantities, not
+    Monte-Carlo error, and the efficiency claims that rested on it are
+    withdrawn (review §2.B).  It is kept because a replacement-sensitivity
+    baseline is a fair, widely used attribution — under its own name.  A real
+    permutation-SHAP comparison needs a declared shared game (explained score,
+    coalition value function, background semantics, budget) and is Tier 2 work.
     """
     rng = np.random.default_rng(seed)
     N, w, C = len(X), ae.w, ae.C
@@ -145,6 +175,15 @@ def localization_report(attr: np.ndarray, affected: List[List[int]],
     """
     CLAIM 1 (correctness).  AUROC and precision@k of channel attribution
     against ground truth, over windows that have a localised truth at all.
+
+    This is a claim about ONE attribution statistic — whichever array is passed
+    in.  It does not transfer to another statistic computed from the same
+    circuit, and in particular the completeness proved by `completeness_error`
+    below is a property of `chain_rule_attribution` alone.  Reporting a
+    leave-one-out conditional localisation next to a chain-rule completeness
+    residual and calling the pair "correct and complete" combines two different
+    explanations (review §2.C); `ADDITIVE_ATTRIBUTIONS` records which is
+    which, and the pipeline labels every row with it.
     `organic` and `normal` windows are excluded: fleet-wide degradation is not
     a sensor fault, so there is no correct channel to point at and scoring it
     would reward noise.
@@ -166,18 +205,56 @@ def localization_report(attr: np.ndarray, affected: List[List[int]],
             "prec_at_k": float(np.mean(prec)), "n": len(prec)}
 
 
-def completeness_error(pc, X: torch.Tensor, order=None) -> Dict[str, float]:
+#: Attributions whose per-channel terms sum to log p(x) by construction, and
+#: for which `completeness_error` is therefore a meaningful (and near-zero)
+#: number.  Everything else is a diagnostic score, not a decomposition of the
+#: anomaly score: the leave-one-out conditional surprises −log p(x_c | x_-c)
+#: do NOT telescope, and their sum exceeds the joint NLL by the amount of
+#: dependence in the window.  Both are legitimate; only one is complete.
+ADDITIVE_ATTRIBUTIONS = ("PC chain-rule (exact, additive)",
+                         "PC Shapley (exact conditionals)")
+
+
+def completeness_error(pc, X: torch.Tensor, order=None,
+                       method: str = "PC chain-rule (exact, additive)"
+                       ) -> Dict[str, float]:
     """
-    CLAIM 2 (completeness).  The chain-rule attributions must sum to log p(x)
+    CLAIM 2 (completeness).  The CHAIN-RULE attributions must sum to log p(x)
     with no residual.  Reports the max and mean absolute residual in nats —
     for the circuit these are float32 round-off, not approximation error.
+
+    `method` names the attribution this residual belongs to, so the row cannot
+    be read as a property of whichever attribution happened to win the
+    localisation table.  Note what the identity is and is not: telescoping
+    p(x) = ∏ p(x_i | x_<i) holds for any distribution whose conditionals can be
+    evaluated — a Gaussian included — so a small residual is evidence that the
+    circuit computes its own conditionals consistently, not evidence of a new
+    theorem, and not evidence that the attribution is causally correct.
     """
     contrib = pc.chain_rule_attribution(X, order=order)
     with torch.no_grad():
         total = pc.pc.log_prob(pc._prep(X)).cpu()
     resid = (contrib.sum(1) - total).abs()
-    return {"max_residual_nats": float(resid.max()),
+    return {"attribution": method,
+            "max_residual_nats": float(resid.max()),
             "mean_residual_nats": float(resid.mean())}
+
+
+def additivity_gap(pc, X: torch.Tensor, attr: np.ndarray) -> Dict[str, float]:
+    """
+    How far a NON-additive attribution is from summing to the joint NLL.
+
+    Computed for the same windows the localisation table scores, so the
+    explanation claim is stated in full: "this statistic localises best, and it
+    is not a decomposition of the score — here is by how much".  For the
+    leave-one-out conditional surprises the gap is the window's total
+    dependence, which is a real quantity, not an error.
+    """
+    with torch.no_grad():
+        total = (-pc.pc.log_prob(pc._prep(X)).cpu()).numpy()
+    s = np.asarray(attr, dtype=float).sum(axis=1)
+    return {"mean_sum_minus_nll": float(np.mean(s - total)),
+            "mean_abs_gap_nats": float(np.mean(np.abs(s - total)))}
 
 
 def deletion_curve(score_fn, X: torch.Tensor, attr: np.ndarray, window: int,

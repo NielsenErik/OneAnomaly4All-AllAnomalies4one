@@ -21,6 +21,7 @@ what `bench_scaling.py` demonstrates.
 """
 from __future__ import annotations
 
+import copy
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -29,9 +30,15 @@ import torch.nn as nn
 
 from .progress import Phase, track
 from src.probabilistic_circuits import (
+    BlockStructureError,
     CategoricalLeaf,
+    QueryCost,
     RegionNode,
+    RelationalCircuit,
     chain_region_graph,
+    channel_blocked_vtree,
+    channel_scopes,
+    chow_liu_channel_order,
     delta_window_transform,
     permute_region_graph,
     timestep_block_permutation,
@@ -47,11 +54,12 @@ from src.probabilistic_circuits import (
     learned_vtree,
     random_balanced_vtree,
     time_channel_vtree,
+    vtree_nodes,
 )
 
 VTREE_CHOICES = (
     # binary vtrees
-    "time", "channel", "channel_groups", "chow_liu", "spectral",
+    "time", "channel", "channel_blocked", "channel_groups", "chow_liu", "spectral",
     "orc", "forman", "random",
     # region graphs: n-ary curvature / spectral, and the HMM-shaped chain
     "orc_rg", "forman_rg", "spectral_rg", "orc_rg_multi", "forman_rg_multi",
@@ -135,6 +143,16 @@ def build_window_vtree(
     if method == "channel_groups":
         return time_channel_vtree(window, n_channels, mode="channel",
                                   channel_groups=channel_groups)
+    if method == "channel_blocked":
+        # Tier 1.1: each channel one subtree, channels ORDERED by Chow-Liu on
+        # channel-level mutual information.  Blocking is what the two-pass
+        # relational map and the mask queries need (it creates the single
+        # boundary each channel is entered through); the MI ordering is the
+        # only freedom left, and it is what has to pay for the blocking in
+        # density.  Without data the order is the identity, which is exactly
+        # `time_channel_vtree(mode="channel")`.
+        order = None if X is None else chow_liu_channel_order(X, window, n_channels)
+        return channel_blocked_vtree(window, n_channels, order)
     if method == "random":
         return random_balanced_vtree(list(range(d)), seed=seed)
 
@@ -326,6 +344,9 @@ class WindowPC:
         weight_jitter: float = 0.5,
         evaluator: str = "layered",
         mixture_at_1: bool = False,
+        boundary_components: Optional[int] = None,
+        upper_components: Optional[int] = None,
+        channel_mixture: bool = False,
     ):
         self.window, self.n_channels = window, n_channels
         self.d = window * n_channels
@@ -333,6 +354,12 @@ class WindowPC:
         self.K = n_sum_components
         self.leaf_components = leaf_components
         self.mixture_at_1 = mixture_at_1
+        self.boundary_components = boundary_components
+        self.upper_components = upper_components
+        self.channel_mixture = channel_mixture
+        for k in (boundary_components, upper_components):
+            if k is not None and (int(k) != k or k < 1):
+                raise ValueError("boundary/upper components must be positive integers")
         self.channel_groups = channel_groups
         self.use_sos = use_sos
         self.delta = delta
@@ -346,6 +373,9 @@ class WindowPC:
         self.compiled = None
         self.pc = None
         self.history: List[float] = []
+        self.val_history: List[float] = []
+        self.best_epoch: int = -1
+        self.best_val_nll: float = float("nan")
 
     def _prep(self, X: torch.Tensor) -> torch.Tensor:
         """Optional first-difference reparameterisation.  Unit-determinant, so
@@ -359,22 +389,43 @@ class WindowPC:
         c, m = self.leaf_components, self.mixture_at_1
         return lambda i: window_leaf(i, c, m)
 
-    def fit(self, X: torch.Tensor, epochs: int = 60, lr: float = 0.05,
-            batch_size: int = 256, verbose: bool = False,
-            log_every: int = 0) -> "WindowPC":
+    def build(self, X: torch.Tensor) -> torch.Tensor:
         """
-        Structure learning and closed-form leaf initialisation happen on CPU
-        (they are numpy/statistics, not tensor algebra); only the gradient loop
-        runs on `self.device`.  The per-epoch NLL is kept in `self.history` so
-        the pipeline can write a training curve for every run.
+        Structure + closed-form leaf initialisation, WITHOUT training.  Returns
+        the (possibly delta-transformed) CPU data the structure was learned on.
+
+        Split out of `fit` so a structure's parameter count is available before
+        anyone pays for a training run — Tier 1.2 compares structures at
+        MATCHED parameters, and picking K per structure needs exactly this.
         """
-        torch.manual_seed(self.seed)
+        self._relational = None       # parameters are about to change
         X_cpu = X.detach().cpu()
         if self.delta:
             X_cpu = delta_window_transform(X_cpu, self.window, self.n_channels)
         vt = build_window_vtree(self.vtree_method, self.window, self.n_channels,
                                 X=X_cpu, channel_groups=self.channel_groups,
                                 seed=self.seed)
+        widths, mixture_scopes = {}, set()
+        if (self.boundary_components is not None or self.upper_components is not None
+                or self.channel_mixture):
+            if self.use_sos or isinstance(vt, RegionNode):
+                raise ValueError("interface capacity requires a monotone binary vtree circuit")
+            nodes = vtree_nodes(vt)
+            boundaries = set(channel_scopes(self.window, self.n_channels))
+            if not boundaries.issubset({n.scope for n in nodes}):
+                raise BlockStructureError("interface capacity requires channel-contiguous scopes")
+            kb = self.boundary_components or self.K
+            ku = self.upper_components or self.K
+            if self.channel_mixture and self.upper_components not in (None, kb):
+                raise ValueError("a shared-latent channel mixture requires upper width = boundary width")
+            for node in nodes:
+                scope = frozenset(node.scope)
+                if scope in boundaries:
+                    widths[scope] = kb
+                elif len({i % self.n_channels for i in scope}) > 1:
+                    widths[scope] = kb if self.channel_mixture else ku
+                    if self.channel_mixture:
+                        mixture_scopes.add(scope)
         if self.use_sos:
             # SOS / squared circuit: subtractive mixtures, exactly normalised by
             # the pairwise construction.  region_graph=True is required — the
@@ -385,10 +436,44 @@ class WindowPC:
         else:
             self.pc = RegionGraphPC(vt, n_sum_components=self.K,
                                     leaf_factory=self._leaf_factory(),
-                                    weight_jitter=self.weight_jitter, seed=self.seed)
+                                    weight_jitter=self.weight_jitter, seed=self.seed,
+                                    region_widths=widths, mixture_scopes=mixture_scopes)
         self.pc.validate()
         self.pc.fit_leaves(X_cpu)
         move_circuit_(self.pc, self.device)   # DAG-safe; .to() is exponential here
+        return X_cpu
+
+    def fit(self, X: torch.Tensor, epochs: int = 60, lr: float = 0.05,
+            batch_size: int = 256, verbose: bool = False,
+            log_every: int = 0, X_val: Optional[torch.Tensor] = None,
+            select_best: bool = True, val_max: int = 4096,
+            conditional_weight: float = 0.0, mask_drop_prob: float = 0.25,
+            select_metric: str = "nll", patience: int = 0,
+            min_epochs: int = 1) -> "WindowPC":
+        """
+        Structure learning and closed-form leaf initialisation happen on CPU
+        (they are numpy/statistics, not tensor algebra); only the gradient loop
+        runs on `self.device`.  The per-epoch NLL is kept in `self.history` so
+        the pipeline can write a training curve for every run.
+
+        `X_val` — healthy windows from units this model never sees — turns the
+        last epoch from a default into a decision: its NLL is recorded per
+        epoch in `self.val_history`, and with `select_best` the parameters are
+        rolled back to the best epoch.  Without it, a run that overfits or that
+        oscillates late (one recorded Chow-Liu 3-component seed swung between
+        67 and 81 nats over its last epochs) reports whichever point the epoch
+        budget happened to stop on.  `val_max` caps the scoring cost per epoch.
+        """
+        if not len(X) or epochs < 1 or batch_size < 1 or val_max < 1:
+            raise ValueError("fit requires nonempty data and positive epochs/batch_size/val_max")
+        if conditional_weight < 0 or not 0 <= mask_drop_prob <= 1:
+            raise ValueError("conditional_weight >= 0 and mask_drop_prob in [0, 1] required")
+        if select_metric not in ("nll", "objective") or patience < 0 or min_epochs < 1:
+            raise ValueError("invalid checkpoint selection or early stopping settings")
+        if (patience or select_metric == "objective") and (X_val is None or not len(X_val)):
+            raise ValueError("checkpoint objective / early stopping requires validation data")
+        torch.manual_seed(self.seed)
+        X_cpu = self.build(X)
 
         Xd = X_cpu.to(self.device)
         # Compile to the layer-parallel evaluator, gated against the recursive
@@ -400,21 +485,108 @@ class WindowPC:
         opt = torch.optim.Adam(params, lr=lr)
         n = len(Xd)
         self.history = []
+        self.val_history = []
+        self.objective_history = []
+        self.val_objective_history = []
+        self.optimizer_steps = 0
+        self.stopped_early = False
+        self.select_metric = select_metric
+        self.best_epoch, self.best_val_nll = -1, float("nan")
+        self.best_selection_loss = float("inf")
+        rng = np.random.default_rng(self.seed + 931)
+        # Fixed validation query library, independent of training mask draws.
+        vrng = np.random.default_rng(self.seed + 932)
+        val_queries = [(c, [k for k in range(self.n_channels)
+                            if k != c and vrng.random() < mask_drop_prob])
+                       for c in range(self.n_channels)]
+
+        def conditional_loss(xb, c, dead):
+            missing = [t * self.n_channels + k for t in range(self.window) for k in dead]
+            rest = missing + [t * self.n_channels + c for t in range(self.window)]
+            # RegionGraphPC dispatches to the current compiled parameters;
+            # CompiledCircuit itself names this API log_prob(marginalized=...).
+            return -(self.pc.log_marginal(xb, missing)
+                     - self.pc.log_marginal(xb, rest)).mean()
+
+        Xv = None
+        if X_val is not None and len(X_val):
+            Xv = X_val.detach().cpu()
+            if self.delta:
+                Xv = delta_window_transform(Xv, self.window, self.n_channels)
+            Xv = Xv[:val_max].to(self.device)
+
+        def val_nll() -> float:
+            with torch.no_grad():
+                out = [model.log_prob(Xv[s:s + batch_size])
+                       for s in range(0, len(Xv), batch_size)]
+            return float(-torch.cat(out).mean())
+
+        best_state = None
         for ep in track(range(epochs), f"fit {self.vtree_method} K={self.K}",
                         total=epochs):
             perm = torch.randperm(n, device=self.device)
-            tot = 0.0
+            tot = obj_tot = 0.0
             for s in range(0, n, batch_size):
                 xb = Xd[perm[s:s + batch_size]]
-                loss = -model.log_prob(xb).mean()
+                joint_loss = -model.log_prob(xb).mean()
+                loss = joint_loss
+                if conditional_weight:
+                    c = int(rng.integers(self.n_channels))
+                    dead = [k for k in range(self.n_channels)
+                            if k != c and rng.random() < mask_drop_prob]
+                    # Scale a channel conditional to joint-window units.
+                    loss = loss + conditional_weight * self.n_channels * conditional_loss(xb, c, dead)
+                if not bool(torch.isfinite(loss)):
+                    raise FloatingPointError("non-finite circuit training objective")
                 opt.zero_grad(); loss.backward()
                 torch.nn.utils.clip_grad_norm_(params, 1.0)
                 opt.step()
-                tot += float(loss.detach()) * len(xb)
+                self.optimizer_steps += 1
+                tot += float(joint_loss.detach()) * len(xb)
+                obj_tot += float(loss.detach()) * len(xb)
             self.history.append(tot / max(n, 1))
+            self.objective_history.append(obj_tot / max(n, 1))
+            if Xv is not None:
+                v = val_nll()
+                self.val_history.append(v)
+                selection = v
+                if select_metric == "objective" and conditional_weight:
+                    with torch.no_grad():
+                        cv = sum(float(conditional_loss(Xv[s:s + batch_size], c, dead))
+                                 * len(Xv[s:s + batch_size])
+                                 for c, dead in val_queries
+                                 for s in range(0, len(Xv), batch_size)) / len(Xv)
+                    selection += conditional_weight * cv
+                self.val_objective_history.append(selection)
+                # A diverged epoch must never become the selected checkpoint,
+                # and must not be able to lock out the finite epochs after it
+                # either — which is what a bare `v < best` does once `best` is
+                # NaN, since every comparison against NaN is False.
+                if np.isfinite(selection) and selection < self.best_selection_loss:
+                    self.best_val_nll, self.best_epoch = v, ep
+                    self.best_selection_loss = selection
+                    if select_best:
+                        best_state = copy.deepcopy(model.state_dict())
             every = log_every or (max(epochs // 6, 1) if verbose else 0)
             if every and ep % every == 0:
-                print(f"    [pc] epoch {ep:3d}  nll {self.history[-1]:8.3f}")
+                msg = f"    [pc] epoch {ep:3d}  nll {self.history[-1]:8.3f}"
+                if self.val_history:
+                    msg += f"  val {self.val_history[-1]:8.3f}"
+                print(msg)
+            if (patience and ep + 1 >= min_epochs and self.best_epoch >= 0
+                    and ep - self.best_epoch >= patience):
+                self.stopped_early = True
+                break
+        if Xv is not None and self.best_epoch < 0:
+            raise FloatingPointError("no finite validation checkpoint")
+        if best_state is not None and self.best_epoch != epochs - 1:
+            # Roll back to the epoch that generalised best.  Done BEFORE
+            # write_back so the DAG, the compiled evaluator and every score
+            # taken afterwards all describe the same parameters.
+            model.load_state_dict(best_state)
+            print(f"    [pc] restored epoch {self.best_epoch} "
+                  f"(selected by {select_metric}; val nll {self.best_val_nll:.3f}, "
+                  f"last {self.val_history[-1]:.3f})")
         if self.compiled is not None:
             # the DAG owns the semantics (validate/MPE/serialisation): give it
             # the trained values back before anything else reads it
@@ -509,6 +681,13 @@ class WindowPC:
         −log p(observed part) with whole channels marginalised OUT exactly.
         No imputation: the dead sensors simply leave the query.  This is the
         query a reconstruction-based detector cannot express.
+
+        One fixed dead list, one full circuit pass, ANY structure — the
+        reference path, kept because it does not need channel contiguity.
+        `score_with_masks` answers the same question for many masks (or a
+        different mask per window) at the cost of one pass over the leaves
+        plus one small pass per mask, and is what Tier 1.4's numbers come
+        from; the two agree to float32 tolerance on a blocked structure.
         """
         marg = [t * self.n_channels + c
                 for t in range(self.window) for c in dead_channels]
@@ -552,6 +731,193 @@ class WindowPC:
         conditional = torch.stack(cond_out, dim=1)
         return {"marginal": marginal, "conditional": conditional,
                 "structural": conditional - marginal}
+
+    @torch.no_grad()
+    def diagnosis_map(self, X: torch.Tensor, mask: Optional[torch.Tensor] = None,
+                      batch_size: int = 512, backend: str = "auto") -> Dict:
+        """Same exact joint/channel/complement queries on ANY circuit structure.
+
+        The generic oracle groups identical observation masks; the fast path
+        requires channel boundaries. Neither imputes or changes the density.
+        Missing channels have NaN scores. An empty observation has log p = 0.
+        """
+        if backend not in ("auto", "oracle", "fast"):
+            raise ValueError("backend must be auto, oracle or fast")
+        if X.ndim != 2 or X.shape[1] != self.d or not len(X) or batch_size < 1:
+            raise ValueError("expected nonempty (N, window * channels) input")
+        m = torch.ones(len(X), self.n_channels, dtype=torch.bool) if mask is None else torch.as_tensor(mask, dtype=torch.bool).cpu()
+        if m.ndim == 1:
+            m = m.unsqueeze(0).expand(len(X), -1)
+        if m.shape != (len(X), self.n_channels):
+            raise ValueError("mask must have shape (C,) or (N, C)")
+        if backend == "fast" or (backend == "auto" and self.is_channel_blocked):
+            return self.relational_map(X, m, batch_size)
+        Xp = self._prep(X)
+        marginal = torch.full((len(X), self.n_channels), float("nan"))
+        conditional = torch.full_like(marginal, float("nan"))
+        joint = torch.empty(len(X))
+        cost = QueryCost(n_masks=len(torch.unique(m, dim=0)))
+        nodes = self.size()["nodes"]
+        for pattern in torch.unique(m, dim=0):
+            indices = torch.nonzero((m == pattern).all(1)).flatten()
+            observed = torch.nonzero(pattern).flatten().tolist()
+            missing = [i for i in range(self.d) if not pattern[i % self.n_channels]]
+            for start in range(0, len(indices), batch_size):
+                idx = indices[start:start + batch_size]
+                xb = Xp[idx.to(Xp.device)]
+                lp = self.pc.log_marginal(xb, missing).cpu()
+                joint[idx] = lp
+                for c in observed:
+                    lp_c = self.pc.log_marginal(xb, [i for i in range(self.d)
+                                                    if i % self.n_channels != c]).cpu()
+                    lp_rest = self.pc.log_marginal(xb, missing +
+                        [t * self.n_channels + c for t in range(self.window)]).cpu()
+                    marginal[idx, c] = -lp_c
+                    conditional[idx, c] = lp_rest - lp
+                queries = 1 + 2 * len(observed)
+                cost.passes += queries
+                cost.node_visits += queries * nodes
+                cost.node_evaluations += queries * nodes * len(idx)
+        cost.output_elements = len(X) * self.n_channels
+        singleton = (m.sum(1) == 1).unsqueeze(1) & m
+        conditional = torch.where(singleton, marginal, conditional)
+        return dict(marginal=marginal, conditional=conditional,
+                    structural=conditional - marginal, R=conditional - marginal,
+                    log_px=joint, mask=m, cost=cost)
+
+    # ── Tier 1.3-1.4: the two-pass relational map ────────────────────────
+
+    def relational(self) -> RelationalCircuit:
+        """
+        The channel-blocked view of this circuit, built once and cached.
+
+        Raises `BlockStructureError` on a structure whose channels are not
+        contiguous (anything but `vtree_method="channel_blocked"` / `channel`
+        / `channel_groups`, in general).  That is deliberate: the two-pass
+        identities are wrong — silently, plausibly — without the boundary, and
+        the fallback for those structures is `typed_scores`, which is slower
+        and always right.
+        """
+        rc = getattr(self, "_relational", None)
+        if rc is None:
+            if self.pc is None:
+                raise RuntimeError("fit the model first")
+            rc = RelationalCircuit(
+                self.pc.root,
+                channel_scopes(self.window, self.n_channels),
+                labels=list(range(self.n_channels)))
+            self._relational = rc
+        return rc
+
+    @property
+    def is_channel_blocked(self) -> bool:
+        """Whether the trained structure supports the two-pass queries."""
+        try:
+            self.relational()
+            return True
+        except (BlockStructureError, RuntimeError):
+            return False
+
+    @torch.no_grad()
+    def relational_map(self, X: torch.Tensor,
+                       mask: Optional[torch.Tensor] = None,
+                       batch_size: int = 512) -> Dict[str, torch.Tensor]:
+        """
+        The exact per-channel decomposition of `typed_scores`, for ALL channels
+        and under an ARBITRARY per-window missing-sensor mask, in ONE upward
+        and ONE downward pass over the circuit (Tier 1.3 / 1.4).
+
+        Returns the same three keys `typed_scores` does, so the two are
+        drop-in comparable (`tests/test_tier1_relational.py` asserts they agree
+        to float32 tolerance — that test is the correctness backbone of the
+        method), plus:
+
+          R           log p(x_c) + log p(x_-c) − log p(x)  == `structural`
+          log_px      log p of the OBSERVED part
+          mask        (N, C) bool, True = observed
+          cost        measured passes / node visits (not an asymptotic claim)
+
+        `mask` is None (all sensors present), (C,) or (N, C) bool.  Channels
+        that are not observed come back as nan in every per-channel field:
+        there is no relational statistic for a sensor that is not there, and
+        reporting the unmasked value would be inventing one.
+
+        Cost: `typed_scores` runs 3·C marginal queries over the whole circuit.
+        This runs partial passes over a circuit whose size grows with C.
+        A fixed-size batch may contain different masks without extra grouped
+        traversals; evaluating M masks for every row still multiplies upper work.
+        """
+        rc = self.relational()
+        Xp = self._prep(X)
+        m_all = None if mask is None else torch.as_tensor(mask, dtype=torch.bool)
+        if m_all is not None and m_all.dim() == 1:
+            m_all = m_all.unsqueeze(0).expand(len(Xp), self.n_channels)
+        chunks: List[Dict[str, torch.Tensor]] = []
+        cost = QueryCost()
+        for s in range(0, len(Xp), batch_size):
+            xb = Xp[s:s + batch_size]
+            mb = None if m_all is None else m_all[s:s + len(xb)].to(xb.device)
+            res = rc.relational_map(xb, mask=mb)
+            cost = cost + res.cost
+            chunks.append({
+                "marginal": -res.log_block.cpu(),
+                "conditional": -(res.log_px.unsqueeze(1) - res.log_rest).cpu(),
+                "R": res.R.cpu(),
+                "log_px": res.log_px.cpu(),
+                "mask": res.mask.cpu(),
+            })
+        out = {k: torch.cat([c[k] for c in chunks], dim=0) for k in chunks[0]}
+        # With one observed channel, its complement is empty: conditional =
+        # marginal and R = 0 analytically. Do not rank floating-point residue.
+        singleton = (out["mask"].sum(1) == 1).unsqueeze(1) & out["mask"]
+        out["conditional"] = torch.where(singleton, out["marginal"], out["conditional"])
+        out["R"] = torch.where(singleton, torch.zeros_like(out["R"]), out["R"])
+        out["structural"] = out["R"]
+        self.last_query_cost = cost                    # type: ignore[attr-defined]
+        out["cost"] = cost
+        return out
+
+    @torch.no_grad()
+    def score_with_masks(self, X: torch.Tensor,
+                         masks: Optional[torch.Tensor] = None,
+                         per_window: bool = False,
+                         batch_size: int = 512) -> torch.Tensor:
+        """
+        −log p(observed part) under missing sensors, generalised from a single
+        fixed dead-channel list to arbitrary masks (Tier 1.4).
+
+        masks — (C,) or (M, C) bool, True = observed.  Returns (N,) for one
+        mask, (N, M) for M of them.  With `per_window=True`, `masks` is (N, C)
+        and every window is scored under its own mask, still in one pass.
+
+        The dead sensors LEAVE THE QUERY (exact marginalisation by subtree
+        deletion); nothing is imputed.  All M patterns share one pass over the
+        leaves, so the cost of the M-th mask is a substitution at the channel
+        boundary and an evaluation of the (small) circuit above it — which is
+        the measured claim Tier 2 puts against a per-mask Schur complement.
+        """
+        rc = self.relational()
+        Xp = self._prep(X)
+        if masks is None:
+            masks = torch.ones(self.n_channels, dtype=torch.bool)
+        M = torch.as_tensor(masks, dtype=torch.bool)
+        cost = QueryCost()
+        outs = []
+        for s in range(0, len(Xp), batch_size):
+            xb = Xp[s:s + batch_size]
+            if per_window:
+                mb = M[s:s + len(xb)].to(xb.device)
+                bv = rc.block_log_values(xb, cost)
+                res = rc.relational_map(block_vals=bv, mask=mb)
+                cost = cost + res.cost
+                outs.append((-res.log_px).cpu())
+            else:
+                lp = rc.masked_log_prob(xb, M.to(xb.device), cost=cost)
+                outs.append((-lp).cpu())
+        self.last_query_cost = cost                    # type: ignore[attr-defined]
+        out = torch.cat(outs, dim=0)
+        return out.squeeze(-1) if (out.dim() == 2 and out.shape[1] == 1
+                                   and M.dim() == 1) else out
 
     @torch.no_grad()
     def time_channel_attribution(self, X: torch.Tensor,
@@ -642,6 +1008,42 @@ class WindowPC:
         from src.probabilistic_circuits import circuit_size
         return circuit_size(self.pc.root)
 
+
+def structure_param_count(window: int, n_channels: int, vtree_method: str, K: int,
+                          leaf_components: int = 1, X: Optional[torch.Tensor] = None,
+                          channel_groups=None, seed: int = 0, **kw) -> int:
+    """Parameter count of a structure at a given K, without training it."""
+    pc = WindowPC(window, n_channels, vtree_method=vtree_method,
+                  n_sum_components=K, leaf_components=leaf_components,
+                  channel_groups=channel_groups, seed=seed, device="cpu", **kw)
+    probe = X if X is not None else torch.zeros(2, window * n_channels)
+    pc.build(probe)
+    return int(pc.size()["parameters"])
+
+
+def match_K(window: int, n_channels: int, vtree_method: str, target: int,
+            k_grid: Sequence[int] = tuple(range(2, 21)),
+            leaf_components: int = 1, X: Optional[torch.Tensor] = None,
+            channel_groups=None, seed: int = 0) -> Tuple[int, int]:
+    """
+    The K whose parameter count is closest to `target`, plus that count.
+
+    Structure comparisons are only interpretable at matched capacity: a vtree
+    that happens to admit more K² product layers is not a better structure, it
+    is a bigger model, and the 2026-08-06 re-measurement showed exactly how far
+    that can move a ranking.  Ties go to the SMALLER K, so a structure never
+    wins the match by being generous with parameters.
+    """
+    best: Optional[Tuple[int, int, int]] = None
+    for K in k_grid:
+        n = structure_param_count(window, n_channels, vtree_method, K,
+                                  leaf_components=leaf_components, X=X,
+                                  channel_groups=channel_groups, seed=seed)
+        key = (abs(n - target), K)
+        if best is None or key < (best[0], best[1]):
+            best = (abs(n - target), K, n)
+    assert best is not None
+    return best[1], best[2]
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Model 2 — joint (window, τ) circuit with exact censored likelihood
@@ -868,9 +1270,19 @@ class SurvivalPC:
 
     @torch.no_grad()
     def predict(self, X: torch.Tensor, check_degenerate: bool = True,
-                min_sd_frac: float = 0.05) -> Dict[str, torch.Tensor]:
+                min_sd_frac: float = 0.05,
+                alpha: float = 0.10) -> Dict[str, torch.Tensor]:
         """
         Point + distributional RUL predictions in CYCLES.
+
+        `alpha` selects the NOMINAL level of the `q_lo`/`q_hi` (and
+        `q_lo_edge`/`q_hi_edge`) endpoints: a central 1−α interval.  The fixed
+        `q05`/`q95` pair is always the 90% one and is never re-levelled, so
+        every number already recorded against those names keeps its meaning —
+        the same one-thing-at-a-time rule as the σ-floor flag.  Callers that
+        evaluate coverage at a level must read the α-matched endpoints, which
+        is what `_eval_survival` got wrong: it scored the 90% endpoints with an
+        80% penalty and reported the pair as an α=0.20 result.
 
         GUARDRAIL (hand-off §3).  A predictive that is constant across inputs
         is refused instead of returned.  This is not defensive programming for
@@ -937,10 +1349,15 @@ class SurvivalPC:
             return (cdf < level).sum(1).clamp(max=self.n_bins - 1)
 
         lo_i, hi_i = q_idx(0.05), q_idx(0.95)
+        a = float(alpha)
+        alo_i, ahi_i = q_idx(a / 2.0), q_idx(1.0 - a / 2.0)
         return {"pmf": p, "mean": mean, "mode": mode,
                 "q05": centers[lo_i], "q50": centers[q_idx(0.50)],
                 "q95": centers[hi_i],
-                "q05_edge": edges[lo_i], "q95_edge": edges[hi_i + 1]}
+                "q05_edge": edges[lo_i], "q95_edge": edges[hi_i + 1],
+                "alpha": torch.tensor(a),
+                "q_lo": centers[alo_i], "q_hi": centers[ahi_i],
+                "q_lo_edge": edges[alo_i], "q_hi_edge": edges[ahi_i + 1]}
 
     def size(self) -> Dict[str, int]:
         return self.pc.size()

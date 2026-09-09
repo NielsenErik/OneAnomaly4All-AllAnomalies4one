@@ -1,0 +1,53 @@
+# SMOKE TEST for Tier 1 — both new stages, one seed, tiny budget, synthetic.
+#
+# Purpose: prove the gate and the relational stage are wired end to end before
+# a real-data batch.  It is NOT an experiment: at this budget the verdict line
+# is meaningless and must never be reported as one.
+#
+#   PYTHONPATH=. python -m poc.time_series.runner config/ts/tier1_smoke.yaml
+name: tier1_smoke
+description: |
+  Wiring check for Tier 1.2 (structure gate) and Tier 1.3-1.6 (two-pass
+  relational map, masks, subset search, mask-conditional calibration).
+
+seeds: [0]
+device: cpu
+evaluator: layered
+stages: [structure_gate, relational]
+log_root: logs/ts/tier1_smoke
+
+dataset:
+  source: synthetic
+  units: 24
+  channels: 8
+  regimes: 2
+  window: 6
+  stride: 3
+  cap: 130
+  val_units: 0.25
+
+model:
+  vtree: channel_blocked
+  K: 4
+  leaf_components: 1
+  # NOT 5.  At 5 (and at 15) this circuit is still EXACTLY factorised across
+  # channels — dependence 0.0000 nats — and a factorised model makes every
+  # relational quantity identically zero, so the wiring check would pass over a
+  # table of structural zeros.  40 puts it past the crossover (0.007 nats at 30,
+  # 2.03 at 60 on this task), which is what the stage's own guard demands.
+  epochs: 40
+
+eval:
+  baselines: false
+  fast_baselines: true
+  plots: false
+  max_explain_windows: 200
+  gate_structures: [channel_blocked, chow_liu, random]
+  gate_k_grid: [2, 4, 6]
+  oracle_check_windows: 24
+  mask_ks: [1, 2]
+  masks_per_k: 1
+  subset_windows: 24
+  subset_masks: 1
+  subset_max_size: 2
+  subset_beam: 3

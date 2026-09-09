@@ -398,6 +398,40 @@ Measured on real data, the exact-marginal route beats mean-imputation by a wide
 margin (CRPS 8.64 vs 16.00 in one recorded run). This is a query a
 reconstruction-based detector cannot express at all.
 
+### Query 2b — EVERY channel at once, under ANY mask, in two passes
+
+Query 2 above and Query 3 below each answer ONE question per circuit pass:
+"what if channel 7 is gone", "how odd is channel 3 given the rest".  Ask them
+for all C channels and that is 3·C passes — and once more per missing-sensor
+pattern on top.
+
+If each channel's timesteps are ONE subtree of the vtree
+(`vtree: channel_blocked`), there is a single place in the circuit where that
+channel enters.  Then one upward pass and one downward pass answer all of them
+together:
+
+```
+   upward   α_u(x)   what each channel's sub-circuit says about its own data
+   downward β_u(x)   what the REST of the circuit does with that answer
+
+   p(x)      = Σ_u β_u · α_u          (decomposability ⇒ no other terms)
+   p(x_-c)   = Σ_u β_u · ∫α_u         delete the subtree: sensor c leaves
+   p(x_c)    = Σ_u β̄_u · α_u          β̄ = the same pass with all else deleted,
+                                       data-independent, computed ONCE
+```
+
+A missing sensor is then a substitution at that boundary rather than a re-run,
+so a batch where every window has a DIFFERENT sensor failure still costs one
+pass.  On real FD001 (C=15, 23,921 nodes) the 3·C route takes 22.3 s and this
+takes 0.7 s, agreeing to 2.4e-4 nats — and the two are checked against each
+other on every run, because the fast one is only correct while the channel
+boundary exists (`BlockStructureError` if it does not).
+
+`relational_map(X, mask=...)` is the whole interface; `R_c = log p(x_c) +
+log p(x_-c) − log p(x)` is the diagnostic statistic (it is exactly the
+`structural` term of Query 3 below — the algorithm is new here, the identity
+is not).
+
 ### Query 3 — the typed decomposition (localisation)
 
 For each channel `c`, two views, both exact:
@@ -567,8 +601,8 @@ One YAML → many runs → one table.
             │  one run = one variant × one seed
             ▼
    ┌──────────────────┐
-   │   pipeline       │  stages: ad | explain | rul | calibration | scaling
-   └────────┬─────────┘
+   │   pipeline       │  stages: ad | structure_gate | relational |
+   └────────┬─────────┘           explain | rul | calibration | scaling
             ▼
    logs/ts/<experiment>/<variant>/seed<N>/
         ├── config.json     the RESOLVED config (no guessing later)
@@ -584,11 +618,13 @@ One YAML → many runs → one table.
    aggregate.py  ->  summary.md / summary.csv   (mean ± sd over seeds)
 ```
 
-### The five stages
+### The seven stages
 
 | stage | what it measures |
 |---|---|
 | `ad` | detection vs the full baseline suite, + the dead-sensor query, + the typed split |
+| `structure_gate` | **the kill gate**: blocked vtree vs Chow-Liu vs random at MATCHED parameters, on validation, against a budget pre-registered in the config |
+| `relational` | the two-pass diagnosis map vs its 3·C oracle, arbitrary sensor masks, subset search, mask-conditional calibration |
 | `explain` | localisation vs ground truth, completeness (a theorem), faithfulness (deletion curves) |
 | `rul` | censoring ablation, accuracy vs ridge/MLP/CQR, survival under partial evidence |
 | `calibration` | split conformal on the circuit's own predictive, **split by engine** |
@@ -634,12 +670,17 @@ Tiers are ordered so that an interrupted night still ran the tiers that decide.
 ```bash
 export PYTHONPATH=.
 
-# 0. the fast checks — 17 seconds, run these BEFORE a batch, not after
+# 0. the fast checks — ~30 seconds, run these BEFORE a batch, not after
 pytest tests/test_ad_diagnostics.py tests/test_rul_diagnostics.py \
-       tests/test_experiment_hygiene.py -q
+       tests/test_experiment_hygiene.py tests/test_tier1_relational.py -q
 
 # 1. wiring check, every stage, a few epochs — ~3 min
 bash poc/time_series/launch/run_smoke.sh
+python -m poc.time_series.runner config/ts/tier1_smoke.yaml   # the Tier 1 stages
+
+# 1b. THE KILL GATE — run and read this before trusting any relational number
+python -m poc.time_series.runner config/ts/tier1_kill_gate.yaml
+python -m poc.time_series.run_tier1_gate logs/ts/tier1_kill_gate
 
 # 2. one experiment
 bash poc/time_series/launch/run_config.sh config/ts/cmapss_ad.yaml

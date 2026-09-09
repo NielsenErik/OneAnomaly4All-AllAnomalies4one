@@ -1,0 +1,227 @@
+[16:05:59] === run start · seed0 · seed 0 · hash dce124abdb3a ===
+[16:05:59] stages ['structure_gate', 'relational'] · device cpu · dataset synthetic
+[16:05:59] --- stage: structure_gate ---
+[16:05:59]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.1s)
+[16:05:59]   task: {'kind': 'ad', 'n_train': 353, 'n_val': 184, 'n_test': 481, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.20166319608688354, 'kind_counts': {'normal': 384, 'decouple': 11, 'offset': 8, 'drift': 5, 'organic': 56, 'spike': 9, 'desync': 8}, 'train_units': 10, 'val_units': 4, 'test_units': 10, 'n_val_windows': 184, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic'}
+[16:05:59]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+[16:05:59]   gate: 60 clean val windows for NLL/checkpoint, 124 labelled val windows (45 anomalous) for detection
+[16:06:01]   gate: matching every structure to chow_liu K=4 = 3,344 parameters
+    [pc] epoch   0  nll   64.519  val   63.688
+    [pc] epoch   1  nll   63.712  val   63.282
+    [pc] epoch   2  nll   63.195  val   62.983
+    [pc] epoch   3  nll   62.888  val   62.676
+    [pc] epoch   4  nll   62.691  val   62.376
+[16:06:03] !!! FAILED after 3.4s: FileNotFoundError: [Errno 2] No such file or directory: 'logs/ts/tier1_smoke/default/seed0/history_gate/channel_blocked_train_nll.csv'
+[16:06:11] === run start · seed0 · seed 0 · hash dce124abdb3a ===
+[16:06:11] stages ['structure_gate', 'relational'] · device cpu · dataset synthetic
+[16:06:11] --- stage: structure_gate ---
+[16:06:11]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.1s)
+[16:06:11]   task: {'kind': 'ad', 'n_train': 353, 'n_val': 184, 'n_test': 481, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.20166319608688354, 'kind_counts': {'normal': 384, 'decouple': 11, 'offset': 8, 'drift': 5, 'organic': 56, 'spike': 9, 'desync': 8}, 'train_units': 10, 'val_units': 4, 'test_units': 10, 'n_val_windows': 184, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic'}
+[16:06:11]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+[16:06:12]   gate: 60 clean val windows for NLL/checkpoint, 124 labelled val windows (45 anomalous) for detection
+[16:06:13]   gate: matching every structure to chow_liu K=4 = 3,344 parameters
+    [pc] epoch   0  nll   64.519  val   63.688
+    [pc] epoch   1  nll   63.712  val   63.282
+    [pc] epoch   2  nll   63.195  val   62.983
+    [pc] epoch   3  nll   62.888  val   62.676
+    [pc] epoch   4  nll   62.691  val   62.376
+[16:06:15]   gate_channel_blocked_train_nll: first=64.5189 last=62.6914 (5 epochs)
+[16:06:15]   gate_channel_blocked_val_nll: first=63.6884 last=62.3760 (5 epochs)
+[16:06:15]   gate_channel_blocked: fit 1.4s · 3,344 params · score sd 7.033 · device cpu · layered · 1,237 win/s
+[16:06:15]   gate_channel_blocked: validation on 184 windows from 4 held-out units · best epoch 4 of 5 · val nll 62.376
+[16:06:15]   channel_blocked  K=4   params    3,344  val_nll   61.339  val_auroc 0.7094  blocked=True
+    [pc] epoch   0  nll   64.515  val   63.728
+    [pc] epoch   1  nll   63.728  val   63.294
+    [pc] epoch   2  nll   63.216  val   62.979
+    [pc] epoch   3  nll   62.899  val   62.657
+    [pc] epoch   4  nll   62.700  val   62.359
+[16:06:16]   gate_chow_liu_train_nll: first=64.5149 last=62.6999 (5 epochs)
+[16:06:16]   gate_chow_liu_val_nll: first=63.7275 last=62.3593 (5 epochs)
+[16:06:16]   gate_chow_liu: fit 0.3s · 3,344 params · score sd 7.039 · device cpu · layered · 5,189 win/s
+[16:06:16]   gate_chow_liu: validation on 184 windows from 4 held-out units · best epoch 4 of 5 · val nll 62.359
+[16:06:16]   chow_liu         K=4   params    3,344  val_nll   61.335  val_auroc 0.7091  blocked=True
+    [pc] epoch   0  nll   64.499  val   63.760
+    [pc] epoch   1  nll   63.722  val   63.273
+    [pc] epoch   2  nll   63.210  val   62.949
+    [pc] epoch   3  nll   62.907  val   62.647
+    [pc] epoch   4  nll   62.723  val   62.372
+[16:06:17]   gate_random_train_nll: first=64.4985 last=62.7235 (5 epochs)
+[16:06:17]   gate_random_val_nll: first=63.7604 last=62.3722 (5 epochs)
+[16:06:17]   gate_random: fit 0.3s · 3,344 params · score sd 7.086 · device cpu · layered · 5,291 win/s
+[16:06:17]   gate_random: validation on 184 windows from 4 held-out units · best epoch 4 of 5 · val nll 62.372
+[16:06:17]   random           K=4   params    3,344  val_nll   61.357  val_auroc 0.7114  blocked=False
+[16:06:17]   GATE (delta_auroc >= -0.02 and delta_nll_frac <= 0.05): PASS — channel_blocked is -0.0020 AUROC and +0.01% NLL from the best unblocked structure
+[16:06:17] --- stage structure_gate done in 5.8s ---
+[16:06:17] --- stage: relational ---
+[16:06:17]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.1s)
+[16:06:17]   task: {'kind': 'ad', 'n_train': 353, 'n_val': 184, 'n_test': 481, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.20166319608688354, 'kind_counts': {'normal': 384, 'decouple': 11, 'offset': 8, 'drift': 5, 'organic': 56, 'spike': 9, 'desync': 8}, 'train_units': 10, 'val_units': 4, 'test_units': 10, 'n_val_windows': 184, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic'}
+[16:06:17]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+[16:06:17]   relational: capped test set to 200 windows
+    [pc] epoch   0  nll   64.519  val   63.688
+    [pc] epoch   1  nll   63.712  val   63.282
+    [pc] epoch   2  nll   63.195  val   62.983
+    [pc] epoch   3  nll   62.888  val   62.676
+    [pc] epoch   4  nll   62.691  val   62.376
+[16:06:18]   pc_train_nll: first=64.5189 last=62.6914 (5 epochs)
+[16:06:18]   pc_val_nll: first=63.6884 last=62.3760 (5 epochs)
+[16:06:18]   pc: fit 0.3s · 3,344 params · score sd 7.033 · device cpu · layered · 5,281 win/s
+[16:06:18]   pc: validation on 184 windows from 4 held-out units · best epoch 4 of 5 · val nll 62.376
+[16:06:18]   two-pass vs oracle: max |Δ| 1.34e-05 nats over 24 windows (0.05s oracle → 0.05s two-pass)
+[16:06:18]   dependence |Σ log p(x_c) − log p(x)| = 0.0000 nats (FACTORISED — relational scores are empty)
+[16:06:18]   mask full               obs= 8  auroc 0.8867  struct 0.5486  loc prec@k 0.312 (n=16, 0 unfindable)
+[16:06:18]   mask random1:3          obs= 7  auroc 0.8292  struct 0.5277  loc prec@k 0.167 (n=15, 1 unfindable)
+[16:06:18]   mask random2:2-5        obs= 6  auroc 0.8748  struct 0.5213  loc prec@k 0.233 (n=15, 1 unfindable)
+[16:06:18]   mask bank0:0-1-2        obs= 5  auroc 0.9137  struct 0.5691  loc prec@k 0.182 (n=11, 5 unfindable)
+[16:06:18]   mask bank1:3-4-5        obs= 5  auroc 0.7194  struct 0.4927  loc prec@k 0.269 (n=13, 3 unfindable)
+[16:06:18]   mask bank2:6-7          obs= 6  auroc 0.8527  struct 0.5830  loc prec@k 0.167 (n=15, 1 unfindable)
+[16:06:18]   subset search full               exact 0.000 jaccard 0.156  candidates 36  passes 3 vs naive 73
+[16:06:19]   subset search random1:3          exact 0.133 jaccard 0.233  candidates 28  passes 3 vs naive 57
+[16:06:19]   calibration: worst |FPR − α| = 0.050 mask-conditional vs 0.050 mask-blind (α=0.05, 6 masks)
+[16:06:19] --- stage relational done in 1.5s ---
+[16:06:19] === run ok · 7.5s · peak RSS 0.361 GB ===
+[16:07:34] === run start · seed0 · seed 0 · hash b29615b07b1f ===
+[16:07:34] stages ['structure_gate', 'relational'] · device cpu · dataset synthetic
+[16:07:34] --- stage: structure_gate ---
+[16:07:34]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.1s)
+[16:07:34]   task: {'kind': 'ad', 'n_train': 353, 'n_val': 184, 'n_test': 481, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.20166319608688354, 'kind_counts': {'normal': 384, 'decouple': 11, 'offset': 8, 'drift': 5, 'organic': 56, 'spike': 9, 'desync': 8}, 'train_units': 10, 'val_units': 4, 'test_units': 10, 'n_val_windows': 184, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic'}
+[16:07:34]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+[16:07:34]   gate: 60 clean val windows for NLL/checkpoint, 124 labelled val windows (45 anomalous) for detection
+[16:07:35]   gate: matching every structure to chow_liu K=4 = 3,344 parameters
+    [pc] epoch   0  nll   64.519  val   63.688
+    [pc] epoch   1  nll   63.712  val   63.282
+    [pc] epoch   2  nll   63.195  val   62.983
+    [pc] epoch   3  nll   62.888  val   62.676
+    [pc] epoch   4  nll   62.691  val   62.376
+[16:07:37]   gate_channel_blocked_train_nll: first=64.5189 last=62.6914 (5 epochs)
+[16:07:37]   gate_channel_blocked_val_nll: first=63.6884 last=62.3760 (5 epochs)
+[16:07:37]   gate_channel_blocked: fit 1.4s · 3,344 params · score sd 7.033 · device cpu · layered · 1,302 win/s
+[16:07:37]   gate_channel_blocked: validation on 184 windows from 4 held-out units · best epoch 4 of 5 · val nll 62.376
+[16:07:37]   channel_blocked  K=4   params    3,344  val_nll   61.339  val_auroc 0.7094  dependence   0.000 nats  blocked=True
+    [pc] epoch   0  nll   64.515  val   63.728
+    [pc] epoch   1  nll   63.728  val   63.294
+    [pc] epoch   2  nll   63.216  val   62.979
+    [pc] epoch   3  nll   62.899  val   62.657
+    [pc] epoch   4  nll   62.700  val   62.359
+[16:07:38]   gate_chow_liu_train_nll: first=64.5149 last=62.6999 (5 epochs)
+[16:07:38]   gate_chow_liu_val_nll: first=63.7275 last=62.3593 (5 epochs)
+[16:07:38]   gate_chow_liu: fit 0.3s · 3,344 params · score sd 7.039 · device cpu · layered · 5,218 win/s
+[16:07:38]   gate_chow_liu: validation on 184 windows from 4 held-out units · best epoch 4 of 5 · val nll 62.359
+[16:07:38]   chow_liu         K=4   params    3,344  val_nll   61.335  val_auroc 0.7091  dependence   0.000 nats  blocked=True
+    [pc] epoch   0  nll   64.499  val   63.760
+    [pc] epoch   1  nll   63.722  val   63.273
+    [pc] epoch   2  nll   63.210  val   62.949
+    [pc] epoch   3  nll   62.907  val   62.647
+    [pc] epoch   4  nll   62.723  val   62.372
+[16:07:39]   gate_random_train_nll: first=64.4985 last=62.7235 (5 epochs)
+[16:07:39]   gate_random_val_nll: first=63.7604 last=62.3722 (5 epochs)
+[16:07:39]   gate_random: fit 0.3s · 3,344 params · score sd 7.086 · device cpu · layered · 5,185 win/s
+[16:07:39]   gate_random: validation on 184 windows from 4 held-out units · best epoch 4 of 5 · val nll 62.372
+[16:07:39]   random           K=4   params    3,344  val_nll   61.357  val_auroc 0.7114  dependence   0.000 nats  blocked=False
+[16:07:39]   GATE (max dependence >= 0.001 nats before any comparison): VOID — every arm is factorised across channels (max dependence 3.19e-04 < 0.001 nats), so the structure comparison — and every relational quantity below it — is identically empty
+[16:07:39] --- stage structure_gate done in 5.6s ---
+[16:07:39] --- stage: relational ---
+[16:07:39]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[16:07:39]   task: {'kind': 'ad', 'n_train': 353, 'n_val': 184, 'n_test': 481, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.20166319608688354, 'kind_counts': {'normal': 384, 'decouple': 11, 'offset': 8, 'drift': 5, 'organic': 56, 'spike': 9, 'desync': 8}, 'train_units': 10, 'val_units': 4, 'test_units': 10, 'n_val_windows': 184, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic'}
+[16:07:39]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+[16:07:39]   relational: capped test set to 200 windows
+    [pc] epoch   0  nll   64.519  val   63.688
+    [pc] epoch   1  nll   63.712  val   63.282
+    [pc] epoch   2  nll   63.195  val   62.983
+    [pc] epoch   3  nll   62.888  val   62.676
+    [pc] epoch   4  nll   62.691  val   62.376
+[16:07:40]   pc_train_nll: first=64.5189 last=62.6914 (5 epochs)
+[16:07:40]   pc_val_nll: first=63.6884 last=62.3760 (5 epochs)
+[16:07:40]   pc: fit 0.3s · 3,344 params · score sd 7.033 · device cpu · layered · 5,404 win/s
+[16:07:40]   pc: validation on 184 windows from 4 held-out units · best epoch 4 of 5 · val nll 62.376
+[16:07:40]   two-pass vs oracle: max |Δ| 1.34e-05 nats over 24 windows (0.04s oracle → 0.05s two-pass)
+[16:07:40]   dependence |Σ log p(x_c) − log p(x)| = 0.0000 nats (FACTORISED — relational scores are empty)
+[16:07:40]   mask full               obs= 8  auroc 0.8867  struct 0.5486  loc prec@k 0.312 (n=16, 0 unfindable)
+[16:07:40]   mask random1:3          obs= 7  auroc 0.8292  struct 0.5277  loc prec@k 0.167 (n=15, 1 unfindable)
+[16:07:40]   mask random2:2-5        obs= 6  auroc 0.8748  struct 0.5213  loc prec@k 0.233 (n=15, 1 unfindable)
+[16:07:40]   mask bank0:0-1-2        obs= 5  auroc 0.9137  struct 0.5691  loc prec@k 0.182 (n=11, 5 unfindable)
+[16:07:40]   mask bank1:3-4-5        obs= 5  auroc 0.7194  struct 0.4927  loc prec@k 0.269 (n=13, 3 unfindable)
+[16:07:40]   mask bank2:6-7          obs= 6  auroc 0.8527  struct 0.5830  loc prec@k 0.167 (n=15, 1 unfindable)
+[16:07:41]   subset search full               exact 0.000 jaccard 0.156  candidates 36  passes 3 vs naive 73
+[16:07:41]   subset search random1:3          exact 0.133 jaccard 0.233  candidates 28  passes 3 vs naive 57
+[16:07:41]   calibration: worst |FPR − α| = 0.050 mask-conditional vs 0.050 mask-blind (α=0.05, 6 masks)
+[16:07:41] --- stage relational done in 1.5s ---
+[16:07:41] === run ok · 7.3s · peak RSS 0.377 GB ===
+[16:08:37] === run start · seed0 · seed 0 · hash 9ab89d0c012d ===
+[16:08:37] stages ['structure_gate', 'relational'] · device cpu · dataset synthetic
+[16:08:37] --- stage: structure_gate ---
+[16:08:37]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.1s)
+[16:08:37]   task: {'kind': 'ad', 'n_train': 353, 'n_val': 184, 'n_test': 481, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.20166319608688354, 'kind_counts': {'normal': 384, 'decouple': 11, 'offset': 8, 'drift': 5, 'organic': 56, 'spike': 9, 'desync': 8}, 'train_units': 10, 'val_units': 4, 'test_units': 10, 'n_val_windows': 184, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic'}
+[16:08:37]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+[16:08:37]   gate: 60 clean val windows for NLL/checkpoint, 124 labelled val windows (45 anomalous) for detection
+[16:08:38]   gate: matching every structure to chow_liu K=4 = 3,344 parameters
+    [pc] epoch   0  nll   64.519  val   63.688
+    [pc] epoch   5  nll   62.615  val   62.184
+    [pc] epoch  10  nll   62.344  val   61.950
+    [pc] epoch  15  nll   61.626  val   61.322
+    [pc] epoch  20  nll   60.050  val   59.630
+    [pc] epoch  25  nll   56.226  val   56.604
+    [pc] epoch  30  nll   51.213  val   52.567
+    [pc] epoch  35  nll   47.461  val   49.283
+[16:08:41]   gate_channel_blocked_train_nll: first=64.5189 last=44.1266 (40 epochs)
+[16:08:41]   gate_channel_blocked_val_nll: first=63.6884 last=45.9177 (40 epochs)
+[16:08:41]   gate_channel_blocked: fit 2.4s · 3,344 params · score sd 9.373 · device cpu · layered · 5,942 win/s
+[16:08:41]   gate_channel_blocked: validation on 184 windows from 4 held-out units · best epoch 39 of 40 · val nll 45.918
+[16:08:41]   channel_blocked  K=4   params    3,344  val_nll   44.383  val_auroc 0.6987  dependence   0.252 nats  blocked=True
+    [pc] epoch   0  nll   64.515  val   63.728
+    [pc] epoch   5  nll   62.627  val   62.180
+    [pc] epoch  10  nll   62.296  val   61.879
+    [pc] epoch  15  nll   61.617  val   61.397
+    [pc] epoch  20  nll   59.978  val   59.911
+    [pc] epoch  25  nll   55.807  val   56.300
+    [pc] epoch  30  nll   50.178  val   51.563
+    [pc] epoch  35  nll   45.540  val   48.815
+[16:08:43]   gate_chow_liu_train_nll: first=64.5149 last=43.1938 (40 epochs)
+[16:08:43]   gate_chow_liu_val_nll: first=63.7275 last=46.5104 (40 epochs)
+[16:08:43]   gate_chow_liu: fit 1.5s · 3,344 params · score sd 8.986 · device cpu · layered · 9,237 win/s
+[16:08:43]   gate_chow_liu: validation on 184 windows from 4 held-out units · best epoch 39 of 40 · val nll 46.510
+[16:08:44]   chow_liu         K=4   params    3,344  val_nll   46.400  val_auroc 0.7055  dependence   0.001 nats  blocked=True
+    [pc] epoch   0  nll   64.499  val   63.760
+    [pc] epoch   5  nll   62.666  val   62.230
+    [pc] epoch  10  nll   62.680  val   62.289
+    [pc] epoch  15  nll   62.598  val   62.471
+    [pc] epoch  20  nll   62.418  val   62.091
+    [pc] epoch  25  nll   61.875  val   61.795
+    [pc] epoch  30  nll   60.362  val   60.355
+    [pc] epoch  35  nll   58.502  val   58.890
+[16:08:46]   gate_random_train_nll: first=64.4985 last=56.7514 (40 epochs)
+[16:08:46]   gate_random_val_nll: first=63.7604 last=57.2375 (40 epochs)
+[16:08:46]   gate_random: fit 1.4s · 3,344 params · score sd 7.585 · device cpu · layered · 9,825 win/s
+[16:08:46]   gate_random: validation on 184 windows from 4 held-out units · best epoch 39 of 40 · val nll 57.238
+[16:08:46]   random           K=4   params    3,344  val_nll   56.289  val_auroc 0.7319  dependence   3.388 nats  blocked=False
+[16:08:46]   GATE (delta_auroc >= -0.02 and delta_nll_frac <= 0.05): FAIL — channel_blocked is -0.0332 AUROC and -4.35% NLL from the best unblocked structure
+[16:08:46] --- stage structure_gate done in 8.7s ---
+[16:08:46] --- stage: relational ---
+[16:08:46]   data: FleetPair(synthetic: train=24 units, C=8, regimes=2, cap=130)  (0.0s)
+[16:08:46]   task: {'kind': 'ad', 'n_train': 353, 'n_val': 184, 'n_test': 481, 'd': 48, 'window': 6, 'n_channels': 8, 'anomaly_rate': 0.20166319608688354, 'kind_counts': {'normal': 384, 'decouple': 11, 'offset': 8, 'drift': 5, 'organic': 56, 'spike': 9, 'desync': 8}, 'train_units': 10, 'val_units': 4, 'test_units': 10, 'n_val_windows': 184, 'n_regimes': 2, 'seed': 0, 'dataset': 'synthetic', 'cap': 130.0, 'source': 'synthetic simulator', 'units': 24, 'source_name': 'synthetic', 'source_kind': 'synthetic'}
+[16:08:46]   caveat: Evidence about machinery, not about machines: the background process, the degradation and the anomalies are all ours.
+[16:08:46]   relational: capped test set to 200 windows
+    [pc] epoch   0  nll   64.519  val   63.688
+    [pc] epoch   5  nll   62.615  val   62.184
+    [pc] epoch  10  nll   62.344  val   61.950
+    [pc] epoch  15  nll   61.626  val   61.322
+    [pc] epoch  20  nll   60.050  val   59.630
+    [pc] epoch  25  nll   56.226  val   56.604
+    [pc] epoch  30  nll   51.213  val   52.567
+    [pc] epoch  35  nll   47.461  val   49.283
+[16:08:47]   pc_train_nll: first=64.5189 last=44.1266 (40 epochs)
+[16:08:47]   pc_val_nll: first=63.6884 last=45.9177 (40 epochs)
+[16:08:47]   pc: fit 1.4s · 3,344 params · score sd 9.373 · device cpu · layered · 9,739 win/s
+[16:08:47]   pc: validation on 184 windows from 4 held-out units · best epoch 39 of 40 · val nll 45.918
+[16:08:48]   two-pass vs oracle: max |Δ| 1.34e-05 nats over 24 windows (0.04s oracle → 0.04s two-pass)
+[16:08:48]   dependence |Σ log p(x_c) − log p(x)| = 0.2473 nats (ok)
+[16:08:48]   mask full               obs= 8  auroc 0.8769  struct 0.6084  loc prec@k 0.219 (n=16, 0 unfindable)
+[16:08:48]   mask random1:3          obs= 7  auroc 0.8438  struct 0.6135  loc prec@k 0.200 (n=15, 1 unfindable)
+[16:08:48]   mask random2:2-5        obs= 6  auroc 0.8775  struct 0.5333  loc prec@k 0.133 (n=15, 1 unfindable)
+[16:08:48]   mask bank0:0-1-2        obs= 5  auroc 0.8831  struct 0.4761  loc prec@k 0.227 (n=11, 5 unfindable)
+[16:08:48]   mask bank1:3-4-5        obs= 5  auroc 0.7708  struct 0.5495  loc prec@k 0.077 (n=13, 3 unfindable)
+[16:08:48]   mask bank2:6-7          obs= 6  auroc 0.8305  struct 0.5268  loc prec@k 0.400 (n=15, 1 unfindable)
+[16:08:48]   subset search full               exact 0.062 jaccard 0.208  candidates 36  passes 3 vs naive 73
+[16:08:48]   subset search random1:3          exact 0.000 jaccard 0.200  candidates 28  passes 3 vs naive 57
+[16:08:48]   calibration: worst |FPR − α| = 0.024 mask-conditional vs 0.024 mask-blind (α=0.05, 6 masks)
+[16:08:48] --- stage relational done in 2.5s ---
+[16:08:48] === run ok · 11.4s · peak RSS 0.386 GB ===

@@ -30,7 +30,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 import numpy as np
 
-from .ts_logging import group_stats, read_results
+from .ts_logging import group_stats, provenance_report, read_results
 
 # Metric shown first per stage, and the direction that counts as "better".
 PRIMARY = {
@@ -43,7 +43,7 @@ PRIMARY = {
 }
 
 PREFERRED_COLUMNS = {
-    "ad": ["auroc", "ap", "train_nll", "fit_s", "params"],
+    "ad": ["auroc", "ap", "val_nll", "train_nll", "fit_s", "params"],
     "explain": ["loc_auroc", "prec_at_k", "deletion_auc",
                 "max_residual_nats", "mean_residual_nats"],
     # picp/picp_edge and pit_var sit next to each other on purpose: the three
@@ -150,16 +150,27 @@ def format_table(stage: str, stats: List[dict], max_cols: int = 8) -> str:
 
 def aggregate_root(root: str, print_tables: bool = True,
                    stage_filter: Optional[str] = None) -> List[dict]:
-    rows = read_results(root)
+    # Only rows from attempts that finished, or from stages that finished
+    # before a later stage crashed.  What was refused is printed and recorded,
+    # never silently dropped: an aggregate over five of twelve runs is a
+    # different claim from an aggregate over twelve.
+    prov = provenance_report(root)
+    rows = read_results(root, require_ok=True)
+    if prov["rows_dropped"]:
+        print(f"provenance: using {prov['rows_used']} of {prov['rows_total']} "
+              f"rows; dropped {prov['rows_dropped']} from runs that did not "
+              f"complete ({', '.join(prov['incomplete_runs'][:6])}"
+              f"{'...' if len(prov['incomplete_runs']) > 6 else ''})")
     if stage_filter:
         rows = [r for r in rows if r.get("stage") == stage_filter]
     if not rows:
-        print(f"no results.jsonl found under {root}")
+        print(f"no complete results.jsonl rows found under {root}")
         return []
     stats = aggregate_rows(rows)
 
     with open(os.path.join(root, "summary.json"), "w") as f:
-        json.dump({"root": root, "n_rows": len(rows), "results": stats}, f, indent=2)
+        json.dump({"root": root, "n_rows": len(rows), "provenance": prov,
+                   "results": stats}, f, indent=2)
 
     cols: List[str] = []
     for s in stats:
@@ -183,7 +194,10 @@ def aggregate_root(root: str, print_tables: bool = True,
             print(f"\n=== {stage} (mean ± sd over seeds) ===\n")
             print(t)
     with open(os.path.join(root, "summary.md"), "w") as f:
-        f.write(f"# Summary — {root}\n\n{len(rows)} result rows.\n")
+        f.write(f"# Summary — {root}\n\n{len(rows)} result rows "
+                f"from completed stages "
+                f"({prov['rows_dropped']} rows dropped as incomplete; "
+                f"runs by status: {prov['runs_by_status']}).\n")
         f.write("".join(blocks))
 
     if print_tables:

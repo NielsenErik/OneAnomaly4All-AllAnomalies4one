@@ -27,7 +27,7 @@ bash poc/time_series/launch/run_workstation.sh
 | `JOBS` | `1` | configs run in parallel |
 | `THREADS` | `8` (`4` when `JOBS>1`) | torch/OMP threads **per job** |
 | `OUT` | `logs/ts` | log root |
-| `TIERS` | `1 2 3 4 5` | which tiers `run_workstation.sh` runs |
+| `TIERS` | `1 2 3 4 5` | which tiers `run_workstation.sh` runs (6 exists and is opt-in) |
 | `FORCE` | unset | redo runs that already completed |
 | `DRY` | unset | print the plan, run nothing |
 | `EXTRA` | empty | extra args forwarded to the runner |
@@ -63,6 +63,7 @@ caching a compact `.npz`; run those **one at a time the first time**
 | 3 | `ncmapss_ad`, `ncmapss_rul` | does it survive real flight conditions? |
 | 4 | `synthetic_*`, `scaling` | the control arm every real number is read against |
 | 5 | `cmapss_structure`, `capacity_sweep` | is it the structure or just the budget? |
+| 6 | `tier1_kill_gate` **then** `tier1_relational` | the 2026-09-08 plan's Tier 1: can a channel-BLOCKED structure hold density at matched parameters (the kill gate), and if so does the two-pass relational diagnosis survive sensors dropping out? Opt-in (`TIERS=6`); the second config runs only if the gate says PASS. |
 
 Tiers are ordered by decision value, not by cost: an interrupted batch should
 still have answered the questions that matter.

@@ -37,6 +37,7 @@ from .config import (
     load_config,
     resolved_for_hash,
     run_dir_for,
+    validate,
 )
 from .datasets import dataset_available, dataset_id
 from .pipeline import run_stages
@@ -103,6 +104,8 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     seeds = list(cfg["seeds"])
     variants = expand_variants(cfg)
+    for variant in variants:
+        validate(variant)
     if args.only:
         variants = [v for v in variants if args.only in v["variant"]]
         if not variants:
