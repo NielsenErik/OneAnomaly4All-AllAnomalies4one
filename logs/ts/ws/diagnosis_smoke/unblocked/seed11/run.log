@@ -1,0 +1,21 @@
+[16:03:32] === run start · seed11 · seed 11 · hash db1b9b6fa34a ===
+[16:03:32] stages ['diagnosis'] · device cuda · dataset synthetic
+[16:03:32] --- stage: diagnosis ---
+    [pc] epoch   0  nll    8.772  val    8.492
+    [pc] epoch   1  nll    8.698  val    8.544
+    [pc] epoch   2  nll    8.674  val    8.620
+    [pc] restored epoch 0 (selected by nll; val nll 8.492, last 8.620)
+[16:03:32]   pc_train_nll: first=8.7722 last=8.6740 (3 epochs)
+[16:03:32]   pc_train_objective: first=8.7722 last=8.6740 (3 epochs)
+[16:03:32]   pc_selection_loss: first=8.4920 last=8.6200 (3 epochs)
+[16:03:32]   pc_val_nll: first=8.4920 last=8.6200 (3 epochs)
+[16:03:32]   pc: fit 0.0s · 60 params · score sd 2.865 · device cuda · layered · 9,158 win/s
+[16:03:32]   pc: validation on 20 windows from explicit subset of held-out units · best epoch 0 of 3 · val nll 8.492
+[16:03:32]   shortcut audit: target-channel-only AUROC 0.427 (0.5 = no marginal shortcut)
+[16:03:32]   diagnosis: full (3.0 observed on average), 40 paired windows, 2 method(s)
+[16:03:32]   diagnosis: random1:0 (2.0 observed on average), 40 paired windows, 2 method(s)
+[16:03:32]   diagnosis: bank0:0 (2.0 observed on average), 40 paired windows, 2 method(s)
+[16:03:32]   diagnosis: single_sensor_0 (1.0 observed on average), 40 paired windows, 2 method(s)
+[16:03:32]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:03:32] --- stage diagnosis done in 0.1s ---
+[16:03:32] === run ok · 0.1s · peak RSS 1.474 GB ===

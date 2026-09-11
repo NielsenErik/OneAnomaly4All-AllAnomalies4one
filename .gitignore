@@ -6,3 +6,4 @@ data/
 
 __pycache__/
 *.py[cod]
+logs/ws_results_*.tgz

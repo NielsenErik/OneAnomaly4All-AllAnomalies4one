@@ -1,0 +1,102 @@
+
+relational map — cost in C (all channels, one query)
+  the oracle spends 3·C circuit queries; the two-pass map spends two partial passes
+
+    [pc] restored epoch 0 (selected by nll; val nll 57.494, last 57.598)
+  C=  4  nodes     745  oracle  12 queries /  0.007s   two-pass 3 passes /  0.006s   visits ×  10.7  wall × 1.17
+  C=  8  nodes   1,513  oracle  24 queries /  0.018s   two-pass 3 passes /  0.013s   visits ×  21.2  wall × 1.40
+  C= 16  nodes   3,049  oracle  48 queries /  0.053s   two-pass 3 passes /  0.026s   visits ×  42.1  wall × 2.07
+  C= 24  nodes   4,585  oracle  72 queries /  0.107s   two-pass 3 passes /  0.039s   visits ×  63.1  wall × 2.73
+
+missing sensors — cost in the number of distinct masks
+  the reference re-queries the circuit per mask; the reuse path computes the boundary once
+
+  masks=  1  reuse   2 passes /   149,056 node-row evaluations /  0.016s   per-mask   1 queries /  0.001s   wall × 0.07
+  masks=  2  reuse   2 passes /   166,016 node-row evaluations /  0.015s   per-mask   2 queries /  0.002s   wall × 0.13
+  masks=  4  reuse   2 passes /   199,936 node-row evaluations /  0.016s   per-mask   4 queries /  0.004s   wall × 0.25
+  masks=  8  reuse   2 passes /   267,776 node-row evaluations /  0.016s   per-mask   8 queries /  0.008s   wall × 0.50
+  masks= 16  reuse   2 passes /   403,456 node-row evaluations /  0.016s   per-mask  16 queries /  0.016s   wall × 0.99
+  masks= 32  reuse   2 passes /   674,816 node-row evaluations /  0.017s   per-mask  32 queries /  0.032s   wall × 1.85
+
+note: node visits compare the ALGORITHMS; seconds compare THIS implementation
+      of them — the oracle runs on the compiled layer-parallel evaluator and the
+      two-pass map on the per-node Python one, so wall clock flatters the oracle
+      at small C and the gap closes as C grows.
+
+cross-family end-to-end benchmark — circuit vs fitted comparators
+  same data, same precision, same device; cold, warm, cache and end-to-end costs kept apart
+
+
+  workload: {'channels': 8, 'window': 4, 'n': 64, 'masks': 1}
+  circuit            cold   0.022s  warm   0.008s  cache  0.014s /         0B  1-window    7.04ms      8,268 win/s
+  gaussian_fitted    cold   0.002s  warm   0.001s  cache  0.001s /    61,696B  1-window    0.70ms     56,077 win/s
+  lowrank_fitted     cold   0.003s  warm   0.001s  cache  0.001s /    31,744B  1-window    0.61ms     52,571 win/s
+  gmm_fitted         cold   0.002s  warm   0.001s  cache  0.001s /    61,832B  1-window    0.66ms     60,196 win/s
+
+  workload: {'channels': 12, 'window': 4, 'n': 64, 'masks': 1}
+  circuit            cold   0.026s  warm   0.012s  cache  0.015s /         0B  1-window   10.74ms      5,446 win/s
+  gaussian_fitted    cold   0.003s  warm   0.001s  cache  0.002s /   210,816B  1-window    0.68ms     45,460 win/s
+  lowrank_fitted     cold   0.003s  warm   0.001s  cache  0.001s /    62,720B  1-window    0.85ms     53,046 win/s
+  gmm_fitted         cold   0.005s  warm   0.003s  cache  0.003s /   422,032B  1-window    1.25ms     24,178 win/s
+
+  workload: {'channels': 16, 'window': 4, 'n': 64, 'masks': 1}
+  circuit            cold   0.036s  warm   0.015s  cache  0.020s /         0B  1-window   14.40ms      4,132 win/s
+  gaussian_fitted    cold   0.006s  warm   0.003s  cache  0.003s /   504,320B  1-window    1.33ms     21,728 win/s
+  lowrank_fitted     cold   0.011s  warm   0.005s  cache  0.006s /   103,936B  1-window    2.76ms     12,252 win/s
+  gmm_fitted         cold   0.005s  warm   0.003s  cache  0.003s /   504,584B  1-window    1.26ms     22,264 win/s
+
+  workload: {'channels': 8, 'window': 4, 'n': 64, 'masks': 1}
+  circuit            cold   0.014s  warm   0.008s  cache  0.006s /         0B  1-window    7.02ms      8,333 win/s
+  gaussian_fitted    cold   0.002s  warm   0.001s  cache  0.001s /    61,696B  1-window    0.70ms     55,478 win/s
+  lowrank_fitted     cold   0.006s  warm   0.003s  cache  0.003s /    31,744B  1-window    0.60ms     23,539 win/s
+  gmm_fitted         cold   0.002s  warm   0.001s  cache  0.001s /    61,832B  1-window    0.67ms     59,705 win/s
+
+  workload: {'channels': 8, 'window': 8, 'n': 64, 'masks': 1}
+  circuit            cold   0.028s  warm   0.013s  cache  0.016s /         0B  1-window   11.83ms      5,078 win/s
+  gaussian_fitted    cold   0.003s  warm   0.001s  cache  0.001s /   242,176B  1-window    0.52ms     50,454 win/s
+  lowrank_fitted     cold   0.002s  warm   0.001s  cache  0.001s /    54,784B  1-window    0.64ms     68,173 win/s
+  gmm_fitted         cold   0.003s  warm   0.001s  cache  0.001s /   242,312B  1-window    0.71ms     42,792 win/s
+
+  workload: {'channels': 8, 'window': 12, 'n': 64, 'masks': 1}
+  circuit            cold   0.040s  warm   0.018s  cache  0.022s /         0B  1-window   16.72ms      3,623 win/s
+  gaussian_fitted    cold   0.004s  warm   0.002s  cache  0.002s /   541,440B  1-window    0.85ms     27,297 win/s
+  lowrank_fitted     cold   0.006s  warm   0.003s  cache  0.003s /    77,824B  1-window    2.45ms     20,523 win/s
+  gmm_fitted         cold   0.004s  warm   0.002s  cache  0.002s /   541,576B  1-window    0.77ms     29,202 win/s
+
+  workload: {'channels': 8, 'window': 4, 'n': 64, 'masks': 1}
+  circuit            cold   0.020s  warm   0.008s  cache  0.012s /         0B  1-window    7.06ms      8,401 win/s
+  gaussian_fitted    cold   0.004s  warm   0.002s  cache  0.002s /    61,696B  1-window    1.73ms     26,686 win/s
+  lowrank_fitted     cold   0.006s  warm   0.003s  cache  0.003s /    31,744B  1-window    0.60ms     23,590 win/s
+  gmm_fitted         cold   0.002s  warm   0.001s  cache  0.001s /    61,832B  1-window    0.66ms     60,117 win/s
+
+  workload: {'channels': 8, 'window': 4, 'n': 256, 'masks': 1}
+  circuit            cold   0.049s  warm   0.032s  cache  0.017s /         0B  1-window    7.01ms      8,084 win/s
+  gaussian_fitted    cold   0.003s  warm   0.002s  cache  0.001s /    61,696B  1-window    0.69ms    117,461 win/s
+  lowrank_fitted     cold   0.004s  warm   0.004s  cache  0.000s /    31,744B  1-window    2.20ms     60,546 win/s
+  gmm_fitted         cold   0.007s  warm   0.005s  cache  0.003s /    61,832B  1-window    2.37ms     56,245 win/s
+
+  workload: {'channels': 8, 'window': 4, 'n': 512, 'masks': 1}
+  circuit            cold   0.023s  warm   0.009s  cache  0.014s /         0B  1-window    7.02ms     28,442 win/s
+  gaussian_fitted    cold   0.003s  warm   0.002s  cache  0.001s /    61,696B  1-window    0.48ms    147,987 win/s
+  lowrank_fitted     cold   0.004s  warm   0.002s  cache  0.002s /    31,744B  1-window    0.88ms    118,976 win/s
+  gmm_fitted         cold   0.004s  warm   0.003s  cache  0.001s /    61,832B  1-window    0.97ms    100,604 win/s
+
+  workload: {'channels': 8, 'window': 4, 'n': 64, 'masks': 1}
+  circuit            cold   0.019s  warm   0.008s  cache  0.012s /         0B  1-window    6.99ms      8,469 win/s
+  gaussian_fitted    cold   0.002s  warm   0.001s  cache  0.001s /    61,696B  1-window    0.48ms     75,620 win/s
+  lowrank_fitted     cold   0.002s  warm   0.001s  cache  0.001s /    31,744B  1-window    0.60ms     76,463 win/s
+  gmm_fitted         cold   0.002s  warm   0.001s  cache  0.001s /    61,832B  1-window    0.66ms     60,512 win/s
+
+  workload: {'channels': 8, 'window': 4, 'n': 64, 'masks': 4}
+  circuit            cold   0.017s  warm   0.008s  cache  0.009s /         0B  1-window    7.01ms      8,234 win/s
+  gaussian_fitted    cold   0.005s  warm   0.003s  cache  0.003s /   133,216B  1-window    0.46ms     24,793 win/s
+  lowrank_fitted     cold   0.006s  warm   0.003s  cache  0.003s /    74,944B  1-window    0.60ms     20,136 win/s
+  gmm_fitted         cold   0.013s  warm   0.003s  cache  0.010s /   133,512B  1-window    0.66ms     24,100 win/s
+
+  workload: {'channels': 8, 'window': 4, 'n': 64, 'masks': 16}
+  circuit            cold   0.021s  warm   0.008s  cache  0.013s /         0B  1-window    7.02ms      8,306 win/s
+  gaussian_fitted    cold   0.011s  warm   0.004s  cache  0.007s /   254,176B  1-window    0.48ms     15,950 win/s
+  lowrank_fitted     cold   0.025s  warm   0.005s  cache  0.020s /   146,880B  1-window    0.60ms     12,412 win/s
+  gmm_fitted         cold   0.030s  warm   0.006s  cache  0.024s /   254,736B  1-window    0.67ms     11,070 win/s
+
+written: logs/ts/ws/bench_relational_methods.json

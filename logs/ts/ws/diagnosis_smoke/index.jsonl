@@ -1,0 +1,5 @@
+{"experiment": "diagnosis_smoke", "variant": "blocked", "seed": 11, "run_dir": "blocked/seed11", "status": "ok", "wall_s": 1.6, "config_hash": "3cc1211c2e9c", "finished": "2026-09-11T16:03:31"}
+{"experiment": "diagnosis_smoke", "variant": "upper_capacity", "seed": 11, "run_dir": "upper_capacity/seed11", "status": "ok", "wall_s": 0.2, "config_hash": "ad1d6953c971", "finished": "2026-09-11T16:03:31"}
+{"experiment": "diagnosis_smoke", "variant": "mixture", "seed": 11, "run_dir": "mixture/seed11", "status": "ok", "wall_s": 0.1, "config_hash": "a45835247101", "finished": "2026-09-11T16:03:31"}
+{"experiment": "diagnosis_smoke", "variant": "conditional", "seed": 11, "run_dir": "conditional/seed11", "status": "ok", "wall_s": 0.2, "config_hash": "7d53bcd5c0fb", "finished": "2026-09-11T16:03:32"}
+{"experiment": "diagnosis_smoke", "variant": "unblocked", "seed": 11, "run_dir": "unblocked/seed11", "status": "ok", "wall_s": 0.1, "config_hash": "db1b9b6fa34a", "finished": "2026-09-11T16:03:32"}

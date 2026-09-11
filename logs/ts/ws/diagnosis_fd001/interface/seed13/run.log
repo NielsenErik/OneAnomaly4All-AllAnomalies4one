@@ -1,0 +1,37 @@
+[16:15:29] === run start · seed13 · seed 13 · hash a7be5caf5177 ===
+[16:15:29] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:15:29] --- stage: diagnosis ---
+[16:15:29]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:15:29]   task: {'kind': 'ad', 'n_train': 3882, 'n_val': 1408, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12976934015750885, 'kind_counts': {'normal': 4037, 'offset': 120, 'drift': 97, 'desync': 107, 'spike': 129, 'decouple': 97, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1408, 'n_regimes': 1, 'seed': 13, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:15:29]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  356.966  val  291.025
+    [pc] epoch  22  nll   70.645  val   70.428
+    fit channel_blocked K=8: 39/180 (22%) · 1.28 it/s · elapsed 00:30 · ETA 01:50
+    [pc] epoch  44  nll   49.038  val   50.084
+    [pc] epoch  66  nll   41.492  val   42.892
+    [pc] epoch  88  nll   34.290  val   34.856
+    fit channel_blocked K=8: 91/180 (51%) · 1.50 it/s · elapsed 01:00 · ETA 00:59
+    [pc] epoch 110  nll   30.910  val   31.626
+    [pc] epoch 132  nll   28.732  val   29.429
+    fit channel_blocked K=8: 140/180 (78%) · 1.54 it/s · elapsed 01:31 · ETA 00:26
+    [pc] epoch 154  nll   28.100  val   28.816
+    [pc] epoch 176  nll   26.762  val   27.827
+    fit channel_blocked K=8: done 180/180 in 01:48
+[16:18:06]   pc_train_nll: first=356.9664 last=26.2263 (180 epochs)
+[16:18:06]   pc_train_objective: first=356.9664 last=26.2263 (180 epochs)
+[16:18:06]   pc_selection_loss: first=291.0253 last=27.1166 (180 epochs)
+[16:18:06]   pc_val_nll: first=291.0253 last=27.1166 (180 epochs)
+[16:18:06]   pc: fit 156.1s · 193,968 params · score sd 18.453 · device cuda · layered · 4,476 win/s
+[16:18:06]   pc: validation on 496 windows from explicit subset of held-out units · best epoch 179 of 180 · val nll 27.117
+[16:18:07]   shortcut audit: target-channel-only AUROC 0.569 (0.5 = no marginal shortcut)
+[16:18:07]   diagnosis: full (15.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:11]   diagnosis: random1:1 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:15]   diagnosis: random3:5-8-14 (12.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:19]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:22]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:26]   diagnosis: bank1:3 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:30]   diagnosis: bank2:6-10 (13.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:34]   diagnosis: single_sensor_0 (1.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:38]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:18:38] --- stage diagnosis done in 188.2s ---
+[16:18:38] === run ok · 188.2s · peak RSS 1.794 GB ===

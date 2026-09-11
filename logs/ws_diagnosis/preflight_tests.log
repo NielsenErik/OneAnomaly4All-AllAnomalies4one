@@ -1,0 +1,20 @@
+........................................................................ [ 58%]
+...................................................                      [100%]
+=============================== warnings summary ===============================
+../../../../../../miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/jit/_script.py:1480
+../../../../../../miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/jit/_script.py:1480
+../../../../../../miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/jit/_script.py:1480
+  /home/jawa17/miniconda3/envs/expllm_env/lib/python3.11/site-packages/torch/jit/_script.py:1480: DeprecationWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+poc/time_series/diagnosis_baselines.py:1
+  /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/poc/time_series/diagnosis_baselines.py:1: DeprecationWarning: invalid escape sequence '\c'
+    """
+
+tests/test_diagnosis_study.py::test_capacity_and_mixture_preserve_normalization_and_all_masks[False]
+  /home/jawa17/Documents/Unitn/PhD/Main-Project/GitHub/OneAnomaly4All-AllAnomalies4one/tests/test_diagnosis_study.py:44: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+  Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)
+    assert abs(float(pc.pc.log_partition())) < 1e-5
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+123 passed, 5 warnings in 6.68s

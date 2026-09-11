@@ -1,0 +1,47 @@
+[16:11:17] === run start · seed23 · seed 23 · hash bf51a63be81d ===
+[16:11:17] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:11:17] --- stage: diagnosis ---
+[16:11:17]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:11:17]   task: {'kind': 'ad', 'n_train': 3759, 'n_val': 1531, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1215779259800911, 'kind_counts': {'normal': 4075, 'spike': 115, 'decouple': 106, 'offset': 91, 'desync': 105, 'drift': 95, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1531, 'n_regimes': 1, 'seed': 23, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:11:17]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  493.322  val  262.947
+    fit chow_liu K=8: 42/600 (7%) · 1.38 it/s · elapsed 00:30 · ETA 06:42
+    [pc] epoch  75  nll   50.181  val   50.670
+    fit chow_liu K=8: 96/600 (16%) · 1.59 it/s · elapsed 01:00 · ETA 05:17
+    [pc] epoch 150  nll   41.962  val   47.967
+    fit chow_liu K=8: 160/600 (27%) · 1.76 it/s · elapsed 01:30 · ETA 04:09
+    fit chow_liu K=8: 208/600 (35%) · 1.72 it/s · elapsed 02:01 · ETA 03:48
+    [pc] epoch 225  nll   38.023  val   39.566
+    fit chow_liu K=8: 258/600 (43%) · 1.71 it/s · elapsed 02:31 · ETA 03:20
+    [pc] epoch 300  nll   58.740  val   48.816
+    fit chow_liu K=8: 320/600 (53%) · 1.77 it/s · elapsed 03:01 · ETA 02:38
+    fit chow_liu K=8: 364/600 (61%) · 1.72 it/s · elapsed 03:31 · ETA 02:17
+    [pc] epoch 375  nll   29.567  val   31.529
+    fit chow_liu K=8: 424/600 (71%) · 1.75 it/s · elapsed 04:01 · ETA 01:40
+    [pc] epoch 450  nll   29.422  val   31.749
+    fit chow_liu K=8: 472/600 (79%) · 1.74 it/s · elapsed 04:31 · ETA 01:13
+    fit chow_liu K=8: 518/600 (86%) · 1.72 it/s · elapsed 05:01 · ETA 00:47
+    [pc] epoch 525  nll   22.781  val   24.457
+    fit chow_liu K=8: 573/600 (96%) · 1.73 it/s · elapsed 05:32 · ETA 00:15
+    fit chow_liu K=8: done 600/600 in 05:49
+    [pc] restored epoch 596 (selected by nll; val nll 20.180, last 21.389)
+[16:17:52]   pc_train_nll: first=493.3217 last=18.8921 (600 epochs)
+[16:17:52]   pc_train_objective: first=493.3217 last=18.8921 (600 epochs)
+[16:17:52]   pc_selection_loss: first=262.9466 last=21.3894 (600 epochs)
+[16:17:52]   pc_val_nll: first=262.9466 last=21.3894 (600 epochs)
+[16:17:53]   pc: fit 395.4s · 195,840 params · score sd 16.983 · device cuda · layered · 5,704 win/s
+[16:17:53]   pc: validation on 465 windows from explicit subset of held-out units · best epoch 596 of 600 · val nll 20.180
+[16:17:54]   shortcut audit: target-channel-only AUROC 0.550 (0.5 = no marginal shortcut)
+[16:17:54]   baseline gaussian_fitted: fit 0.21s · 45,450 params · selection {'shrinkage': 0.01}
+[16:17:55]   detection comparators: ['mahalanobis_refit', 'mahalanobis_impute', 'gmm_refit', 'gmm_impute', 'knn_refit', 'knn_impute']
+[16:17:55]   diagnosis: full (15.0 observed on average), 968 paired windows, 2 method(s)
+[16:18:02]   diagnosis: random1:1 (14.0 observed on average), 968 paired windows, 2 method(s)
+[16:18:11]   diagnosis: random3:5-8-14 (12.0 observed on average), 968 paired windows, 2 method(s)
+[16:18:16]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 968 paired windows, 2 method(s)
+[16:18:19]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 968 paired windows, 2 method(s)
+[16:18:21]   diagnosis: bank1:3 (14.0 observed on average), 968 paired windows, 2 method(s)
+[16:18:26]   diagnosis: bank2:6-10 (13.0 observed on average), 968 paired windows, 2 method(s)
+[16:18:32]   diagnosis: single_sensor_0 (1.0 observed on average), 968 paired windows, 2 method(s)
+[16:18:33]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:18:33] --- stage diagnosis done in 436.2s ---
+[16:18:33] === run ok · 436.2s · peak RSS 2.338 GB ===

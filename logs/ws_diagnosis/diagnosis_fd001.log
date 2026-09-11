@@ -1,0 +1,1037 @@
+==============================================================================
+ experiment: diagnosis_fd001   (config/ts/diagnosis_fd001.yaml)
+ Circuit score/architecture study on held-out FD001 engines; official test fleet unused.
+ output:     logs/ts/ws/diagnosis_fd001
+==============================================================================
+
+6 variant(s) × 3 seed(s) = 18 run(s)
+
+  blocked                                dataset=cmapss:FD001     stages=diagnosis
+  interface                              dataset=cmapss:FD001     stages=diagnosis
+  mixture                                dataset=cmapss:FD001     stages=diagnosis
+  conditional                            dataset=cmapss:FD001     stages=diagnosis
+  unblocked                              dataset=cmapss:FD001     stages=diagnosis
+  random                                 dataset=cmapss:FD001     stages=diagnosis
+
+
+>>> [1/18] blocked · seed 11 · logs/ts/ws/diagnosis_fd001/blocked/seed11
+[16:03:33] === run start · seed11 · seed 11 · hash 51502730cd09 ===
+[16:03:33] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:03:33] --- stage: diagnosis ---
+[16:03:34]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.6s)
+[16:03:34]   task: {'kind': 'ad', 'n_train': 3711, 'n_val': 1579, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12869152426719666, 'kind_counts': {'normal': 4042, 'desync': 107, 'offset': 109, 'spike': 98, 'drift': 113, 'decouple': 118, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1579, 'n_regimes': 1, 'seed': 11, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:03:34]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  360.857  val  287.712
+    [pc] epoch  22  nll   75.112  val   79.618
+    fit channel_blocked K=8: 43/180 (24%) · 1.41 it/s · elapsed 00:30 · ETA 01:37
+    [pc] epoch  44  nll   54.352  val   60.430
+    [pc] epoch  66  nll   46.458  val   52.573
+    fit channel_blocked K=8: 85/180 (47%) · 1.40 it/s · elapsed 01:00 · ETA 01:07
+    [pc] epoch  88  nll   41.803  val   47.767
+    [pc] epoch 110  nll   39.377  val   44.530
+    fit channel_blocked K=8: 127/180 (71%) · 1.40 it/s · elapsed 01:30 · ETA 00:37
+    [pc] epoch 132  nll   38.589  val   44.045
+    [pc] epoch 154  nll   37.810  val   43.958
+    fit channel_blocked K=8: 169/180 (94%) · 1.40 it/s · elapsed 02:00 · ETA 00:07
+    [pc] epoch 176  nll   36.128  val   41.847
+    fit channel_blocked K=8: done 180/180 in 02:08
+    [pc] restored epoch 175 (selected by nll; val nll 41.131, last 41.591)
+[16:05:47]   pc_train_nll: first=360.8570 last=36.0267 (180 epochs)
+[16:05:47]   pc_train_objective: first=360.8570 last=36.0267 (180 epochs)
+[16:05:47]   pc_selection_loss: first=287.7118 last=41.5910 (180 epochs)
+[16:05:47]   pc_val_nll: first=287.7118 last=41.5910 (180 epochs)
+[16:05:47]   pc: fit 133.7s · 174,240 params · score sd 21.870 · device cuda · layered · 4,997 win/s
+[16:05:47]   pc: validation on 546 windows from explicit subset of held-out units · best epoch 175 of 180 · val nll 41.131
+[16:05:48]   shortcut audit: target-channel-only AUROC 0.559 (0.5 = no marginal shortcut)
+[16:05:48]   diagnosis: full (15.0 observed on average), 940 paired windows, 1 method(s)
+[16:05:52]   diagnosis: random1:1 (14.0 observed on average), 940 paired windows, 1 method(s)
+[16:05:55]   diagnosis: random3:5-8-14 (12.0 observed on average), 940 paired windows, 1 method(s)
+[16:05:58]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 940 paired windows, 1 method(s)
+[16:06:01]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 940 paired windows, 1 method(s)
+[16:06:04]   diagnosis: bank1:3 (14.0 observed on average), 940 paired windows, 1 method(s)
+[16:06:07]   diagnosis: bank2:6-10 (13.0 observed on average), 940 paired windows, 1 method(s)
+[16:06:10]   diagnosis: single_sensor_0 (1.0 observed on average), 940 paired windows, 1 method(s)
+[16:06:12]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:06:12] --- stage diagnosis done in 159.5s ---
+[16:06:12] === run ok · 159.6s · peak RSS 1.744 GB ===
+
+>>> [2/18] blocked · seed 12 · logs/ts/ws/diagnosis_fd001/blocked/seed12 · mean 2.7 min/run · ETA 45 min for the remaining 17
+[16:06:12] === run start · seed12 · seed 12 · hash 51502730cd09 ===
+[16:06:12] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:06:12] --- stage: diagnosis ---
+[16:06:13]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:06:13]   task: {'kind': 'ad', 'n_train': 3753, 'n_val': 1537, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12416469305753708, 'kind_counts': {'decouple': 113, 'normal': 4063, 'spike': 89, 'offset': 117, 'desync': 103, 'drift': 102, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1537, 'n_regimes': 1, 'seed': 12, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:06:13]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  359.574  val  335.460
+    [pc] epoch  22  nll   68.812  val   80.118
+    [pc] epoch  44  nll   46.957  val   57.925
+    fit channel_blocked K=8: 48/180 (27%) · 1.59 it/s · elapsed 00:30 · ETA 01:23
+    [pc] epoch  66  nll   39.548  val   49.494
+    [pc] epoch  88  nll   33.203  val   42.233
+    fit channel_blocked K=8: 102/180 (57%) · 1.69 it/s · elapsed 01:00 · ETA 00:46
+    [pc] epoch 110  nll   29.865  val   38.894
+    [pc] epoch 132  nll   28.857  val   38.134
+    [pc] epoch 154  nll   29.248  val   37.750
+    fit channel_blocked K=8: 162/180 (90%) · 1.79 it/s · elapsed 01:30 · ETA 00:10
+    [pc] epoch 176  nll   26.860  val   36.084
+    fit channel_blocked K=8: done 180/180 in 01:43
+[16:08:04]   pc_train_nll: first=359.5738 last=26.7530 (180 epochs)
+[16:08:04]   pc_train_objective: first=359.5738 last=26.7530 (180 epochs)
+[16:08:04]   pc_selection_loss: first=335.4602 last=35.8824 (180 epochs)
+[16:08:04]   pc_val_nll: first=335.4602 last=35.8824 (180 epochs)
+[16:08:04]   pc: fit 111.2s · 174,240 params · score sd 20.214 · device cuda · layered · 6,075 win/s
+[16:08:04]   pc: validation on 650 windows from explicit subset of held-out units · best epoch 179 of 180 · val nll 35.882
+[16:08:05]   shortcut audit: target-channel-only AUROC 0.547 (0.5 = no marginal shortcut)
+[16:08:05]   diagnosis: full (15.0 observed on average), 830 paired windows, 1 method(s)
+[16:08:09]   diagnosis: random1:1 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:08:13]   diagnosis: random3:5-8-14 (12.0 observed on average), 830 paired windows, 1 method(s)
+[16:08:17]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:08:21]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:08:25]   diagnosis: bank1:3 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:08:29]   diagnosis: bank2:6-10 (13.0 observed on average), 830 paired windows, 1 method(s)
+[16:08:33]   diagnosis: single_sensor_0 (1.0 observed on average), 830 paired windows, 1 method(s)
+[16:08:36]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:08:36] --- stage diagnosis done in 143.5s ---
+[16:08:36] === run ok · 143.5s · peak RSS 1.761 GB ===
+
+>>> [3/18] blocked · seed 13 · logs/ts/ws/diagnosis_fd001/blocked/seed13 · mean 2.5 min/run · ETA 40 min for the remaining 16
+[16:08:36] === run start · seed13 · seed 13 · hash 51502730cd09 ===
+[16:08:36] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:08:36] --- stage: diagnosis ---
+[16:08:36]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:08:36]   task: {'kind': 'ad', 'n_train': 3882, 'n_val': 1408, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12976934015750885, 'kind_counts': {'normal': 4037, 'offset': 120, 'drift': 97, 'desync': 107, 'spike': 129, 'decouple': 97, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1408, 'n_regimes': 1, 'seed': 13, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:08:36]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  356.985  val  291.025
+    [pc] epoch  22  nll   71.989  val   72.116
+    [pc] epoch  44  nll   50.819  val   53.276
+    fit channel_blocked K=8: 57/180 (32%) · 1.89 it/s · elapsed 00:30 · ETA 01:05
+    [pc] epoch  66  nll   40.505  val   42.183
+    [pc] epoch  88  nll   35.307  val   37.320
+    [pc] epoch 110  nll   31.132  val   32.554
+    fit channel_blocked K=8: 128/180 (71%) · 2.11 it/s · elapsed 01:00 · ETA 00:24
+    [pc] epoch 132  nll   29.058  val   30.819
+    [pc] epoch 154  nll   27.723  val   29.612
+    [pc] epoch 176  nll   25.769  val   27.785
+    fit channel_blocked K=8: done 180/180 in 01:26
+    [pc] restored epoch 178 (selected by nll; val nll 27.441, last 28.346)
+[16:10:16]   pc_train_nll: first=356.9849 last=27.1322 (180 epochs)
+[16:10:16]   pc_train_objective: first=356.9849 last=27.1322 (180 epochs)
+[16:10:16]   pc_selection_loss: first=291.0248 last=28.3456 (180 epochs)
+[16:10:16]   pc_val_nll: first=291.0248 last=28.3456 (180 epochs)
+[16:10:17]   pc: fit 100.3s · 174,240 params · score sd 19.230 · device cuda · layered · 6,970 win/s
+[16:10:17]   pc: validation on 496 windows from explicit subset of held-out units · best epoch 178 of 180 · val nll 27.441
+[16:10:18]   shortcut audit: target-channel-only AUROC 0.569 (0.5 = no marginal shortcut)
+[16:10:18]   diagnosis: full (15.0 observed on average), 844 paired windows, 1 method(s)
+[16:10:21]   diagnosis: random1:1 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:10:24]   diagnosis: random3:5-8-14 (12.0 observed on average), 844 paired windows, 1 method(s)
+[16:10:28]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:10:31]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:10:34]   diagnosis: bank1:3 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:10:38]   diagnosis: bank2:6-10 (13.0 observed on average), 844 paired windows, 1 method(s)
+[16:10:41]   diagnosis: single_sensor_0 (1.0 observed on average), 844 paired windows, 1 method(s)
+[16:10:45]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:10:45] --- stage diagnosis done in 128.6s ---
+[16:10:45] === run ok · 128.6s · peak RSS 1.761 GB ===
+
+>>> [4/18] interface · seed 11 · logs/ts/ws/diagnosis_fd001/interface/seed11 · mean 2.4 min/run · ETA 36 min for the remaining 15
+[16:10:45] === run start · seed11 · seed 11 · hash a7be5caf5177 ===
+[16:10:45] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:10:45] --- stage: diagnosis ---
+[16:10:45]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:10:45]   task: {'kind': 'ad', 'n_train': 3711, 'n_val': 1579, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12869152426719666, 'kind_counts': {'normal': 4042, 'desync': 107, 'offset': 109, 'spike': 98, 'drift': 113, 'decouple': 118, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1579, 'n_regimes': 1, 'seed': 11, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:10:45]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  360.845  val  287.665
+    [pc] epoch  22  nll   69.261  val   76.738
+    [pc] epoch  44  nll   46.438  val   54.838
+    [pc] epoch  66  nll   38.126  val   44.270
+    [pc] epoch  88  nll   33.284  val   38.012
+    fit channel_blocked K=8: 95/180 (53%) · 3.12 it/s · elapsed 00:30 · ETA 00:27
+    [pc] epoch 110  nll   29.803  val   35.226
+    [pc] epoch 132  nll   28.360  val   33.856
+    [pc] epoch 154  nll   27.759  val   33.329
+    fit channel_blocked K=8: 157/180 (87%) · 2.58 it/s · elapsed 01:00 · ETA 00:08
+    [pc] epoch 176  nll   26.753  val   32.601
+    fit channel_blocked K=8: done 180/180 in 01:12
+    [pc] restored epoch 173 (selected by nll; val nll 32.044, last 32.330)
+[16:12:03]   pc_train_nll: first=360.8452 last=26.3292 (180 epochs)
+[16:12:03]   pc_train_objective: first=360.8452 last=26.3292 (180 epochs)
+[16:12:03]   pc_selection_loss: first=287.6654 last=32.3298 (180 epochs)
+[16:12:03]   pc_val_nll: first=287.6654 last=32.3298 (180 epochs)
+[16:12:03]   pc: fit 78.1s · 193,968 params · score sd 20.608 · device cuda · layered · 8,550 win/s
+[16:12:03]   pc: validation on 546 windows from explicit subset of held-out units · best epoch 173 of 180 · val nll 32.044
+[16:12:04]   shortcut audit: target-channel-only AUROC 0.559 (0.5 = no marginal shortcut)
+[16:12:04]   diagnosis: full (15.0 observed on average), 940 paired windows, 1 method(s)
+[16:12:10]   diagnosis: random1:1 (14.0 observed on average), 940 paired windows, 1 method(s)
+[16:12:14]   diagnosis: random3:5-8-14 (12.0 observed on average), 940 paired windows, 1 method(s)
+[16:12:19]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 940 paired windows, 1 method(s)
+[16:12:24]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 940 paired windows, 1 method(s)
+[16:12:29]   diagnosis: bank1:3 (14.0 observed on average), 940 paired windows, 1 method(s)
+[16:12:33]   diagnosis: bank2:6-10 (13.0 observed on average), 940 paired windows, 1 method(s)
+[16:12:38]   diagnosis: single_sensor_0 (1.0 observed on average), 940 paired windows, 1 method(s)
+[16:12:43]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:12:43] --- stage diagnosis done in 118.3s ---
+[16:12:43] === run ok · 118.3s · peak RSS 1.784 GB ===
+
+>>> [5/18] interface · seed 12 · logs/ts/ws/diagnosis_fd001/interface/seed12 · mean 2.3 min/run · ETA 32 min for the remaining 14
+[16:12:43] === run start · seed12 · seed 12 · hash a7be5caf5177 ===
+[16:12:43] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:12:43] --- stage: diagnosis ---
+[16:12:43]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:12:43]   task: {'kind': 'ad', 'n_train': 3753, 'n_val': 1537, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12416469305753708, 'kind_counts': {'decouple': 113, 'normal': 4063, 'spike': 89, 'offset': 117, 'desync': 103, 'drift': 102, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1537, 'n_regimes': 1, 'seed': 12, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:12:43]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  359.569  val  335.479
+    [pc] epoch  22  nll   69.246  val   79.680
+    [pc] epoch  44  nll   42.233  val   53.730
+    fit channel_blocked K=8: 58/180 (32%) · 1.90 it/s · elapsed 00:30 · ETA 01:04
+    [pc] epoch  66  nll   34.356  val   44.480
+    [pc] epoch  88  nll   29.145  val   38.339
+    fit channel_blocked K=8: 104/180 (58%) · 1.70 it/s · elapsed 01:01 · ETA 00:44
+    [pc] epoch 110  nll   25.048  val   33.894
+    [pc] epoch 132  nll   23.318  val   32.004
+    [pc] epoch 154  nll   22.012  val   30.691
+    fit channel_blocked K=8: 158/180 (88%) · 1.73 it/s · elapsed 01:31 · ETA 00:12
+    [pc] epoch 176  nll   21.629  val   30.126
+    fit channel_blocked K=8: done 180/180 in 01:43
+[16:14:53]   pc_train_nll: first=359.5691 last=21.1574 (180 epochs)
+[16:14:53]   pc_train_objective: first=359.5691 last=21.1574 (180 epochs)
+[16:14:53]   pc_selection_loss: first=335.4787 last=29.8672 (180 epochs)
+[16:14:53]   pc_val_nll: first=335.4787 last=29.8672 (180 epochs)
+[16:14:53]   pc: fit 129.6s · 193,968 params · score sd 19.623 · device cuda · layered · 5,214 win/s
+[16:14:53]   pc: validation on 650 windows from explicit subset of held-out units · best epoch 179 of 180 · val nll 29.867
+[16:14:54]   shortcut audit: target-channel-only AUROC 0.547 (0.5 = no marginal shortcut)
+[16:14:54]   diagnosis: full (15.0 observed on average), 830 paired windows, 1 method(s)
+[16:14:58]   diagnosis: random1:1 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:15:02]   diagnosis: random3:5-8-14 (12.0 observed on average), 830 paired windows, 1 method(s)
+[16:15:05]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:15:10]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:15:15]   diagnosis: bank1:3 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:15:20]   diagnosis: bank2:6-10 (13.0 observed on average), 830 paired windows, 1 method(s)
+[16:15:25]   diagnosis: single_sensor_0 (1.0 observed on average), 830 paired windows, 1 method(s)
+[16:15:29]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:15:29] --- stage diagnosis done in 166.5s ---
+[16:15:29] === run ok · 166.5s · peak RSS 1.788 GB ===
+
+>>> [6/18] interface · seed 13 · logs/ts/ws/diagnosis_fd001/interface/seed13 · mean 2.4 min/run · ETA 31 min for the remaining 13
+[16:15:29] === run start · seed13 · seed 13 · hash a7be5caf5177 ===
+[16:15:29] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:15:29] --- stage: diagnosis ---
+[16:15:29]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:15:29]   task: {'kind': 'ad', 'n_train': 3882, 'n_val': 1408, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12976934015750885, 'kind_counts': {'normal': 4037, 'offset': 120, 'drift': 97, 'desync': 107, 'spike': 129, 'decouple': 97, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1408, 'n_regimes': 1, 'seed': 13, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:15:29]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  356.966  val  291.025
+    [pc] epoch  22  nll   70.645  val   70.428
+    fit channel_blocked K=8: 39/180 (22%) · 1.28 it/s · elapsed 00:30 · ETA 01:50
+    [pc] epoch  44  nll   49.038  val   50.084
+    [pc] epoch  66  nll   41.492  val   42.892
+    [pc] epoch  88  nll   34.290  val   34.856
+    fit channel_blocked K=8: 91/180 (51%) · 1.50 it/s · elapsed 01:00 · ETA 00:59
+    [pc] epoch 110  nll   30.910  val   31.626
+    [pc] epoch 132  nll   28.732  val   29.429
+    fit channel_blocked K=8: 140/180 (78%) · 1.54 it/s · elapsed 01:31 · ETA 00:26
+    [pc] epoch 154  nll   28.100  val   28.816
+    [pc] epoch 176  nll   26.762  val   27.827
+    fit channel_blocked K=8: done 180/180 in 01:48
+[16:18:06]   pc_train_nll: first=356.9664 last=26.2263 (180 epochs)
+[16:18:06]   pc_train_objective: first=356.9664 last=26.2263 (180 epochs)
+[16:18:06]   pc_selection_loss: first=291.0253 last=27.1166 (180 epochs)
+[16:18:06]   pc_val_nll: first=291.0253 last=27.1166 (180 epochs)
+[16:18:06]   pc: fit 156.1s · 193,968 params · score sd 18.453 · device cuda · layered · 4,476 win/s
+[16:18:06]   pc: validation on 496 windows from explicit subset of held-out units · best epoch 179 of 180 · val nll 27.117
+[16:18:07]   shortcut audit: target-channel-only AUROC 0.569 (0.5 = no marginal shortcut)
+[16:18:07]   diagnosis: full (15.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:11]   diagnosis: random1:1 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:15]   diagnosis: random3:5-8-14 (12.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:19]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:22]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:26]   diagnosis: bank1:3 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:30]   diagnosis: bank2:6-10 (13.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:34]   diagnosis: single_sensor_0 (1.0 observed on average), 844 paired windows, 1 method(s)
+[16:18:38]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:18:38] --- stage diagnosis done in 188.2s ---
+[16:18:38] === run ok · 188.2s · peak RSS 1.794 GB ===
+
+>>> [7/18] mixture · seed 11 · logs/ts/ws/diagnosis_fd001/mixture/seed11 · mean 2.5 min/run · ETA 30 min for the remaining 12
+[16:18:38] === run start · seed11 · seed 11 · hash 0fa6dd4941cf ===
+[16:18:38] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:18:38] --- stage: diagnosis ---
+[16:18:38]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:18:38]   task: {'kind': 'ad', 'n_train': 3711, 'n_val': 1579, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12869152426719666, 'kind_counts': {'normal': 4042, 'desync': 107, 'offset': 109, 'spike': 98, 'drift': 113, 'decouple': 118, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1579, 'n_regimes': 1, 'seed': 11, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:18:38]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  360.808  val  287.601
+    [pc] epoch  22  nll   62.460  val   70.725
+    [pc] epoch  44  nll   34.943  val   37.794
+    fit channel_blocked K=8: 55/180 (31%) · 1.83 it/s · elapsed 00:30 · ETA 01:08
+    [pc] epoch  66  nll   27.849  val   30.296
+    [pc] epoch  88  nll   24.437  val   27.004
+    [pc] epoch 110  nll   22.280  val   25.051
+    fit channel_blocked K=8: 129/180 (72%) · 2.14 it/s · elapsed 01:00 · ETA 00:23
+    [pc] epoch 132  nll   21.180  val   24.173
+    [pc] epoch 154  nll   20.247  val   23.301
+    [pc] epoch 176  nll   19.488  val   22.934
+    fit channel_blocked K=8: done 180/180 in 01:24
+[16:20:28]   pc_train_nll: first=360.8082 last=19.0952 (180 epochs)
+[16:20:28]   pc_train_objective: first=360.8082 last=19.0952 (180 epochs)
+[16:20:28]   pc_selection_loss: first=287.6005 last=22.6145 (180 epochs)
+[16:20:28]   pc_val_nll: first=287.6005 last=22.6145 (180 epochs)
+[16:20:29]   pc: fit 110.8s · 171,372 params · score sd 19.089 · device cuda · layered · 6,030 win/s
+[16:20:29]   pc: validation on 546 windows from explicit subset of held-out units · best epoch 179 of 180 · val nll 22.614
+[16:20:30]   shortcut audit: target-channel-only AUROC 0.559 (0.5 = no marginal shortcut)
+[16:20:30]   diagnosis: full (15.0 observed on average), 940 paired windows, 1 method(s)
+[16:20:33]   diagnosis: random1:1 (14.0 observed on average), 940 paired windows, 1 method(s)
+[16:20:36]   diagnosis: random3:5-8-14 (12.0 observed on average), 940 paired windows, 1 method(s)
+[16:20:39]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 940 paired windows, 1 method(s)
+[16:20:42]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 940 paired windows, 1 method(s)
+[16:20:46]   diagnosis: bank1:3 (14.0 observed on average), 940 paired windows, 1 method(s)
+[16:20:49]   diagnosis: bank2:6-10 (13.0 observed on average), 940 paired windows, 1 method(s)
+[16:20:51]   diagnosis: single_sensor_0 (1.0 observed on average), 940 paired windows, 1 method(s)
+[16:20:55]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:20:55] --- stage diagnosis done in 137.0s ---
+[16:20:55] === run ok · 137.0s · peak RSS 1.794 GB ===
+
+>>> [8/18] mixture · seed 12 · logs/ts/ws/diagnosis_fd001/mixture/seed12 · mean 2.5 min/run · ETA 27 min for the remaining 11
+[16:20:55] === run start · seed12 · seed 12 · hash 0fa6dd4941cf ===
+[16:20:55] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:20:55] --- stage: diagnosis ---
+[16:20:55]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:20:55]   task: {'kind': 'ad', 'n_train': 3753, 'n_val': 1537, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12416469305753708, 'kind_counts': {'decouple': 113, 'normal': 4063, 'spike': 89, 'offset': 117, 'desync': 103, 'drift': 102, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1537, 'n_regimes': 1, 'seed': 12, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:20:55]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  359.566  val  335.346
+    [pc] epoch  22  nll   56.856  val   67.639
+    [pc] epoch  44  nll   31.573  val   40.309
+    [pc] epoch  66  nll   24.763  val   33.231
+    fit channel_blocked K=8: 71/180 (39%) · 2.35 it/s · elapsed 00:30 · ETA 00:46
+    [pc] epoch  88  nll   20.914  val   29.229
+    [pc] epoch 110  nll   19.664  val   28.182
+    fit channel_blocked K=8: 125/180 (69%) · 2.06 it/s · elapsed 01:00 · ETA 00:26
+    [pc] epoch 132  nll   18.417  val   27.045
+    [pc] epoch 154  nll   16.942  val   25.786
+    fit channel_blocked K=8: 175/180 (97%) · 1.92 it/s · elapsed 01:30 · ETA 00:02
+    [pc] epoch 176  nll   16.992  val   25.766
+    fit channel_blocked K=8: done 180/180 in 01:34
+    [pc] restored epoch 170 (selected by nll; val nll 25.323, last 25.564)
+[16:22:43]   pc_train_nll: first=359.5664 last=16.5952 (180 epochs)
+[16:22:43]   pc_train_objective: first=359.5664 last=16.5952 (180 epochs)
+[16:22:43]   pc_selection_loss: first=335.3457 last=25.5639 (180 epochs)
+[16:22:43]   pc_val_nll: first=335.3457 last=25.5639 (180 epochs)
+[16:22:43]   pc: fit 108.1s · 171,372 params · score sd 18.698 · device cuda · layered · 6,248 win/s
+[16:22:43]   pc: validation on 650 windows from explicit subset of held-out units · best epoch 170 of 180 · val nll 25.323
+[16:22:44]   shortcut audit: target-channel-only AUROC 0.547 (0.5 = no marginal shortcut)
+[16:22:44]   diagnosis: full (15.0 observed on average), 830 paired windows, 1 method(s)
+[16:22:48]   diagnosis: random1:1 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:22:51]   diagnosis: random3:5-8-14 (12.0 observed on average), 830 paired windows, 1 method(s)
+[16:22:54]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:22:58]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:23:01]   diagnosis: bank1:3 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:23:04]   diagnosis: bank2:6-10 (13.0 observed on average), 830 paired windows, 1 method(s)
+[16:23:07]   diagnosis: single_sensor_0 (1.0 observed on average), 830 paired windows, 1 method(s)
+[16:23:11]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:23:11] --- stage diagnosis done in 136.0s ---
+[16:23:11] === run ok · 136.0s · peak RSS 1.794 GB ===
+
+>>> [9/18] mixture · seed 13 · logs/ts/ws/diagnosis_fd001/mixture/seed13 · mean 2.5 min/run · ETA 25 min for the remaining 10
+[16:23:11] === run start · seed13 · seed 13 · hash 0fa6dd4941cf ===
+[16:23:11] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:23:11] --- stage: diagnosis ---
+[16:23:11]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:23:11]   task: {'kind': 'ad', 'n_train': 3882, 'n_val': 1408, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12976934015750885, 'kind_counts': {'normal': 4037, 'offset': 120, 'drift': 97, 'desync': 107, 'spike': 129, 'decouple': 97, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1408, 'n_regimes': 1, 'seed': 13, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:23:11]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  356.991  val  291.060
+    [pc] epoch  22  nll   56.697  val   56.859
+    [pc] epoch  44  nll   27.976  val   29.383
+    [pc] epoch  66  nll   22.591  val   24.108
+    fit channel_blocked K=8: 69/180 (38%) · 2.29 it/s · elapsed 00:30 · ETA 00:48
+    [pc] epoch  88  nll   20.632  val   22.728
+    [pc] epoch 110  nll   18.390  val   20.981
+    fit channel_blocked K=8: 123/180 (68%) · 2.04 it/s · elapsed 01:00 · ETA 00:27
+    [pc] epoch 132  nll   17.038  val   19.990
+    [pc] epoch 154  nll   16.189  val   19.192
+    [pc] epoch 176  nll   15.568  val   19.361
+    fit channel_blocked K=8: done 180/180 in 01:27
+[16:25:17]   pc_train_nll: first=356.9912 last=15.1916 (180 epochs)
+[16:25:17]   pc_train_objective: first=356.9912 last=15.1916 (180 epochs)
+[16:25:17]   pc_selection_loss: first=291.0598 last=18.7841 (180 epochs)
+[16:25:17]   pc_val_nll: first=291.0598 last=18.7841 (180 epochs)
+[16:25:17]   pc: fit 125.9s · 171,372 params · score sd 16.701 · device cuda · layered · 5,549 win/s
+[16:25:17]   pc: validation on 496 windows from explicit subset of held-out units · best epoch 179 of 180 · val nll 18.784
+[16:25:18]   shortcut audit: target-channel-only AUROC 0.569 (0.5 = no marginal shortcut)
+[16:25:18]   diagnosis: full (15.0 observed on average), 844 paired windows, 1 method(s)
+[16:25:21]   diagnosis: random1:1 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:25:24]   diagnosis: random3:5-8-14 (12.0 observed on average), 844 paired windows, 1 method(s)
+[16:25:26]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:25:29]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:25:32]   diagnosis: bank1:3 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:25:35]   diagnosis: bank2:6-10 (13.0 observed on average), 844 paired windows, 1 method(s)
+[16:25:38]   diagnosis: single_sensor_0 (1.0 observed on average), 844 paired windows, 1 method(s)
+[16:25:40]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:25:41] --- stage diagnosis done in 149.9s ---
+[16:25:41] === run ok · 149.9s · peak RSS 1.794 GB ===
+
+>>> [10/18] conditional · seed 11 · logs/ts/ws/diagnosis_fd001/conditional/seed11 · mean 2.5 min/run · ETA 22 min for the remaining 9
+[16:25:41] === run start · seed11 · seed 11 · hash fc0a8487cf8f ===
+[16:25:41] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:25:41] --- stage: diagnosis ---
+[16:25:41]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:25:41]   task: {'kind': 'ad', 'n_train': 3711, 'n_val': 1579, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12869152426719666, 'kind_counts': {'normal': 4042, 'desync': 107, 'offset': 109, 'spike': 98, 'drift': 113, 'decouple': 118, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1579, 'n_regimes': 1, 'seed': 11, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:25:41]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  361.718  val  289.532
+    fit channel_blocked K=8: 16/180 (9%) · 0.51 it/s · elapsed 00:31 · ETA 05:19
+    [pc] epoch  22  nll   88.794  val   94.164
+    fit channel_blocked K=8: 31/180 (17%) · 0.49 it/s · elapsed 01:03 · ETA 05:03
+    fit channel_blocked K=8: 43/180 (24%) · 0.45 it/s · elapsed 01:35 · ETA 05:04
+    [pc] epoch  44  nll   59.798  val   65.815
+    fit channel_blocked K=8: 60/180 (33%) · 0.48 it/s · elapsed 02:06 · ETA 04:12
+    [pc] epoch  66  nll   51.404  val   56.942
+    fit channel_blocked K=8: 74/180 (41%) · 0.47 it/s · elapsed 02:37 · ETA 03:45
+    [pc] epoch  88  nll   44.960  val   50.535
+    fit channel_blocked K=8: 89/180 (49%) · 0.47 it/s · elapsed 03:08 · ETA 03:12
+    [pc] epoch 110  nll   41.923  val   44.731
+    fit channel_blocked K=8: 117/180 (65%) · 0.54 it/s · elapsed 03:38 · ETA 01:57
+    [pc] epoch 132  nll   40.637  val   43.979
+    fit channel_blocked K=8: 153/180 (85%) · 0.62 it/s · elapsed 04:08 · ETA 00:43
+    [pc] epoch 154  nll   38.033  val   42.053
+    [pc] epoch 176  nll   36.743  val   42.622
+    fit channel_blocked K=8: done 180/180 in 04:36
+    [pc] restored epoch 169 (selected by objective; val nll 40.340, last 41.256)
+[16:30:37]   pc_train_nll: first=361.7177 last=37.1378 (180 epochs)
+[16:30:37]   pc_train_objective: first=425.6285 last=59.7562 (180 epochs)
+[16:30:37]   pc_selection_loss: first=347.4389 last=49.5224 (180 epochs)
+[16:30:37]   pc_val_nll: first=289.5324 last=41.2562 (180 epochs)
+[16:30:38]   pc: fit 296.8s · 174,240 params · score sd 21.848 · device cuda · layered · 2,251 win/s
+[16:30:38]   pc: validation on 546 windows from explicit subset of held-out units · best epoch 169 of 180 · val nll 40.340
+[16:30:39]   shortcut audit: target-channel-only AUROC 0.559 (0.5 = no marginal shortcut)
+[16:30:39]   diagnosis: full (15.0 observed on average), 940 paired windows, 1 method(s)
+[16:30:42]   diagnosis: random1:1 (14.0 observed on average), 940 paired windows, 1 method(s)
+[16:30:45]   diagnosis: random3:5-8-14 (12.0 observed on average), 940 paired windows, 1 method(s)
+[16:30:47]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 940 paired windows, 1 method(s)
+[16:30:50]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 940 paired windows, 1 method(s)
+[16:30:53]   diagnosis: bank1:3 (14.0 observed on average), 940 paired windows, 1 method(s)
+[16:30:56]   diagnosis: bank2:6-10 (13.0 observed on average), 940 paired windows, 1 method(s)
+[16:30:58]   diagnosis: single_sensor_0 (1.0 observed on average), 940 paired windows, 1 method(s)
+[16:31:01]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:31:01] --- stage diagnosis done in 320.7s ---
+[16:31:01] === run ok · 320.7s · peak RSS 1.794 GB ===
+
+>>> [11/18] conditional · seed 12 · logs/ts/ws/diagnosis_fd001/conditional/seed12 · mean 2.7 min/run · ETA 22 min for the remaining 8
+[16:31:01] === run start · seed12 · seed 12 · hash fc0a8487cf8f ===
+[16:31:01] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:31:01] --- stage: diagnosis ---
+[16:31:01]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:31:01]   task: {'kind': 'ad', 'n_train': 3753, 'n_val': 1537, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12416469305753708, 'kind_counts': {'decouple': 113, 'normal': 4063, 'spike': 89, 'offset': 117, 'desync': 103, 'drift': 102, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1537, 'n_regimes': 1, 'seed': 12, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:31:01]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  360.049  val  336.353
+    fit channel_blocked K=8: 18/180 (10%) · 0.59 it/s · elapsed 00:30 · ETA 04:33
+    [pc] epoch  22  nll   85.505  val   96.744
+    [pc] epoch  44  nll   53.063  val   64.249
+    fit channel_blocked K=8: 53/180 (29%) · 0.87 it/s · elapsed 01:00 · ETA 02:25
+    [pc] epoch  66  nll   40.081  val   49.380
+    fit channel_blocked K=8: 79/180 (44%) · 0.87 it/s · elapsed 01:30 · ETA 01:56
+    [pc] epoch  88  nll   33.035  val   41.839
+    fit channel_blocked K=8: 104/180 (58%) · 0.86 it/s · elapsed 02:01 · ETA 01:28
+    [pc] epoch 110  nll   29.294  val   37.717
+    fit channel_blocked K=8: 119/180 (66%) · 0.78 it/s · elapsed 02:32 · ETA 01:18
+    [pc] epoch 132  nll   27.165  val   34.792
+    fit channel_blocked K=8: 136/180 (76%) · 0.74 it/s · elapsed 03:03 · ETA 00:59
+    [pc] epoch 154  nll   24.974  val   34.159
+    fit channel_blocked K=8: 171/180 (95%) · 0.80 it/s · elapsed 03:33 · ETA 00:11
+    [pc] epoch 176  nll   23.773  val   32.325
+    fit channel_blocked K=8: done 180/180 in 03:42
+[16:35:06]   pc_train_nll: first=360.0494 last=23.3371 (180 epochs)
+[16:35:06]   pc_train_objective: first=426.8917 last=30.5153 (180 epochs)
+[16:35:06]   pc_selection_loss: first=403.6232 last=37.6803 (180 epochs)
+[16:35:06]   pc_val_nll: first=336.3526 last=31.6632 (180 epochs)
+[16:35:06]   pc: fit 244.6s · 174,240 params · score sd 19.484 · device cuda · layered · 2,762 win/s
+[16:35:06]   pc: validation on 650 windows from explicit subset of held-out units · best epoch 179 of 180 · val nll 31.663
+[16:35:07]   shortcut audit: target-channel-only AUROC 0.547 (0.5 = no marginal shortcut)
+[16:35:07]   diagnosis: full (15.0 observed on average), 830 paired windows, 1 method(s)
+[16:35:10]   diagnosis: random1:1 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:35:13]   diagnosis: random3:5-8-14 (12.0 observed on average), 830 paired windows, 1 method(s)
+[16:35:16]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:35:18]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:35:21]   diagnosis: bank1:3 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:35:24]   diagnosis: bank2:6-10 (13.0 observed on average), 830 paired windows, 1 method(s)
+[16:35:27]   diagnosis: single_sensor_0 (1.0 observed on average), 830 paired windows, 1 method(s)
+[16:35:29]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:35:29] --- stage diagnosis done in 268.1s ---
+[16:35:29] === run ok · 268.1s · peak RSS 1.796 GB ===
+
+>>> [12/18] conditional · seed 13 · logs/ts/ws/diagnosis_fd001/conditional/seed13 · mean 2.9 min/run · ETA 20 min for the remaining 7
+[16:35:29] === run start · seed13 · seed 13 · hash fc0a8487cf8f ===
+[16:35:29] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:35:29] --- stage: diagnosis ---
+[16:35:29]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:35:29]   task: {'kind': 'ad', 'n_train': 3882, 'n_val': 1408, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12976934015750885, 'kind_counts': {'normal': 4037, 'offset': 120, 'drift': 97, 'desync': 107, 'spike': 129, 'decouple': 97, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1408, 'n_regimes': 1, 'seed': 13, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:35:29]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  357.871  val  292.376
+    fit channel_blocked K=8: 16/180 (9%) · 0.52 it/s · elapsed 00:30 · ETA 05:17
+    [pc] epoch  22  nll   88.742  val   90.285
+    [pc] epoch  44  nll   61.238  val   62.794
+    fit channel_blocked K=8: 47/180 (26%) · 0.77 it/s · elapsed 01:01 · ETA 02:52
+    [pc] epoch  66  nll   53.287  val   55.383
+    fit channel_blocked K=8: 82/180 (46%) · 0.89 it/s · elapsed 01:31 · ETA 01:49
+    [pc] epoch  88  nll   44.497  val   46.601
+    fit channel_blocked K=8: 110/180 (61%) · 0.90 it/s · elapsed 02:02 · ETA 01:18
+    [pc] epoch 110  nll   38.882  val   40.063
+    [pc] epoch 132  nll   36.184  val   37.083
+    fit channel_blocked K=8: 137/180 (76%) · 0.89 it/s · elapsed 02:33 · ETA 00:48
+    fit channel_blocked K=8: 153/180 (85%) · 0.83 it/s · elapsed 03:04 · ETA 00:32
+    [pc] epoch 154  nll   34.647  val   34.901
+    fit channel_blocked K=8: 169/180 (94%) · 0.79 it/s · elapsed 03:34 · ETA 00:13
+    [pc] epoch 176  nll   33.726  val   35.542
+    fit channel_blocked K=8: done 180/180 in 03:46
+    [pc] restored epoch 154 (selected by objective; val nll 34.901, last 34.996)
+[16:39:38]   pc_train_nll: first=357.8710 last=33.1748 (180 epochs)
+[16:39:38]   pc_train_objective: first=426.4857 last=59.0081 (180 epochs)
+[16:39:38]   pc_selection_loss: first=350.8518 last=41.8068 (180 epochs)
+[16:39:38]   pc_val_nll: first=292.3765 last=34.9957 (180 epochs)
+[16:39:38]   pc: fit 248.8s · 174,240 params · score sd 20.709 · device cuda · layered · 2,809 win/s
+[16:39:38]   pc: validation on 496 windows from explicit subset of held-out units · best epoch 154 of 180 · val nll 34.901
+[16:39:40]   shortcut audit: target-channel-only AUROC 0.569 (0.5 = no marginal shortcut)
+[16:39:40]   diagnosis: full (15.0 observed on average), 844 paired windows, 1 method(s)
+[16:39:43]   diagnosis: random1:1 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:39:46]   diagnosis: random3:5-8-14 (12.0 observed on average), 844 paired windows, 1 method(s)
+[16:39:49]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:39:51]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:39:54]   diagnosis: bank1:3 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:39:57]   diagnosis: bank2:6-10 (13.0 observed on average), 844 paired windows, 1 method(s)
+[16:40:00]   diagnosis: single_sensor_0 (1.0 observed on average), 844 paired windows, 1 method(s)
+[16:40:03]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:40:03] --- stage diagnosis done in 273.4s ---
+[16:40:03] === run ok · 273.4s · peak RSS 1.796 GB ===
+
+>>> [13/18] unblocked · seed 11 · logs/ts/ws/diagnosis_fd001/unblocked/seed11 · mean 3.0 min/run · ETA 18 min for the remaining 6
+[16:40:03] === run start · seed11 · seed 11 · hash 97bf85cd0691 ===
+[16:40:03] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:40:03] --- stage: diagnosis ---
+[16:40:03]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:40:03]   task: {'kind': 'ad', 'n_train': 3711, 'n_val': 1579, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12869152426719666, 'kind_counts': {'normal': 4042, 'desync': 107, 'offset': 109, 'spike': 98, 'drift': 113, 'decouple': 118, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1579, 'n_regimes': 1, 'seed': 11, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:40:03]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  360.802  val  287.352
+    [pc] epoch  22  nll   83.314  val   86.130
+    [pc] epoch  44  nll   60.408  val   65.326
+    [pc] epoch  66  nll   55.684  val   60.735
+    fit chow_liu K=8: 86/180 (48%) · 2.84 it/s · elapsed 00:30 · ETA 00:33
+    [pc] epoch  88  nll   50.909  val   55.927
+    [pc] epoch 110  nll   48.381  val   53.434
+    [pc] epoch 132  nll   41.312  val   48.029
+    [pc] epoch 154  nll   38.009  val   44.062
+    [pc] epoch 176  nll   36.523  val   42.576
+    fit chow_liu K=8: done 180/180 in 00:53
+    [pc] restored epoch 173 (selected by nll; val nll 41.886, last 43.228)
+[16:41:00]   pc_train_nll: first=360.8019 last=36.9651 (180 epochs)
+[16:41:00]   pc_train_objective: first=360.8019 last=36.9651 (180 epochs)
+[16:41:00]   pc_selection_loss: first=287.3517 last=43.2283 (180 epochs)
+[16:41:00]   pc_val_nll: first=287.3517 last=43.2283 (180 epochs)
+[16:41:00]   pc: fit 56.7s · 174,240 params · score sd 22.397 · device cuda · layered · 11,791 win/s
+[16:41:00]   pc: validation on 546 windows from explicit subset of held-out units · best epoch 173 of 180 · val nll 41.886
+[16:41:01]   shortcut audit: target-channel-only AUROC 0.559 (0.5 = no marginal shortcut)
+[16:41:01]   diagnosis: full (15.0 observed on average), 940 paired windows, 1 method(s)
+[16:41:02]   diagnosis: random1:1 (14.0 observed on average), 940 paired windows, 1 method(s)
+[16:41:03]   diagnosis: random3:5-8-14 (12.0 observed on average), 940 paired windows, 1 method(s)
+[16:41:04]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 940 paired windows, 1 method(s)
+[16:41:05]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 940 paired windows, 1 method(s)
+[16:41:06]   diagnosis: bank1:3 (14.0 observed on average), 940 paired windows, 1 method(s)
+[16:41:08]   diagnosis: bank2:6-10 (13.0 observed on average), 940 paired windows, 1 method(s)
+[16:41:09]   diagnosis: single_sensor_0 (1.0 observed on average), 940 paired windows, 1 method(s)
+[16:41:09]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:41:09] --- stage diagnosis done in 66.5s ---
+[16:41:09] === run ok · 66.5s · peak RSS 1.842 GB ===
+
+>>> [14/18] unblocked · seed 12 · logs/ts/ws/diagnosis_fd001/unblocked/seed12 · mean 2.9 min/run · ETA 14 min for the remaining 5
+[16:41:09] === run start · seed12 · seed 12 · hash 97bf85cd0691 ===
+[16:41:09] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:41:09] --- stage: diagnosis ---
+[16:41:09]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:41:09]   task: {'kind': 'ad', 'n_train': 3753, 'n_val': 1537, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12416469305753708, 'kind_counts': {'decouple': 113, 'normal': 4063, 'spike': 89, 'offset': 117, 'desync': 103, 'drift': 102, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1537, 'n_regimes': 1, 'seed': 12, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:41:09]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  359.607  val  335.311
+    [pc] epoch  22  nll   82.162  val   92.792
+    [pc] epoch  44  nll   58.710  val   69.326
+    [pc] epoch  66  nll   52.287  val   62.694
+    [pc] epoch  88  nll   47.671  val   57.924
+    [pc] epoch 110  nll   45.456  val   55.751
+    fit chow_liu K=8: 119/180 (66%) · 3.95 it/s · elapsed 00:30 · ETA 00:15
+    [pc] epoch 132  nll   44.075  val   54.161
+    [pc] epoch 154  nll   41.833  val   51.339
+    [pc] epoch 176  nll   40.026  val   49.420
+    fit chow_liu K=8: done 180/180 in 00:45
+    [pc] restored epoch 176 (selected by nll; val nll 49.420, last 49.525)
+[16:41:57]   pc_train_nll: first=359.6068 last=40.0129 (180 epochs)
+[16:41:57]   pc_train_objective: first=359.6068 last=40.0129 (180 epochs)
+[16:41:57]   pc_selection_loss: first=335.3105 last=49.5252 (180 epochs)
+[16:41:57]   pc_val_nll: first=335.3105 last=49.5252 (180 epochs)
+[16:41:57]   pc: fit 48.0s · 174,240 params · score sd 21.918 · device cuda · layered · 14,072 win/s
+[16:41:57]   pc: validation on 650 windows from explicit subset of held-out units · best epoch 176 of 180 · val nll 49.420
+[16:41:58]   shortcut audit: target-channel-only AUROC 0.547 (0.5 = no marginal shortcut)
+[16:41:59]   diagnosis: full (15.0 observed on average), 830 paired windows, 1 method(s)
+[16:42:00]   diagnosis: random1:1 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:42:01]   diagnosis: random3:5-8-14 (12.0 observed on average), 830 paired windows, 1 method(s)
+[16:42:02]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:42:03]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:42:04]   diagnosis: bank1:3 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:42:05]   diagnosis: bank2:6-10 (13.0 observed on average), 830 paired windows, 1 method(s)
+[16:42:06]   diagnosis: single_sensor_0 (1.0 observed on average), 830 paired windows, 1 method(s)
+[16:42:07]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:42:07] --- stage diagnosis done in 57.3s ---
+[16:42:07] === run ok · 57.3s · peak RSS 1.868 GB ===
+
+>>> [15/18] unblocked · seed 13 · logs/ts/ws/diagnosis_fd001/unblocked/seed13 · mean 2.8 min/run · ETA 11 min for the remaining 4
+[16:42:07] === run start · seed13 · seed 13 · hash 97bf85cd0691 ===
+[16:42:07] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:42:07] --- stage: diagnosis ---
+[16:42:07]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:42:07]   task: {'kind': 'ad', 'n_train': 3882, 'n_val': 1408, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12976934015750885, 'kind_counts': {'normal': 4037, 'offset': 120, 'drift': 97, 'desync': 107, 'spike': 129, 'decouple': 97, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1408, 'n_regimes': 1, 'seed': 13, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:42:07]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  356.997  val  291.313
+    [pc] epoch  22  nll   79.491  val   79.663
+    [pc] epoch  44  nll   54.977  val   55.252
+    [pc] epoch  66  nll   48.702  val   49.073
+    [pc] epoch  88  nll   45.918  val   46.285
+    [pc] epoch 110  nll   43.309  val   43.693
+    fit chow_liu K=8: 116/180 (64%) · 3.86 it/s · elapsed 00:30 · ETA 00:16
+    [pc] epoch 132  nll   41.488  val   42.262
+    [pc] epoch 154  nll   39.280  val   40.178
+    [pc] epoch 176  nll   37.458  val   38.958
+    fit chow_liu K=8: done 180/180 in 00:46
+[16:42:56]   pc_train_nll: first=356.9974 last=37.3248 (180 epochs)
+[16:42:56]   pc_train_objective: first=356.9974 last=37.3248 (180 epochs)
+[16:42:56]   pc_selection_loss: first=291.3131 last=38.5076 (180 epochs)
+[16:42:56]   pc_val_nll: first=291.3131 last=38.5076 (180 epochs)
+[16:42:56]   pc: fit 49.2s · 174,240 params · score sd 19.887 · device cuda · layered · 14,192 win/s
+[16:42:56]   pc: validation on 496 windows from explicit subset of held-out units · best epoch 179 of 180 · val nll 38.508
+[16:42:57]   shortcut audit: target-channel-only AUROC 0.569 (0.5 = no marginal shortcut)
+[16:42:57]   diagnosis: full (15.0 observed on average), 844 paired windows, 1 method(s)
+[16:42:58]   diagnosis: random1:1 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:42:59]   diagnosis: random3:5-8-14 (12.0 observed on average), 844 paired windows, 1 method(s)
+[16:43:00]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:43:01]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:43:02]   diagnosis: bank1:3 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:43:03]   diagnosis: bank2:6-10 (13.0 observed on average), 844 paired windows, 1 method(s)
+[16:43:04]   diagnosis: single_sensor_0 (1.0 observed on average), 844 paired windows, 1 method(s)
+[16:43:05]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:43:05] --- stage diagnosis done in 58.5s ---
+[16:43:05] === run ok · 58.5s · peak RSS 1.879 GB ===
+
+>>> [16/18] random · seed 11 · logs/ts/ws/diagnosis_fd001/random/seed11 · mean 2.6 min/run · ETA 8 min for the remaining 3
+[16:43:05] === run start · seed11 · seed 11 · hash 368c0c50bcb7 ===
+[16:43:05] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:43:05] --- stage: diagnosis ---
+[16:43:05]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:43:05]   task: {'kind': 'ad', 'n_train': 3711, 'n_val': 1579, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12869152426719666, 'kind_counts': {'normal': 4042, 'desync': 107, 'offset': 109, 'spike': 98, 'drift': 113, 'decouple': 118, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1579, 'n_regimes': 1, 'seed': 11, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:43:05]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  360.691  val  287.360
+    [pc] epoch  22  nll  103.187  val  110.646
+    [pc] epoch  44  nll   83.030  val   92.637
+    [pc] epoch  66  nll   76.060  val   87.303
+    [pc] epoch  88  nll   72.082  val   83.780
+    [pc] epoch 110  nll   63.203  val   77.933
+    [pc] epoch 132  nll   57.171  val   70.850
+    fit random K=8: 137/180 (76%) · 4.55 it/s · elapsed 00:30 · ETA 00:09
+    [pc] epoch 154  nll   52.629  val   66.513
+    [pc] epoch 176  nll   48.511  val   62.070
+    fit random K=8: done 180/180 in 00:39
+    [pc] restored epoch 178 (selected by nll; val nll 60.979, last 61.773)
+[16:43:47]   pc_train_nll: first=360.6910 last=47.3256 (180 epochs)
+[16:43:47]   pc_train_objective: first=360.6910 last=47.3256 (180 epochs)
+[16:43:47]   pc_selection_loss: first=287.3595 last=61.7734 (180 epochs)
+[16:43:47]   pc_val_nll: first=287.3595 last=61.7734 (180 epochs)
+[16:43:47]   pc: fit 41.7s · 174,240 params · score sd 26.698 · device cuda · layered · 16,001 win/s
+[16:43:47]   pc: validation on 546 windows from explicit subset of held-out units · best epoch 178 of 180 · val nll 60.979
+[16:43:48]   shortcut audit: target-channel-only AUROC 0.559 (0.5 = no marginal shortcut)
+[16:43:48]   diagnosis: full (15.0 observed on average), 940 paired windows, 1 method(s)
+[16:43:49]   diagnosis: random1:1 (14.0 observed on average), 940 paired windows, 1 method(s)
+[16:43:50]   diagnosis: random3:5-8-14 (12.0 observed on average), 940 paired windows, 1 method(s)
+[16:43:51]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 940 paired windows, 1 method(s)
+[16:43:52]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 940 paired windows, 1 method(s)
+[16:43:53]   diagnosis: bank1:3 (14.0 observed on average), 940 paired windows, 1 method(s)
+[16:43:54]   diagnosis: bank2:6-10 (13.0 observed on average), 940 paired windows, 1 method(s)
+[16:43:55]   diagnosis: single_sensor_0 (1.0 observed on average), 940 paired windows, 1 method(s)
+[16:43:56]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:43:56] --- stage diagnosis done in 50.6s ---
+[16:43:56] === run ok · 50.6s · peak RSS 1.879 GB ===
+
+>>> [17/18] random · seed 12 · logs/ts/ws/diagnosis_fd001/random/seed12 · mean 2.5 min/run · ETA 5 min for the remaining 2
+[16:43:56] === run start · seed12 · seed 12 · hash 368c0c50bcb7 ===
+[16:43:56] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:43:56] --- stage: diagnosis ---
+[16:43:56]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:43:56]   task: {'kind': 'ad', 'n_train': 3753, 'n_val': 1537, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12416469305753708, 'kind_counts': {'decouple': 113, 'normal': 4063, 'spike': 89, 'offset': 117, 'desync': 103, 'drift': 102, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1537, 'n_regimes': 1, 'seed': 12, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:43:56]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  359.604  val  335.831
+    [pc] epoch  22  nll   88.687  val  104.885
+    [pc] epoch  44  nll   65.071  val   83.335
+    [pc] epoch  66  nll   55.073  val   71.800
+    [pc] epoch  88  nll   46.878  val   63.455
+    [pc] epoch 110  nll   43.184  val   59.391
+    [pc] epoch 132  nll   41.493  val   58.073
+    fit random K=8: 136/180 (76%) · 4.50 it/s · elapsed 00:30 · ETA 00:09
+    [pc] epoch 154  nll   40.343  val   56.866
+    [pc] epoch 176  nll   39.116  val   56.204
+    fit random K=8: done 180/180 in 00:39
+    [pc] restored epoch 178 (selected by nll; val nll 55.305, last 55.452)
+[16:44:38]   pc_train_nll: first=359.6040 last=38.5461 (180 epochs)
+[16:44:38]   pc_train_objective: first=359.6040 last=38.5461 (180 epochs)
+[16:44:38]   pc_selection_loss: first=335.8310 last=55.4520 (180 epochs)
+[16:44:38]   pc_val_nll: first=335.8310 last=55.4520 (180 epochs)
+[16:44:38]   pc: fit 42.2s · 174,240 params · score sd 22.757 · device cuda · layered · 16,026 win/s
+[16:44:38]   pc: validation on 650 windows from explicit subset of held-out units · best epoch 178 of 180 · val nll 55.305
+[16:44:39]   shortcut audit: target-channel-only AUROC 0.547 (0.5 = no marginal shortcut)
+[16:44:39]   diagnosis: full (15.0 observed on average), 830 paired windows, 1 method(s)
+[16:44:40]   diagnosis: random1:1 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:44:41]   diagnosis: random3:5-8-14 (12.0 observed on average), 830 paired windows, 1 method(s)
+[16:44:42]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:44:43]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:44:44]   diagnosis: bank1:3 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:44:45]   diagnosis: bank2:6-10 (13.0 observed on average), 830 paired windows, 1 method(s)
+[16:44:46]   diagnosis: single_sensor_0 (1.0 observed on average), 830 paired windows, 1 method(s)
+[16:44:46]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:44:46] --- stage diagnosis done in 50.5s ---
+[16:44:46] === run ok · 50.5s · peak RSS 1.879 GB ===
+
+>>> [18/18] random · seed 13 · logs/ts/ws/diagnosis_fd001/random/seed13 · mean 2.4 min/run · ETA 2 min for the remaining 1
+[16:44:46] === run start · seed13 · seed 13 · hash 368c0c50bcb7 ===
+[16:44:46] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[16:44:46] --- stage: diagnosis ---
+[16:44:46]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[16:44:46]   task: {'kind': 'ad', 'n_train': 3882, 'n_val': 1408, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12976934015750885, 'kind_counts': {'normal': 4037, 'offset': 120, 'drift': 97, 'desync': 107, 'spike': 129, 'decouple': 97, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1408, 'n_regimes': 1, 'seed': 13, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[16:44:46]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  357.070  val  291.285
+    [pc] epoch  22  nll  105.280  val  106.452
+    [pc] epoch  44  nll   84.363  val   86.429
+    [pc] epoch  66  nll   77.241  val   79.898
+    [pc] epoch  88  nll   72.509  val   75.548
+    [pc] epoch 110  nll   60.202  val   63.280
+    fit random K=8: 131/180 (73%) · 4.36 it/s · elapsed 00:30 · ETA 00:11
+    [pc] epoch 132  nll   55.059  val   60.146
+    [pc] epoch 154  nll   51.782  val   56.780
+    [pc] epoch 176  nll   49.799  val   55.543
+    fit random K=8: done 180/180 in 00:41
+[16:45:30]   pc_train_nll: first=357.0703 last=49.4946 (180 epochs)
+[16:45:30]   pc_train_objective: first=357.0703 last=49.4946 (180 epochs)
+[16:45:30]   pc_selection_loss: first=291.2855 last=55.3713 (180 epochs)
+[16:45:30]   pc_val_nll: first=291.2855 last=55.3713 (180 epochs)
+[16:45:30]   pc: fit 43.5s · 174,240 params · score sd 25.187 · device cuda · layered · 16,075 win/s
+[16:45:30]   pc: validation on 496 windows from explicit subset of held-out units · best epoch 179 of 180 · val nll 55.371
+[16:45:31]   shortcut audit: target-channel-only AUROC 0.569 (0.5 = no marginal shortcut)
+[16:45:31]   diagnosis: full (15.0 observed on average), 844 paired windows, 1 method(s)
+[16:45:32]   diagnosis: random1:1 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:45:33]   diagnosis: random3:5-8-14 (12.0 observed on average), 844 paired windows, 1 method(s)
+[16:45:34]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:45:35]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 844 paired windows, 1 method(s)
+[16:45:35]   diagnosis: bank1:3 (14.0 observed on average), 844 paired windows, 1 method(s)
+[16:45:37]   diagnosis: bank2:6-10 (13.0 observed on average), 844 paired windows, 1 method(s)
+[16:45:37]   diagnosis: single_sensor_0 (1.0 observed on average), 844 paired windows, 1 method(s)
+[16:45:38]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:45:38] --- stage diagnosis done in 51.8s ---
+[16:45:38] === run ok · 51.9s · peak RSS 1.879 GB ===
+
+==============================================================================
+ batch finished in 42.1 min — 18 ok, 0 skipped, 0 failed
+==============================================================================
+
+=== diagnosis (mean ± sd over seeds) ===
+
+method                                         variant                     auroc[decouple]      auroc[desync]       auroc[drift]      auroc[offset]       auroc[spike]              alpha                 ap              auroc  seeds
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+conditional_max | bank0:0-1-2-4-5-7-8 | circuit unblocked                     0.5173±0.0131      0.6034±0.0394      0.9631±0.0134      0.9489±0.0320      0.7343±0.0194      0.1000±0.0000      0.8196±0.0143      0.7515±0.0150      3
+conditional_max | bank0:0-1-2-4-5-7-8 | circuit random                        0.5099±0.0119      0.5898±0.0581      0.9698±0.0132      0.9544±0.0256      0.7182±0.0155      0.1000±0.0000      0.8162±0.0165      0.7465±0.0200      3
+conditional_max | bank0:0-1-2-4-5-7-8 | circuit interface                     0.5126±0.0233      0.5400±0.0289      0.9587±0.0181      0.9525±0.0236      0.7447±0.0246      0.1000±0.0000      0.8082±0.0154      0.7403±0.0179      3
+conditional_max | bank0:0-1-2-4-5-7-8 | circuit mixture                       0.5080±0.0120      0.5631±0.0338      0.9574±0.0244      0.9524±0.0311      0.7408±0.0291      0.1000±0.0000      0.8112±0.0182      0.7429±0.0205      3
+conditional_max | bank0:0-1-2-4-5-7-8 | circuit blocked                       0.5163±0.0253      0.5315±0.0152      0.9531±0.0205      0.9513±0.0254      0.7345±0.0264      0.1000±0.0000      0.8059±0.0147      0.7362±0.0151      3
+conditional_max | bank0:0-1-2-4-5-7-8 | circuit conditional                   0.5105±0.0248      0.5384±0.0077      0.9533±0.0174      0.9514±0.0259      0.7413±0.0298      0.1000±0.0000      0.8065±0.0140      0.7377±0.0145      3
+conditional_max | bank1:3 | circuit            unblocked                     0.5110±0.0082      0.7192±0.0223      1.0000±0.0000      1.0000±0.0000      0.9592±0.0188      0.1000±0.0000      0.8863±0.0037      0.8350±0.0024      3
+conditional_max | bank1:3 | circuit            random                        0.5160±0.0087      0.7161±0.0394      1.0000±0.0000      1.0000±0.0000      0.9593±0.0168      0.1000±0.0000      0.8853±0.0066      0.8353±0.0097      3
+conditional_max | bank1:3 | circuit            interface                     0.5227±0.0109      0.5540±0.0175      0.9962±0.0018      0.9997±0.0001      0.9616±0.0160      0.1000±0.0000      0.8608±0.0021      0.8050±0.0023      3
+conditional_max | bank1:3 | circuit            mixture                       0.5136±0.0104      0.5925±0.0115      0.9983±0.0015      0.9994±0.0007      0.9643±0.0160      0.1000±0.0000      0.8666±0.0022      0.8115±0.0029      3
+conditional_max | bank1:3 | circuit            blocked                       0.5224±0.0090      0.5423±0.0052      0.9963±0.0023      0.9995±0.0002      0.9594±0.0205      0.1000±0.0000      0.8592±0.0021      0.8022±0.0028      3
+conditional_max | bank1:3 | circuit            conditional                   0.5215±0.0023      0.5334±0.0163      0.9936±0.0038      0.9992±0.0004      0.9599±0.0196      0.1000±0.0000      0.8575±0.0007      0.7998±0.0010      3
+conditional_max | bank2:6-10 | circuit         unblocked                     0.5118±0.0082      0.6899±0.0287      1.0000±0.0000      0.9980±0.0035      0.9350±0.0100      0.1000±0.0000      0.8779±0.0052      0.8243±0.0044      3
+conditional_max | bank2:6-10 | circuit         random                        0.5207±0.0129      0.6886±0.0408      1.0000±0.0000      0.9986±0.0024      0.9363±0.0080      0.1000±0.0000      0.8784±0.0084      0.8262±0.0121      3
+conditional_max | bank2:6-10 | circuit         interface                     0.5225±0.0110      0.5542±0.0162      0.9983±0.0005      0.9964±0.0056      0.9359±0.0070      0.1000±0.0000      0.8563±0.0030      0.7997±0.0042      3
+conditional_max | bank2:6-10 | circuit         mixture                       0.5142±0.0077      0.5880±0.0100      0.9989±0.0014      0.9975±0.0031      0.9404±0.0079      0.1000±0.0000      0.8618±0.0020      0.8057±0.0028      3
+conditional_max | bank2:6-10 | circuit         blocked                       0.5227±0.0095      0.5434±0.0045      0.9983±0.0011      0.9957±0.0062      0.9345±0.0138      0.1000±0.0000      0.8548±0.0015      0.7972±0.0021      3
+conditional_max | bank2:6-10 | circuit         conditional                   0.5213±0.0026      0.5332±0.0160      0.9992±0.0004      0.9956±0.0034      0.9344±0.0124      0.1000±0.0000      0.8534±0.0021      0.7950±0.0029      3
+conditional_max | full | circuit               unblocked                     0.5118±0.0082      0.7191±0.0226      1.0000±0.0000      1.0000±0.0000      0.9593±0.0187      0.1000±0.0000      0.8865±0.0039      0.8351±0.0027      3
+conditional_max | full | circuit               random                        0.5160±0.0090      0.7163±0.0394      1.0000±0.0000      1.0000±0.0000      0.9601±0.0161      0.1000±0.0000      0.8854±0.0067      0.8355±0.0099      3
+conditional_max | full | circuit               interface                     0.5227±0.0108      0.5541±0.0176      0.9993±0.0006      0.9997±0.0002      0.9616±0.0160      0.1000±0.0000      0.8615±0.0021      0.8056±0.0025      3
+conditional_max | full | circuit               mixture                       0.5136±0.0104      0.5923±0.0112      0.9999±0.0001      0.9995±0.0006      0.9644±0.0159      0.1000±0.0000      0.8670±0.0020      0.8118±0.0027      3
+conditional_max | full | circuit               blocked                       0.5224±0.0091      0.5423±0.0052      0.9990±0.0016      0.9995±0.0002      0.9594±0.0206      0.1000±0.0000      0.8599±0.0018      0.8028±0.0024      3
+conditional_max | full | circuit               conditional                   0.5214±0.0024      0.5333±0.0164      0.9995±0.0006      0.9994±0.0002      0.9599±0.0197      0.1000±0.0000      0.8586±0.0013      0.8009±0.0018      3
+conditional_max | random1:1 | circuit          unblocked                     0.5140±0.0098      0.7327±0.0197      1.0000±0.0000      1.0000±0.0000      0.9306±0.0248      0.1000±0.0000      0.8841±0.0046      0.8327±0.0075      3
+conditional_max | random1:1 | circuit          random                        0.5202±0.0171      0.7185±0.0379      1.0000±0.0000      1.0000±0.0000      0.9265±0.0235      0.1000±0.0000      0.8817±0.0080      0.8303±0.0108      3
+conditional_max | random1:1 | circuit          interface                     0.5222±0.0056      0.5638±0.0089      0.9996±0.0003      0.9994±0.0003      0.9322±0.0230      0.1000±0.0000      0.8578±0.0037      0.8017±0.0055      3
+conditional_max | random1:1 | circuit          mixture                       0.5188±0.0066      0.6173±0.0092      0.9999±0.0001      0.9996±0.0003      0.9334±0.0212      0.1000±0.0000      0.8656±0.0035      0.8117±0.0069      3
+conditional_max | random1:1 | circuit          blocked                       0.5277±0.0048      0.5579±0.0053      0.9994±0.0009      0.9992±0.0004      0.9275±0.0301      0.1000±0.0000      0.8575±0.0049      0.8007±0.0067      3
+conditional_max | random1:1 | circuit          conditional                   0.5238±0.0062      0.5552±0.0086      0.9997±0.0002      0.9969±0.0037      0.9291±0.0242      0.1000±0.0000      0.8560±0.0025      0.7993±0.0033      3
+conditional_max | random3:5-8-14 | circuit     unblocked                     0.5124±0.0177      0.6620±0.0130      0.9911±0.0080      0.9935±0.0040      0.8979±0.0226      0.1000±0.0000      0.8663±0.0020      0.8089±0.0023      3
+conditional_max | random3:5-8-14 | circuit     random                        0.5069±0.0056      0.6616±0.0245      0.9932±0.0075      0.9925±0.0030      0.8952±0.0288      0.1000±0.0000      0.8640±0.0048      0.8072±0.0076      3
+conditional_max | random3:5-8-14 | circuit     interface                     0.5178±0.0142      0.5465±0.0155      0.9912±0.0076      0.9893±0.0032      0.8989±0.0319      0.1000±0.0000      0.8465±0.0028      0.7869±0.0040      3
+conditional_max | random3:5-8-14 | circuit     mixture                       0.5082±0.0106      0.5743±0.0244      0.9904±0.0087      0.9920±0.0040      0.9026±0.0282      0.1000±0.0000      0.8510±0.0042      0.7914±0.0054      3
+conditional_max | random3:5-8-14 | circuit     blocked                       0.5102±0.0130      0.5281±0.0249      0.9891±0.0070      0.9841±0.0022      0.8966±0.0331      0.1000±0.0000      0.8425±0.0033      0.7798±0.0054      3
+conditional_max | random3:5-8-14 | circuit     conditional                   0.5111±0.0075      0.5247±0.0242      0.9909±0.0057      0.9821±0.0031      0.8966±0.0332      0.1000±0.0000      0.8415±0.0034      0.7792±0.0054      3
+conditional_max | random7:3-4-8-10-11-12-14 | circuit unblocked                     0.4988±0.0093      0.6016±0.0491      0.9536±0.0067      0.9356±0.0086      0.8554±0.0262      0.1000±0.0000      0.8336±0.0075      0.7667±0.0101      3
+conditional_max | random7:3-4-8-10-11-12-14 | circuit random                        0.5236±0.0075      0.6083±0.0647      0.9497±0.0036      0.9352±0.0096      0.8523±0.0322      0.1000±0.0000      0.8360±0.0087      0.7717±0.0119      3
+conditional_max | random7:3-4-8-10-11-12-14 | circuit interface                     0.5130±0.0210      0.5375±0.0306      0.9491±0.0034      0.9302±0.0128      0.8575±0.0327      0.1000±0.0000      0.8211±0.0019      0.7557±0.0031      3
+conditional_max | random7:3-4-8-10-11-12-14 | circuit mixture                       0.5124±0.0133      0.5621±0.0415      0.9507±0.0110      0.9272±0.0153      0.8566±0.0321      0.1000±0.0000      0.8250±0.0043      0.7600±0.0073      3
+conditional_max | random7:3-4-8-10-11-12-14 | circuit blocked                       0.5035±0.0238      0.5186±0.0310      0.9472±0.0046      0.9276±0.0072      0.8603±0.0322      0.1000±0.0000      0.8177±0.0024      0.7496±0.0041      3
+conditional_max | random7:3-4-8-10-11-12-14 | circuit conditional                   0.5047±0.0151      0.5279±0.0333      0.9490±0.0049      0.9213±0.0091      0.8605±0.0348      0.1000±0.0000      0.8169±0.0042      0.7508±0.0061      3
+conditional_max | single_sensor_0 | circuit    unblocked                     0.5277±0.0243      0.4706±0.0310      0.6383±0.0093      0.5903±0.0142      0.5802±0.0255      0.1000±0.0000      0.6132±0.0084      0.5614±0.0063      3
+conditional_max | single_sensor_0 | circuit    random                        0.5251±0.0270      0.4661±0.0237      0.6420±0.0123      0.6016±0.0224      0.5741±0.0120      0.1000±0.0000      0.6138±0.0093      0.5619±0.0057      3
+conditional_max | single_sensor_0 | circuit    interface                     0.5295±0.0097      0.4716±0.0247      0.6417±0.0067      0.5927±0.0158      0.5694±0.0112      0.1000±0.0000      0.6127±0.0080      0.5610±0.0048      3
+conditional_max | single_sensor_0 | circuit    mixture                       0.5261±0.0134      0.4747±0.0256      0.6441±0.0103      0.5926±0.0141      0.5689±0.0151      0.1000±0.0000      0.6129±0.0081      0.5613±0.0045      3
+conditional_max | single_sensor_0 | circuit    blocked                       0.5311±0.0142      0.4699±0.0254      0.6403±0.0105      0.5969±0.0182      0.5661±0.0123      0.1000±0.0000      0.6127±0.0079      0.5610±0.0045      3
+conditional_max | single_sensor_0 | circuit    conditional                   0.5280±0.0132      0.4730±0.0205      0.6411±0.0093      0.5947±0.0135      0.5672±0.0134      0.1000±0.0000      0.6130±0.0073      0.5609±0.0040      3
+independent | bank0:0-1-2-4-5-7-8 | circuit    unblocked                     0.5217±0.0204      0.5274±0.0092      0.9472±0.0196      0.9146±0.0166      0.7174±0.0056      0.1000±0.0000      0.7841±0.0075      0.7243±0.0058      3
+independent | bank0:0-1-2-4-5-7-8 | circuit    random                        0.5186±0.0075      0.5196±0.0254      0.9467±0.0288      0.9161±0.0197      0.7295±0.0243      0.1000±0.0000      0.7871±0.0144      0.7246±0.0153      3
+independent | bank0:0-1-2-4-5-7-8 | circuit    interface                     0.5261±0.0142      0.5229±0.0178      0.9500±0.0222      0.9268±0.0192      0.7424±0.0119      0.1000±0.0000      0.7950±0.0088      0.7324±0.0071      3
+independent | bank0:0-1-2-4-5-7-8 | circuit    mixture                       0.5236±0.0139      0.5180±0.0163      0.9513±0.0205      0.9275±0.0167      0.7425±0.0045      0.1000±0.0000      0.7954±0.0091      0.7313±0.0058      3
+independent | bank0:0-1-2-4-5-7-8 | circuit    blocked                       0.5262±0.0186      0.5160±0.0177      0.9482±0.0240      0.9251±0.0191      0.7354±0.0170      0.1000±0.0000      0.7929±0.0106      0.7290±0.0096      3
+independent | bank0:0-1-2-4-5-7-8 | circuit    conditional                   0.5269±0.0123      0.5194±0.0151      0.9503±0.0232      0.9254±0.0186      0.7436±0.0155      0.1000±0.0000      0.7935±0.0100      0.7318±0.0082      3
+independent | bank1:3 | circuit                unblocked                     0.5216±0.0221      0.5102±0.0155      0.9706±0.0098      0.9605±0.0037      0.8438±0.0370      0.1000±0.0000      0.8046±0.0094      0.7597±0.0107      3
+independent | bank1:3 | circuit                random                        0.5140±0.0142      0.5021±0.0123      0.9786±0.0103      0.9715±0.0095      0.8708±0.0563      0.1000±0.0000      0.8145±0.0169      0.7654±0.0110      3
+independent | bank1:3 | circuit                interface                     0.5204±0.0028      0.4905±0.0306      0.9884±0.0038      0.9799±0.0075      0.9234±0.0329      0.1000±0.0000      0.8335±0.0067      0.7788±0.0038      3
+independent | bank1:3 | circuit                mixture                       0.5202±0.0040      0.4859±0.0319      0.9902±0.0024      0.9816±0.0057      0.9284±0.0337      0.1000±0.0000      0.8356±0.0067      0.7796±0.0050      3
+independent | bank1:3 | circuit                blocked                       0.5232±0.0057      0.4827±0.0331      0.9859±0.0056      0.9801±0.0055      0.9212±0.0432      0.1000±0.0000      0.8319±0.0094      0.7769±0.0056      3
+independent | bank1:3 | circuit                conditional                   0.5229±0.0051      0.4866±0.0360      0.9870±0.0046      0.9783±0.0076      0.9176±0.0416      0.1000±0.0000      0.8300±0.0089      0.7767±0.0046      3
+independent | bank2:6-10 | circuit             unblocked                     0.5158±0.0153      0.5191±0.0093      0.9760±0.0060      0.9618±0.0188      0.8356±0.0490      0.1000±0.0000      0.8052±0.0143      0.7600±0.0136      3
+independent | bank2:6-10 | circuit             random                        0.5093±0.0094      0.5115±0.0045      0.9814±0.0063      0.9745±0.0183      0.8672±0.0517      0.1000±0.0000      0.8166±0.0178      0.7669±0.0099      3
+independent | bank2:6-10 | circuit             interface                     0.5113±0.0191      0.4972±0.0211      0.9863±0.0054      0.9772±0.0136      0.9054±0.0193      0.1000±0.0000      0.8284±0.0059      0.7738±0.0038      3
+independent | bank2:6-10 | circuit             mixture                       0.5113±0.0200      0.4910±0.0198      0.9891±0.0049      0.9789±0.0137      0.9143±0.0209      0.1000±0.0000      0.8314±0.0054      0.7752±0.0035      3
+independent | bank2:6-10 | circuit             blocked                       0.5128±0.0140      0.4954±0.0231      0.9856±0.0064      0.9768±0.0145      0.9066±0.0305      0.1000±0.0000      0.8282±0.0084      0.7737±0.0022      3
+independent | bank2:6-10 | circuit             conditional                   0.5120±0.0198      0.4968±0.0244      0.9855±0.0058      0.9747±0.0162      0.8998±0.0287      0.1000±0.0000      0.8259±0.0081      0.7720±0.0029      3
+independent | full | circuit                   unblocked                     0.5212±0.0235      0.5138±0.0098      0.9867±0.0061      0.9763±0.0048      0.8508±0.0366      0.1000±0.0000      0.8157±0.0100      0.7681±0.0099      3
+independent | full | circuit                   random                        0.5134±0.0166      0.5061±0.0129      0.9886±0.0081      0.9843±0.0067      0.8782±0.0569      0.1000±0.0000      0.8231±0.0159      0.7722±0.0116      3
+independent | full | circuit                   interface                     0.5173±0.0018      0.4982±0.0272      0.9938±0.0035      0.9901±0.0038      0.9294±0.0312      0.1000±0.0000      0.8387±0.0067      0.7840±0.0011      3
+independent | full | circuit                   mixture                       0.5166±0.0060      0.4921±0.0275      0.9951±0.0030      0.9908±0.0033      0.9346±0.0317      0.1000±0.0000      0.8403±0.0069      0.7841±0.0026      3
+independent | full | circuit                   blocked                       0.5202±0.0083      0.4902±0.0290      0.9924±0.0051      0.9894±0.0037      0.9271±0.0419      0.1000±0.0000      0.8373±0.0095      0.7821±0.0048      3
+independent | full | circuit                   conditional                   0.5200±0.0035      0.4942±0.0302      0.9931±0.0048      0.9880±0.0045      0.9217±0.0418      0.1000±0.0000      0.8355±0.0089      0.7816±0.0031      3
+independent | random1:1 | circuit              unblocked                     0.5198±0.0222      0.5165±0.0135      0.9865±0.0076      0.9725±0.0041      0.8392±0.0283      0.1000±0.0000      0.8137±0.0095      0.7653±0.0090      3
+independent | random1:1 | circuit              random                        0.5129±0.0171      0.5080±0.0112      0.9882±0.0097      0.9796±0.0070      0.8629±0.0418      0.1000±0.0000      0.8202±0.0142      0.7684±0.0097      3
+independent | random1:1 | circuit              interface                     0.5175±0.0049      0.5010±0.0308      0.9936±0.0040      0.9850±0.0030      0.9066±0.0157      0.1000±0.0000      0.8346±0.0047      0.7791±0.0015      3
+independent | random1:1 | circuit              mixture                       0.5168±0.0037      0.4963±0.0317      0.9948±0.0036      0.9858±0.0035      0.9120±0.0163      0.1000±0.0000      0.8362±0.0048      0.7795±0.0025      3
+independent | random1:1 | circuit              blocked                       0.5209±0.0116      0.4961±0.0321      0.9925±0.0055      0.9846±0.0029      0.9045±0.0259      0.1000±0.0000      0.8333±0.0071      0.7780±0.0024      3
+independent | random1:1 | circuit              conditional                   0.5201±0.0062      0.4988±0.0349      0.9929±0.0052      0.9829±0.0037      0.9006±0.0255      0.1000±0.0000      0.8317±0.0064      0.7773±0.0013      3
+independent | random3:5-8-14 | circuit         unblocked                     0.5191±0.0320      0.5142±0.0110      0.9721±0.0085      0.9591±0.0102      0.8108±0.0268      0.1000±0.0000      0.8042±0.0102      0.7536±0.0115      3
+independent | random3:5-8-14 | circuit         random                        0.5070±0.0166      0.5067±0.0181      0.9765±0.0110      0.9662±0.0098      0.8398±0.0490      0.1000±0.0000      0.8111±0.0132      0.7574±0.0116      3
+independent | random3:5-8-14 | circuit         interface                     0.5105±0.0102      0.5017±0.0190      0.9797±0.0127      0.9707±0.0093      0.8800±0.0346      0.1000±0.0000      0.8236±0.0073      0.7668±0.0044      3
+independent | random3:5-8-14 | circuit         mixture                       0.5102±0.0107      0.4941±0.0239      0.9807±0.0128      0.9711±0.0091      0.8843±0.0334      0.1000±0.0000      0.8251±0.0069      0.7665±0.0040      3
+independent | random3:5-8-14 | circuit         blocked                       0.5123±0.0132      0.4910±0.0231      0.9783±0.0132      0.9702±0.0093      0.8771±0.0355      0.1000±0.0000      0.8219±0.0081      0.7642±0.0058      3
+independent | random3:5-8-14 | circuit         conditional                   0.5142±0.0094      0.4964±0.0273      0.9783±0.0135      0.9683±0.0091      0.8748±0.0419      0.1000±0.0000      0.8208±0.0090      0.7647±0.0054      3
+independent | random7:3-4-8-10-11-12-14 | circuit unblocked                     0.5176±0.0271      0.4943±0.0115      0.9199±0.0058      0.8926±0.0070      0.7895±0.0346      0.1000±0.0000      0.7764±0.0105      0.7214±0.0097      3
+independent | random7:3-4-8-10-11-12-14 | circuit random                        0.5071±0.0188      0.4836±0.0170      0.9311±0.0083      0.9060±0.0227      0.8077±0.0498      0.1000±0.0000      0.7845±0.0135      0.7256±0.0090      3
+independent | random7:3-4-8-10-11-12-14 | circuit interface                     0.5125±0.0162      0.4669±0.0182      0.9419±0.0081      0.9091±0.0250      0.8360±0.0449      0.1000±0.0000      0.7965±0.0078      0.7318±0.0044      3
+independent | random7:3-4-8-10-11-12-14 | circuit mixture                       0.5120±0.0116      0.4680±0.0213      0.9485±0.0143      0.9087±0.0210      0.8391±0.0462      0.1000±0.0000      0.7994±0.0075      0.7337±0.0024      3
+independent | random7:3-4-8-10-11-12-14 | circuit blocked                       0.5138±0.0112      0.4579±0.0269      0.9433±0.0128      0.9095±0.0182      0.8376±0.0443      0.1000±0.0000      0.7966±0.0077      0.7310±0.0027      3
+independent | random7:3-4-8-10-11-12-14 | circuit conditional                   0.5094±0.0174      0.4679±0.0255      0.9455±0.0112      0.9109±0.0256      0.8405±0.0471      0.1000±0.0000      0.7979±0.0078      0.7333±0.0020      3
+independent | single_sensor_0 | circuit        unblocked                     0.5277±0.0243      0.4706±0.0310      0.6383±0.0093      0.5903±0.0142      0.5802±0.0255      0.1000±0.0000      0.6132±0.0084      0.5614±0.0063      3
+independent | single_sensor_0 | circuit        random                        0.5251±0.0270      0.4661±0.0237      0.6420±0.0123      0.6016±0.0224      0.5741±0.0120      0.1000±0.0000      0.6138±0.0093      0.5619±0.0057      3
+independent | single_sensor_0 | circuit        interface                     0.5295±0.0097      0.4716±0.0247      0.6417±0.0067      0.5927±0.0158      0.5694±0.0112      0.1000±0.0000      0.6127±0.0080      0.5610±0.0048      3
+independent | single_sensor_0 | circuit        mixture                       0.5261±0.0134      0.4747±0.0256      0.6441±0.0103      0.5926±0.0141      0.5689±0.0151      0.1000±0.0000      0.6129±0.0081      0.5613±0.0045      3
+independent | single_sensor_0 | circuit        blocked                       0.5311±0.0142      0.4699±0.0254      0.6403±0.0105      0.5969±0.0182      0.5661±0.0123      0.1000±0.0000      0.6127±0.0079      0.5610±0.0045      3
+independent | single_sensor_0 | circuit        conditional                   0.5280±0.0132      0.4730±0.0205      0.6411±0.0093      0.5947±0.0135      0.5672±0.0134      0.1000±0.0000      0.6130±0.0073      0.5609±0.0040      3
+joint | bank0:0-1-2-4-5-7-8 | circuit          unblocked                     0.5242±0.0258      0.5996±0.0320      0.9631±0.0170      0.9416±0.0234      0.7382±0.0068      0.1000±0.0000      0.8105±0.0094      0.7516±0.0094      3
+joint | bank0:0-1-2-4-5-7-8 | circuit          random                        0.5276±0.0080      0.5742±0.0444      0.9612±0.0212      0.9375±0.0269      0.7245±0.0187      0.1000±0.0000      0.8055±0.0148      0.7433±0.0190      3
+joint | bank0:0-1-2-4-5-7-8 | circuit          interface                     0.5250±0.0144      0.5450±0.0115      0.9553±0.0197      0.9363±0.0206      0.7454±0.0092      0.1000±0.0000      0.8011±0.0083      0.7401±0.0069      3
+joint | bank0:0-1-2-4-5-7-8 | circuit          mixture                       0.5246±0.0148      0.5608±0.0240      0.9586±0.0176      0.9403±0.0205      0.7444±0.0053      0.1000±0.0000      0.8053±0.0108      0.7442±0.0091      3
+joint | bank0:0-1-2-4-5-7-8 | circuit          blocked                       0.5263±0.0192      0.5314±0.0111      0.9516±0.0234      0.9341±0.0203      0.7352±0.0167      0.1000±0.0000      0.7972±0.0114      0.7344±0.0105      3
+joint | bank0:0-1-2-4-5-7-8 | circuit          conditional                   0.5279±0.0137      0.5370±0.0045      0.9534±0.0224      0.9353±0.0194      0.7449±0.0170      0.1000±0.0000      0.7987±0.0111      0.7384±0.0095      3
+joint | bank1:3 | circuit                      unblocked                     0.5174±0.0047      0.6818±0.0137      0.9966±0.0025      0.9971±0.0005      0.9122±0.0374      0.1000±0.0000      0.8635±0.0074      0.8182±0.0053      3
+joint | bank1:3 | circuit                      random                        0.5255±0.0076      0.6589±0.0235      0.9961±0.0026      0.9963±0.0011      0.8909±0.0269      0.1000±0.0000      0.8555±0.0082      0.8109±0.0096      3
+joint | bank1:3 | circuit                      interface                     0.5225±0.0077      0.5604±0.0082      0.9920±0.0018      0.9892±0.0040      0.9239±0.0302      0.1000±0.0000      0.8453±0.0074      0.7955±0.0033      3
+joint | bank1:3 | circuit                      mixture                       0.5253±0.0050      0.6007±0.0065      0.9953±0.0021      0.9927±0.0015      0.9319±0.0317      0.1000±0.0000      0.8550±0.0068      0.8069±0.0024      3
+joint | bank1:3 | circuit                      blocked                       0.5247±0.0045      0.5387±0.0038      0.9906±0.0055      0.9887±0.0035      0.9234±0.0426      0.1000±0.0000      0.8418±0.0118      0.7912±0.0090      3
+joint | bank1:3 | circuit                      conditional                   0.5220±0.0084      0.5362±0.0124      0.9901±0.0044      0.9861±0.0049      0.9195±0.0378      0.1000±0.0000      0.8386±0.0108      0.7888±0.0064      3
+joint | bank2:6-10 | circuit                   unblocked                     0.5075±0.0117      0.6675±0.0132      0.9984±0.0011      0.9936±0.0042      0.8990±0.0319      0.1000±0.0000      0.8567±0.0075      0.8105±0.0038      3
+joint | bank2:6-10 | circuit                   random                        0.5109±0.0229      0.6636±0.0247      0.9978±0.0012      0.9928±0.0032      0.8919±0.0222      0.1000±0.0000      0.8550±0.0084      0.8087±0.0077      3
+joint | bank2:6-10 | circuit                   interface                     0.5108±0.0265      0.5631±0.0109      0.9914±0.0027      0.9844±0.0078      0.9040±0.0156      0.1000±0.0000      0.8385±0.0048      0.7887±0.0032      3
+joint | bank2:6-10 | circuit                   mixture                       0.5134±0.0266      0.5980±0.0045      0.9953±0.0024      0.9877±0.0081      0.9180±0.0167      0.1000±0.0000      0.8491±0.0046      0.8002±0.0035      3
+joint | bank2:6-10 | circuit                   blocked                       0.5124±0.0167      0.5484±0.0075      0.9917±0.0056      0.9836±0.0101      0.9078±0.0294      0.1000±0.0000      0.8370±0.0090      0.7867±0.0035      3
+joint | bank2:6-10 | circuit                   conditional                   0.5095±0.0244      0.5429±0.0034      0.9902±0.0042      0.9805±0.0110      0.8993±0.0239      0.1000±0.0000      0.8326±0.0072      0.7824±0.0031      3
+joint | full | circuit                         unblocked                     0.5145±0.0042      0.6849±0.0185      0.9994±0.0006      0.9990±0.0006      0.9189±0.0362      0.1000±0.0000      0.8655±0.0084      0.8205±0.0060      3
+joint | full | circuit                         random                        0.5229±0.0070      0.6583±0.0257      0.9990±0.0006      0.9984±0.0015      0.8979±0.0263      0.1000±0.0000      0.8577±0.0089      0.8127±0.0103      3
+joint | full | circuit                         interface                     0.5179±0.0056      0.5602±0.0107      0.9955±0.0023      0.9940±0.0026      0.9307±0.0290      0.1000±0.0000      0.8479±0.0075      0.7976±0.0025      3
+joint | full | circuit                         mixture                       0.5204±0.0075      0.5970±0.0058      0.9980±0.0020      0.9957±0.0020      0.9393±0.0284      0.1000±0.0000      0.8562±0.0069      0.8078±0.0022      3
+joint | full | circuit                         blocked                       0.5216±0.0070      0.5412±0.0032      0.9954±0.0043      0.9933±0.0027      0.9289±0.0408      0.1000±0.0000      0.8452±0.0114      0.7941±0.0084      3
+joint | full | circuit                         conditional                   0.5188±0.0054      0.5395±0.0114      0.9948±0.0039      0.9914±0.0039      0.9244±0.0389      0.1000±0.0000      0.8422±0.0108      0.7918±0.0070      3
+joint | random1:1 | circuit                    unblocked                     0.5122±0.0065      0.6829±0.0138      0.9993±0.0008      0.9978±0.0002      0.9000±0.0226      0.1000±0.0000      0.8623±0.0057      0.8157±0.0019      3
+joint | random1:1 | circuit                    random                        0.5209±0.0099      0.6535±0.0137      0.9988±0.0008      0.9963±0.0012      0.8790±0.0091      0.1000±0.0000      0.8543±0.0062      0.8073±0.0069      3
+joint | random1:1 | circuit                    interface                     0.5174±0.0017      0.5586±0.0227      0.9957±0.0025      0.9895±0.0018      0.9071±0.0130      0.1000±0.0000      0.8434±0.0049      0.7917±0.0010      3
+joint | random1:1 | circuit                    mixture                       0.5215±0.0032      0.5948±0.0157      0.9979±0.0023      0.9923±0.0014      0.9165±0.0140      0.1000±0.0000      0.8517±0.0045      0.8025±0.0013      3
+joint | random1:1 | circuit                    blocked                       0.5210±0.0089      0.5417±0.0103      0.9952±0.0046      0.9892±0.0018      0.9055±0.0242      0.1000±0.0000      0.8405±0.0084      0.7886±0.0046      3
+joint | random1:1 | circuit                    conditional                   0.5197±0.0083      0.5411±0.0227      0.9945±0.0045      0.9870±0.0032      0.9021±0.0218      0.1000±0.0000      0.8384±0.0081      0.7870±0.0038      3
+joint | random3:5-8-14 | circuit               unblocked                     0.5063±0.0156      0.6420±0.0237      0.9878±0.0101      0.9876±0.0071      0.8653±0.0355      0.1000±0.0000      0.8450±0.0076      0.7953±0.0078      3
+joint | random3:5-8-14 | circuit               random                        0.5156±0.0123      0.6189±0.0336      0.9868±0.0100      0.9855±0.0112      0.8516±0.0254      0.1000±0.0000      0.8394±0.0068      0.7895±0.0101      3
+joint | random3:5-8-14 | circuit               interface                     0.5115±0.0083      0.5502±0.0119      0.9828±0.0133      0.9770±0.0088      0.8828±0.0352      0.1000±0.0000      0.8321±0.0078      0.7790±0.0057      3
+joint | random3:5-8-14 | circuit               mixture                       0.5159±0.0140      0.5753±0.0098      0.9864±0.0114      0.9797±0.0087      0.8860±0.0312      0.1000±0.0000      0.8389±0.0060      0.7867±0.0038      3
+joint | random3:5-8-14 | circuit               blocked                       0.5120±0.0135      0.5278±0.0063      0.9820±0.0129      0.9756±0.0075      0.8785±0.0363      0.1000±0.0000      0.8282±0.0093      0.7734±0.0084      3
+joint | random3:5-8-14 | circuit               conditional                   0.5104±0.0089      0.5338±0.0152      0.9813±0.0136      0.9732±0.0091      0.8789±0.0421      0.1000±0.0000      0.8272±0.0106      0.7737±0.0082      3
+joint | random7:3-4-8-10-11-12-14 | circuit    unblocked                     0.5040±0.0159      0.5939±0.0227      0.9510±0.0124      0.9272±0.0082      0.8200±0.0403      0.1000±0.0000      0.8167±0.0125      0.7570±0.0126      3
+joint | random7:3-4-8-10-11-12-14 | circuit    random                        0.5205±0.0060      0.5868±0.0457      0.9507±0.0094      0.9318±0.0171      0.8094±0.0274      0.1000±0.0000      0.8158±0.0104      0.7579±0.0114      3
+joint | random7:3-4-8-10-11-12-14 | circuit    interface                     0.5153±0.0201      0.5259±0.0189      0.9521±0.0105      0.9241±0.0211      0.8344±0.0437      0.1000±0.0000      0.8088±0.0102      0.7485±0.0099      3
+joint | random7:3-4-8-10-11-12-14 | circuit    mixture                       0.5155±0.0164      0.5614±0.0232      0.9555±0.0182      0.9255±0.0128      0.8412±0.0437      0.1000±0.0000      0.8177±0.0100      0.7578±0.0085      3
+joint | random7:3-4-8-10-11-12-14 | circuit    blocked                       0.5132±0.0124      0.4986±0.0185      0.9509±0.0141      0.9216±0.0147      0.8387±0.0447      0.1000±0.0000      0.8060±0.0113      0.7429±0.0094      3
+joint | random7:3-4-8-10-11-12-14 | circuit    conditional                   0.5071±0.0170      0.5080±0.0156      0.9535±0.0126      0.9215±0.0237      0.8412±0.0443      0.1000±0.0000      0.8064±0.0104      0.7445±0.0076      3
+joint | single_sensor_0 | circuit              unblocked                     0.5277±0.0243      0.4706±0.0310      0.6383±0.0093      0.5903±0.0142      0.5802±0.0255      0.1000±0.0000      0.6132±0.0084      0.5614±0.0063      3
+joint | single_sensor_0 | circuit              random                        0.5251±0.0270      0.4661±0.0237      0.6420±0.0123      0.6016±0.0224      0.5741±0.0120      0.1000±0.0000      0.6138±0.0093      0.5619±0.0057      3
+joint | single_sensor_0 | circuit              interface                     0.5296±0.0097      0.4716±0.0247      0.6417±0.0067      0.5927±0.0158      0.5694±0.0111      0.1000±0.0000      0.6127±0.0080      0.5610±0.0048      3
+joint | single_sensor_0 | circuit              mixture                       0.5261±0.0134      0.4747±0.0256      0.6441±0.0103      0.5925±0.0141      0.5689±0.0151      0.1000±0.0000      0.6129±0.0081      0.5612±0.0045      3
+joint | single_sensor_0 | circuit              blocked                       0.5311±0.0142      0.4699±0.0254      0.6403±0.0105      0.5969±0.0182      0.5661±0.0123      0.1000±0.0000      0.6128±0.0079      0.5610±0.0045      3
+joint | single_sensor_0 | circuit              conditional                   0.5280±0.0132      0.4731±0.0205      0.6411±0.0093      0.5947±0.0136      0.5672±0.0134      0.1000±0.0000      0.6130±0.0073      0.5609±0.0040      3
+marginal_max | bank0:0-1-2-4-5-7-8 | circuit   unblocked                     0.5185±0.0086      0.5199±0.0172      0.9548±0.0158      0.9451±0.0239      0.7287±0.0163      0.1000±0.0000      0.8020±0.0108      0.7321±0.0122      3
+marginal_max | bank0:0-1-2-4-5-7-8 | circuit   random                        0.5121±0.0146      0.5198±0.0416      0.9594±0.0182      0.9454±0.0297      0.7226±0.0146      0.1000±0.0000      0.8001±0.0111      0.7303±0.0132      3
+marginal_max | bank0:0-1-2-4-5-7-8 | circuit   interface                     0.5137±0.0240      0.5123±0.0340      0.9479±0.0198      0.9473±0.0254      0.7432±0.0211      0.1000±0.0000      0.8013±0.0157      0.7317±0.0174      3
+marginal_max | bank0:0-1-2-4-5-7-8 | circuit   mixture                       0.5099±0.0177      0.5076±0.0356      0.9494±0.0212      0.9448±0.0237      0.7414±0.0265      0.1000±0.0000      0.8002±0.0158      0.7294±0.0170      3
+marginal_max | bank0:0-1-2-4-5-7-8 | circuit   blocked                       0.5137±0.0276      0.5093±0.0298      0.9476±0.0191      0.9477±0.0248      0.7358±0.0246      0.1000±0.0000      0.8002±0.0162      0.7297±0.0175      3
+marginal_max | bank0:0-1-2-4-5-7-8 | circuit   conditional                   0.5078±0.0261      0.5063±0.0246      0.9481±0.0166      0.9467±0.0270      0.7394±0.0243      0.1000±0.0000      0.7993±0.0166      0.7285±0.0177      3
+marginal_max | bank1:3 | circuit               unblocked                     0.5129±0.0193      0.5094±0.0124      0.9926±0.0056      0.9968±0.0029      0.9603±0.0244      0.1000±0.0000      0.8529±0.0053      0.7927±0.0074      3
+marginal_max | bank1:3 | circuit               random                        0.5082±0.0185      0.5134±0.0327      0.9951±0.0041      0.9954±0.0053      0.9565±0.0275      0.1000±0.0000      0.8517±0.0015      0.7919±0.0029      3
+marginal_max | bank1:3 | circuit               interface                     0.5190±0.0047      0.4855±0.0123      0.9891±0.0069      0.9938±0.0068      0.9616±0.0179      0.1000±0.0000      0.8499±0.0037      0.7884±0.0041      3
+marginal_max | bank1:3 | circuit               mixture                       0.5121±0.0069      0.4876±0.0150      0.9896±0.0017      0.9929±0.0068      0.9631±0.0174      0.1000±0.0000      0.8499±0.0033      0.7875±0.0044      3
+marginal_max | bank1:3 | circuit               blocked                       0.5207±0.0070      0.4855±0.0021      0.9880±0.0033      0.9933±0.0076      0.9596±0.0204      0.1000±0.0000      0.8497±0.0039      0.7881±0.0041      3
+marginal_max | bank1:3 | circuit               conditional                   0.5174±0.0015      0.4881±0.0134      0.9874±0.0060      0.9927±0.0083      0.9601±0.0210      0.1000±0.0000      0.8496±0.0036      0.7877±0.0039      3
+marginal_max | bank2:6-10 | circuit            unblocked                     0.5129±0.0193      0.5072±0.0135      0.9965±0.0018      0.9939±0.0073      0.9382±0.0202      0.1000±0.0000      0.8489±0.0042      0.7882±0.0065      3
+marginal_max | bank2:6-10 | circuit            random                        0.5067±0.0162      0.5115±0.0216      0.9961±0.0020      0.9952±0.0056      0.9312±0.0154      0.1000±0.0000      0.8479±0.0009      0.7864±0.0022      3
+marginal_max | bank2:6-10 | circuit            interface                     0.5190±0.0047      0.4855±0.0123      0.9935±0.0030      0.9905±0.0083      0.9368±0.0094      0.1000±0.0000      0.8459±0.0024      0.7836±0.0037      3
+marginal_max | bank2:6-10 | circuit            mixture                       0.5121±0.0069      0.4876±0.0150      0.9955±0.0014      0.9908±0.0084      0.9389±0.0107      0.1000±0.0000      0.8464±0.0018      0.7834±0.0034      3
+marginal_max | bank2:6-10 | circuit            blocked                       0.5209±0.0071      0.4857±0.0025      0.9952±0.0019      0.9905±0.0075      0.9356±0.0146      0.1000±0.0000      0.8461±0.0020      0.7842±0.0025      3
+marginal_max | bank2:6-10 | circuit            conditional                   0.5175±0.0014      0.4882±0.0133      0.9939±0.0049      0.9899±0.0072      0.9356±0.0136      0.1000±0.0000      0.8460±0.0024      0.7835±0.0038      3
+marginal_max | full | circuit                  unblocked                     0.5129±0.0193      0.5094±0.0124      0.9990±0.0013      0.9984±0.0015      0.9603±0.0244      0.1000±0.0000      0.8546±0.0040      0.7944±0.0061      3
+marginal_max | full | circuit                  random                        0.5082±0.0185      0.5134±0.0327      0.9983±0.0023      0.9989±0.0009      0.9565±0.0275      0.1000±0.0000      0.8533±0.0006      0.7932±0.0026      3
+marginal_max | full | circuit                  interface                     0.5190±0.0047      0.4855±0.0123      0.9960±0.0050      0.9973±0.0017      0.9616±0.0179      0.1000±0.0000      0.8520±0.0026      0.7904±0.0037      3
+marginal_max | full | circuit                  mixture                       0.5121±0.0069      0.4876±0.0150      0.9979±0.0024      0.9971±0.0014      0.9631±0.0174      0.1000±0.0000      0.8523±0.0021      0.7899±0.0036      3
+marginal_max | full | circuit                  blocked                       0.5207±0.0070      0.4855±0.0021      0.9972±0.0029      0.9970±0.0021      0.9596±0.0204      0.1000±0.0000      0.8521±0.0026      0.7905±0.0032      3
+marginal_max | full | circuit                  conditional                   0.5174±0.0015      0.4881±0.0134      0.9957±0.0056      0.9963±0.0028      0.9601±0.0210      0.1000±0.0000      0.8519±0.0024      0.7900±0.0034      3
+marginal_max | random1:1 | circuit             unblocked                     0.5179±0.0253      0.5228±0.0246      0.9990±0.0013      0.9969±0.0037      0.9294±0.0194      0.1000±0.0000      0.8512±0.0036      0.7917±0.0055      3
+marginal_max | random1:1 | circuit             random                        0.5159±0.0131      0.5133±0.0200      0.9986±0.0019      0.9952±0.0069      0.9246±0.0235      0.1000±0.0000      0.8486±0.0013      0.7879±0.0039      3
+marginal_max | random1:1 | circuit             interface                     0.5236±0.0034      0.4946±0.0100      0.9970±0.0038      0.9952±0.0044      0.9324±0.0222      0.1000±0.0000      0.8485±0.0036      0.7872±0.0055      3
+marginal_max | random1:1 | circuit             mixture                       0.5170±0.0053      0.4930±0.0087      0.9987±0.0014      0.9956±0.0042      0.9322±0.0188      0.1000±0.0000      0.8485±0.0031      0.7858±0.0048      3
+marginal_max | random1:1 | circuit             blocked                       0.5242±0.0013      0.4967±0.0033      0.9980±0.0019      0.9959±0.0022      0.9285±0.0292      0.1000±0.0000      0.8489±0.0037      0.7873±0.0055      3
+marginal_max | random1:1 | circuit             conditional                   0.5217±0.0048      0.4935±0.0015      0.9965±0.0044      0.9943±0.0038      0.9296±0.0247      0.1000±0.0000      0.8479±0.0028      0.7858±0.0034      3
+marginal_max | random3:5-8-14 | circuit        unblocked                     0.5062±0.0252      0.5004±0.0062      0.9890±0.0081      0.9852±0.0051      0.8949±0.0367      0.1000±0.0000      0.8375±0.0069      0.7735±0.0105      3
+marginal_max | random3:5-8-14 | circuit        random                        0.5017±0.0168      0.5087±0.0414      0.9905±0.0070      0.9855±0.0009      0.8873±0.0470      0.1000±0.0000      0.8363±0.0033      0.7727±0.0041      3
+marginal_max | random3:5-8-14 | circuit        interface                     0.5122±0.0113      0.4865±0.0165      0.9817±0.0095      0.9780±0.0063      0.8972±0.0339      0.1000±0.0000      0.8350±0.0029      0.7695±0.0036      3
+marginal_max | random3:5-8-14 | circuit        mixture                       0.5090±0.0110      0.4861±0.0223      0.9806±0.0101      0.9785±0.0083      0.9007±0.0334      0.1000±0.0000      0.8356±0.0043      0.7693±0.0055      3
+marginal_max | random3:5-8-14 | circuit        blocked                       0.5130±0.0124      0.4867±0.0103      0.9817±0.0091      0.9787±0.0056      0.8945±0.0320      0.1000±0.0000      0.8351±0.0035      0.7694±0.0048      3
+marginal_max | random3:5-8-14 | circuit        conditional                   0.5109±0.0043      0.4855±0.0210      0.9811±0.0113      0.9772±0.0037      0.8955±0.0355      0.1000±0.0000      0.8344±0.0029      0.7684±0.0038      3
+marginal_max | random7:3-4-8-10-11-12-14 | circuit unblocked                     0.5125±0.0153      0.4852±0.0095      0.9499±0.0013      0.9157±0.0077      0.8500±0.0263      0.1000±0.0000      0.8112±0.0062      0.7411±0.0061      3
+marginal_max | random7:3-4-8-10-11-12-14 | circuit random                        0.5080±0.0110      0.4939±0.0404      0.9457±0.0018      0.9208±0.0143      0.8486±0.0334      0.1000±0.0000      0.8106±0.0032      0.7418±0.0052      3
+marginal_max | random7:3-4-8-10-11-12-14 | circuit interface                     0.5080±0.0183      0.4783±0.0226      0.9381±0.0036      0.9107±0.0148      0.8565±0.0309      0.1000±0.0000      0.8063±0.0032      0.7367±0.0015      3
+marginal_max | random7:3-4-8-10-11-12-14 | circuit mixture                       0.5079±0.0138      0.4828±0.0218      0.9396±0.0052      0.9062±0.0135      0.8563±0.0312      0.1000±0.0000      0.8068±0.0028      0.7370±0.0020      3
+marginal_max | random7:3-4-8-10-11-12-14 | circuit blocked                       0.5070±0.0195      0.4796±0.0192      0.9392±0.0016      0.9098±0.0160      0.8585±0.0319      0.1000±0.0000      0.8067±0.0035      0.7373±0.0023      3
+marginal_max | random7:3-4-8-10-11-12-14 | circuit conditional                   0.5060±0.0128      0.4825±0.0238      0.9370±0.0049      0.9099±0.0162      0.8564±0.0315      0.1000±0.0000      0.8061±0.0023      0.7368±0.0017      3
+marginal_max | single_sensor_0 | circuit       unblocked                     0.5277±0.0243      0.4706±0.0310      0.6383±0.0093      0.5903±0.0142      0.5802±0.0255      0.1000±0.0000      0.6132±0.0084      0.5614±0.0063      3
+marginal_max | single_sensor_0 | circuit       random                        0.5251±0.0270      0.4661±0.0237      0.6420±0.0123      0.6016±0.0224      0.5741±0.0120      0.1000±0.0000      0.6138±0.0093      0.5619±0.0057      3
+marginal_max | single_sensor_0 | circuit       interface                     0.5295±0.0097      0.4716±0.0247      0.6417±0.0067      0.5927±0.0158      0.5694±0.0112      0.1000±0.0000      0.6127±0.0080      0.5610±0.0048      3
+marginal_max | single_sensor_0 | circuit       mixture                       0.5261±0.0134      0.4747±0.0256      0.6441±0.0103      0.5926±0.0141      0.5689±0.0151      0.1000±0.0000      0.6129±0.0081      0.5613±0.0045      3
+marginal_max | single_sensor_0 | circuit       blocked                       0.5311±0.0142      0.4699±0.0254      0.6403±0.0105      0.5969±0.0182      0.5661±0.0123      0.1000±0.0000      0.6127±0.0079      0.5610±0.0045      3
+marginal_max | single_sensor_0 | circuit       conditional                   0.5280±0.0132      0.4730±0.0205      0.6411±0.0093      0.5947±0.0135      0.5672±0.0134      0.1000±0.0000      0.6130±0.0073      0.5609±0.0040      3
+model                                          unblocked                                 —                  —                  —                  —                  —                  —                  —                  —      3
+model                                          random                                    —                  —                  —                  —                  —                  —                  —                  —      3
+model                                          interface                                 —                  —                  —                  —                  —                  —                  —                  —      3
+model                                          mixture                                   —                  —                  —                  —                  —                  —                  —                  —      3
+model                                          blocked                                   —                  —                  —                  —                  —                  —                  —                  —      3
+model                                          conditional                               —                  —                  —                  —                  —                  —                  —                  —      3
+query bank0:0-1-2-4-5-7-8 | circuit            unblocked                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query bank0:0-1-2-4-5-7-8 | circuit            random                                    —                  —                  —                  —                  —                  —                  —                  —      3
+query bank0:0-1-2-4-5-7-8 | circuit            interface                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query bank0:0-1-2-4-5-7-8 | circuit            mixture                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query bank0:0-1-2-4-5-7-8 | circuit            blocked                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query bank0:0-1-2-4-5-7-8 | circuit            conditional                               —                  —                  —                  —                  —                  —                  —                  —      3
+query bank1:3 | circuit                        unblocked                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query bank1:3 | circuit                        random                                    —                  —                  —                  —                  —                  —                  —                  —      3
+query bank1:3 | circuit                        interface                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query bank1:3 | circuit                        mixture                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query bank1:3 | circuit                        blocked                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query bank1:3 | circuit                        conditional                               —                  —                  —                  —                  —                  —                  —                  —      3
+query bank2:6-10 | circuit                     unblocked                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query bank2:6-10 | circuit                     random                                    —                  —                  —                  —                  —                  —                  —                  —      3
+query bank2:6-10 | circuit                     interface                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query bank2:6-10 | circuit                     mixture                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query bank2:6-10 | circuit                     blocked                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query bank2:6-10 | circuit                     conditional                               —                  —                  —                  —                  —                  —                  —                  —      3
+query full | circuit                           unblocked                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query full | circuit                           random                                    —                  —                  —                  —                  —                  —                  —                  —      3
+query full | circuit                           interface                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query full | circuit                           mixture                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query full | circuit                           blocked                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query full | circuit                           conditional                               —                  —                  —                  —                  —                  —                  —                  —      3
+query random1:1 | circuit                      unblocked                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query random1:1 | circuit                      random                                    —                  —                  —                  —                  —                  —                  —                  —      3
+query random1:1 | circuit                      interface                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query random1:1 | circuit                      mixture                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query random1:1 | circuit                      blocked                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query random1:1 | circuit                      conditional                               —                  —                  —                  —                  —                  —                  —                  —      3
+query random3:5-8-14 | circuit                 unblocked                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query random3:5-8-14 | circuit                 random                                    —                  —                  —                  —                  —                  —                  —                  —      3
+query random3:5-8-14 | circuit                 interface                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query random3:5-8-14 | circuit                 mixture                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query random3:5-8-14 | circuit                 blocked                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query random3:5-8-14 | circuit                 conditional                               —                  —                  —                  —                  —                  —                  —                  —      3
+query random7:3-4-8-10-11-12-14 | circuit      unblocked                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query random7:3-4-8-10-11-12-14 | circuit      random                                    —                  —                  —                  —                  —                  —                  —                  —      3
+query random7:3-4-8-10-11-12-14 | circuit      interface                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query random7:3-4-8-10-11-12-14 | circuit      mixture                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query random7:3-4-8-10-11-12-14 | circuit      blocked                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query random7:3-4-8-10-11-12-14 | circuit      conditional                               —                  —                  —                  —                  —                  —                  —                  —      3
+query single_sensor_0 | circuit                unblocked                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query single_sensor_0 | circuit                random                                    —                  —                  —                  —                  —                  —                  —                  —      3
+query single_sensor_0 | circuit                interface                                 —                  —                  —                  —                  —                  —                  —                  —      3
+query single_sensor_0 | circuit                mixture                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query single_sensor_0 | circuit                blocked                                   —                  —                  —                  —                  —                  —                  —                  —      3
+query single_sensor_0 | circuit                conditional                               —                  —                  —                  —                  —                  —                  —                  —      3
+relational_max | bank0:0-1-2-4-5-7-8 | circuit unblocked                     0.5019±0.0120      0.6293±0.0524      0.9326±0.0154      0.8683±0.0518      0.5603±0.0160      0.1000±0.0000      0.7659±0.0218      0.6960±0.0209      3
+relational_max | bank0:0-1-2-4-5-7-8 | circuit random                        0.5026±0.0036      0.6115±0.0367      0.9185±0.0079      0.8446±0.0315      0.5362±0.0326      0.1000±0.0000      0.7436±0.0259      0.6804±0.0198      3
+relational_max | bank0:0-1-2-4-5-7-8 | circuit interface                     0.5018±0.0075      0.5879±0.0398      0.8462±0.0230      0.7367±0.0749      0.4844±0.0267      0.1000±0.0000      0.6881±0.0033      0.6291±0.0038      3
+relational_max | bank0:0-1-2-4-5-7-8 | circuit mixture                       0.5141±0.0409      0.6335±0.0433      0.8714±0.0234      0.7901±0.0452      0.4933±0.0401      0.1000±0.0000      0.7174±0.0274      0.6582±0.0293      3
+relational_max | bank0:0-1-2-4-5-7-8 | circuit blocked                       0.5019±0.0334      0.5454±0.0246      0.8272±0.0256      0.7476±0.0528      0.5194±0.0397      0.1000±0.0000      0.6759±0.0180      0.6263±0.0216      3
+relational_max | bank0:0-1-2-4-5-7-8 | circuit conditional                   0.4905±0.0303      0.5725±0.0394      0.7711±0.0522      0.7098±0.1082      0.5470±0.0097      0.1000±0.0000      0.6609±0.0334      0.6162±0.0286      3
+relational_max | bank1:3 | circuit             unblocked                     0.5095±0.0202      0.7837±0.0363      0.9852±0.0069      0.9472±0.0317      0.5676±0.0195      0.1000±0.0000      0.8196±0.0165      0.7552±0.0198      3
+relational_max | bank1:3 | circuit             random                        0.5164±0.0111      0.7462±0.0187      0.9751±0.0148      0.9540±0.0256      0.5404±0.0325      0.1000±0.0000      0.8067±0.0142      0.7435±0.0118      3
+relational_max | bank1:3 | circuit             interface                     0.4963±0.0272      0.7579±0.0084      0.9162±0.0142      0.8930±0.0308      0.5047±0.0297      0.1000±0.0000      0.7728±0.0124      0.7105±0.0146      3
+relational_max | bank1:3 | circuit             mixture                       0.5201±0.0354      0.7949±0.0284      0.9422±0.0030      0.9204±0.0179      0.4869±0.0263      0.1000±0.0000      0.7946±0.0092      0.7303±0.0100      3
+relational_max | bank1:3 | circuit             blocked                       0.5020±0.0088      0.7018±0.0535      0.9049±0.0198      0.8729±0.0283      0.5651±0.0535      0.1000±0.0000      0.7636±0.0211      0.7072±0.0157      3
+relational_max | bank1:3 | circuit             conditional                   0.4956±0.0143      0.7098±0.0684      0.8163±0.0668      0.8358±0.0973      0.4781±0.0498      0.1000±0.0000      0.7247±0.0465      0.6648±0.0512      3
+relational_max | bank2:6-10 | circuit          unblocked                     0.5027±0.0230      0.7547±0.0383      0.9724±0.0188      0.9445±0.0204      0.5791±0.0216      0.1000±0.0000      0.8144±0.0095      0.7477±0.0106      3
+relational_max | bank2:6-10 | circuit          random                        0.5130±0.0128      0.7444±0.0440      0.9647±0.0235      0.9434±0.0108      0.5519±0.0253      0.1000±0.0000      0.8049±0.0076      0.7407±0.0078      3
+relational_max | bank2:6-10 | circuit          interface                     0.5066±0.0178      0.7293±0.0358      0.8868±0.0199      0.8699±0.0275      0.4789±0.0292      0.1000±0.0000      0.7603±0.0165      0.6914±0.0169      3
+relational_max | bank2:6-10 | circuit          mixture                       0.5119±0.0317      0.7619±0.0466      0.9450±0.0070      0.9135±0.0262      0.5014±0.0349      0.1000±0.0000      0.7909±0.0127      0.7243±0.0103      3
+relational_max | bank2:6-10 | circuit          blocked                       0.5058±0.0273      0.6992±0.0722      0.9055±0.0225      0.8737±0.0277      0.5158±0.0231      0.1000±0.0000      0.7616±0.0245      0.6973±0.0234      3
+relational_max | bank2:6-10 | circuit          conditional                   0.4863±0.0148      0.6940±0.0706      0.8212±0.0669      0.8001±0.1028      0.4719±0.0081      0.1000±0.0000      0.7190±0.0456      0.6527±0.0453      3
+relational_max | full | circuit                unblocked                     0.5031±0.0185      0.7862±0.0378      0.9944±0.0043      0.9632±0.0201      0.5871±0.0169      0.1000±0.0000      0.8269±0.0132      0.7635±0.0161      3
+relational_max | full | circuit                random                        0.5185±0.0109      0.7543±0.0248      0.9848±0.0116      0.9625±0.0175      0.5495±0.0415      0.1000±0.0000      0.8117±0.0161      0.7512±0.0153      3
+relational_max | full | circuit                interface                     0.5046±0.0278      0.7577±0.0026      0.9239±0.0064      0.8979±0.0263      0.5083±0.0326      0.1000±0.0000      0.7755±0.0136      0.7156±0.0132      3
+relational_max | full | circuit                mixture                       0.5149±0.0325      0.7898±0.0287      0.9528±0.0054      0.9298±0.0122      0.4923±0.0302      0.1000±0.0000      0.7977±0.0108      0.7333±0.0120      3
+relational_max | full | circuit                blocked                       0.5124±0.0267      0.7083±0.0491      0.9115±0.0176      0.8781±0.0267      0.5298±0.0366      0.1000±0.0000      0.7658±0.0236      0.7056±0.0228      3
+relational_max | full | circuit                conditional                   0.5050±0.0021      0.7102±0.0697      0.8317±0.0534      0.8322±0.0852      0.4672±0.0216      0.1000±0.0000      0.7274±0.0454      0.6671±0.0459      3
+relational_max | random1:1 | circuit           unblocked                     0.5016±0.0140      0.7894±0.0327      0.9932±0.0076      0.9581±0.0278      0.5915±0.0220      0.1000±0.0000      0.8261±0.0115      0.7634±0.0134      3
+relational_max | random1:1 | circuit           random                        0.5098±0.0068      0.7489±0.0194      0.9830±0.0147      0.9533±0.0094      0.5519±0.0493      0.1000±0.0000      0.8088±0.0141      0.7467±0.0122      3
+relational_max | random1:1 | circuit           interface                     0.5117±0.0338      0.7533±0.0200      0.9273±0.0086      0.8796±0.0400      0.4806±0.0396      0.1000±0.0000      0.7698±0.0124      0.7073±0.0154      3
+relational_max | random1:1 | circuit           mixture                       0.5016±0.0196      0.7791±0.0155      0.9501±0.0088      0.9089±0.0105      0.4952±0.0370      0.1000±0.0000      0.7906±0.0054      0.7242±0.0067      3
+relational_max | random1:1 | circuit           blocked                       0.5050±0.0232      0.7000±0.0506      0.9041±0.0296      0.8664±0.0334      0.5473±0.0361      0.1000±0.0000      0.7619±0.0217      0.7023±0.0180      3
+relational_max | random1:1 | circuit           conditional                   0.5049±0.0059      0.7079±0.0487      0.8411±0.0565      0.8356±0.0847      0.4506±0.0413      0.1000±0.0000      0.7286±0.0414      0.6659±0.0381      3
+relational_max | random3:5-8-14 | circuit      unblocked                     0.5068±0.0291      0.7402±0.0381      0.9604±0.0147      0.9227±0.0372      0.5722±0.0148      0.1000±0.0000      0.8055±0.0140      0.7375±0.0155      3
+relational_max | random3:5-8-14 | circuit      random                        0.5107±0.0094      0.7041±0.0240      0.9458±0.0236      0.9020±0.0116      0.5403±0.0312      0.1000±0.0000      0.7819±0.0218      0.7182±0.0167      3
+relational_max | random3:5-8-14 | circuit      interface                     0.4982±0.0208      0.6971±0.0215      0.8705±0.0414      0.8215±0.0352      0.5006±0.0475      0.1000±0.0000      0.7349±0.0234      0.6753±0.0232      3
+relational_max | random3:5-8-14 | circuit      mixture                       0.5110±0.0284      0.7282±0.0246      0.9060±0.0226      0.8667±0.0196      0.4941±0.0300      0.1000±0.0000      0.7647±0.0088      0.6991±0.0076      3
+relational_max | random3:5-8-14 | circuit      blocked                       0.5009±0.0143      0.6439±0.0280      0.8772±0.0210      0.8238±0.0290      0.5442±0.0506      0.1000±0.0000      0.7322±0.0207      0.6761±0.0260      3
+relational_max | random3:5-8-14 | circuit      conditional                   0.4809±0.0206      0.6681±0.0352      0.7856±0.0558      0.7723±0.0575      0.5181±0.0175      0.1000±0.0000      0.7010±0.0348      0.6435±0.0287      3
+relational_max | random7:3-4-8-10-11-12-14 | circuit unblocked                     0.5082±0.0302      0.6589±0.0346      0.7796±0.0494      0.7672±0.0268      0.5438±0.0373      0.1000±0.0000      0.7173±0.0287      0.6501±0.0274      3
+relational_max | random7:3-4-8-10-11-12-14 | circuit random                        0.5222±0.0140      0.6521±0.0185      0.8273±0.0450      0.7867±0.0356      0.5235±0.0148      0.1000±0.0000      0.7262±0.0247      0.6611±0.0206      3
+relational_max | random7:3-4-8-10-11-12-14 | circuit interface                     0.5059±0.0140      0.6767±0.0192      0.7809±0.0548      0.7484±0.0523      0.4858±0.0331      0.1000±0.0000      0.6986±0.0394      0.6380±0.0302      3
+relational_max | random7:3-4-8-10-11-12-14 | circuit mixture                       0.5288±0.0106      0.6922±0.0346      0.8101±0.0605      0.7959±0.0380      0.5220±0.0177      0.1000±0.0000      0.7325±0.0288      0.6687±0.0252      3
+relational_max | random7:3-4-8-10-11-12-14 | circuit blocked                       0.4914±0.0085      0.6234±0.0482      0.7747±0.0511      0.7356±0.0567      0.5236±0.0247      0.1000±0.0000      0.6876±0.0419      0.6283±0.0352      3
+relational_max | random7:3-4-8-10-11-12-14 | circuit conditional                   0.4968±0.0123      0.6560±0.0489      0.6774±0.0168      0.6961±0.0332      0.4589±0.0579      0.1000±0.0000      0.6596±0.0301      0.5963±0.0079      3
+relational_max | single_sensor_0 | circuit     unblocked                     0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.1000±0.0000      0.5000±0.0000      0.5000±0.0000      3
+relational_max | single_sensor_0 | circuit     random                        0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.1000±0.0000      0.5000±0.0000      0.5000±0.0000      3
+relational_max | single_sensor_0 | circuit     interface                     0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.1000±0.0000      0.5000±0.0000      0.5000±0.0000      3
+relational_max | single_sensor_0 | circuit     mixture                       0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.1000±0.0000      0.5000±0.0000      0.5000±0.0000      3
+relational_max | single_sensor_0 | circuit     blocked                       0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.1000±0.0000      0.5000±0.0000      0.5000±0.0000      3
+relational_max | single_sensor_0 | circuit     conditional                   0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.5000±0.0000      0.1000±0.0000      0.5000±0.0000      0.5000±0.0000      3
+shortcut audit                                 unblocked                                 —                  —                  —                  —                  —                  —                  —                  —      3
+shortcut audit                                 random                                    —                  —                  —                  —                  —                  —                  —                  —      3
+shortcut audit                                 interface                                 —                  —                  —                  —                  —                  —                  —                  —      3
+shortcut audit                                 mixture                                   —                  —                  —                  —                  —                  —                  —                  —      3
+shortcut audit                                 blocked                                   —                  —                  —                  —                  —                  —                  —                  —      3
+shortcut audit                                 conditional                               —                  —                  —                  —                  —                  —                  —                  —      3
+
+wrote logs/ts/ws/diagnosis_fd001/summary.csv, summary.json, summary.md
+

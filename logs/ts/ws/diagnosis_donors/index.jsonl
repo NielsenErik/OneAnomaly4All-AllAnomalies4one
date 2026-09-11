@@ -1,0 +1,12 @@
+{"experiment": "diagnosis_donors", "variant": "unmatched", "seed": 11, "run_dir": "unmatched/seed11", "status": "ok", "wall_s": 213.3, "config_hash": "4613d60aa97b", "finished": "2026-09-11T16:07:06"}
+{"experiment": "diagnosis_donors", "variant": "unmatched", "seed": 12, "run_dir": "unmatched/seed12", "status": "ok", "wall_s": 236.4, "config_hash": "4613d60aa97b", "finished": "2026-09-11T16:11:03"}
+{"experiment": "diagnosis_donors", "variant": "unmatched", "seed": 13, "run_dir": "unmatched/seed13", "status": "ok", "wall_s": 199.8, "config_hash": "4613d60aa97b", "finished": "2026-09-11T16:14:22"}
+{"experiment": "diagnosis_donors", "variant": "matched", "seed": 11, "run_dir": "matched/seed11", "status": "ok", "wall_s": 227.6, "config_hash": "77bb8a1643d9", "finished": "2026-09-11T16:18:10"}
+{"experiment": "diagnosis_donors", "variant": "matched", "seed": 12, "run_dir": "matched/seed12", "status": "ok", "wall_s": 171.8, "config_hash": "77bb8a1643d9", "finished": "2026-09-11T16:21:02"}
+{"experiment": "diagnosis_donors", "variant": "matched", "seed": 13, "run_dir": "matched/seed13", "status": "ok", "wall_s": 241.6, "config_hash": "77bb8a1643d9", "finished": "2026-09-11T16:25:03"}
+{"experiment": "diagnosis_donors", "variant": "matched_nearest", "seed": 11, "run_dir": "matched_nearest/seed11", "status": "ok", "wall_s": 151.4, "config_hash": "bd539db24db8", "finished": "2026-09-11T16:27:35"}
+{"experiment": "diagnosis_donors", "variant": "matched_nearest", "seed": 12, "run_dir": "matched_nearest/seed12", "status": "ok", "wall_s": 190.9, "config_hash": "bd539db24db8", "finished": "2026-09-11T16:30:46"}
+{"experiment": "diagnosis_donors", "variant": "matched_nearest", "seed": 13, "run_dir": "matched_nearest/seed13", "status": "ok", "wall_s": 127.3, "config_hash": "bd539db24db8", "finished": "2026-09-11T16:32:53"}
+{"experiment": "diagnosis_donors", "variant": "matched_tight", "seed": 11, "run_dir": "matched_tight/seed11", "status": "ok", "wall_s": 155.1, "config_hash": "40c0ee4dfa4a", "finished": "2026-09-11T16:35:28"}
+{"experiment": "diagnosis_donors", "variant": "matched_tight", "seed": 12, "run_dir": "matched_tight/seed12", "status": "ok", "wall_s": 146.2, "config_hash": "40c0ee4dfa4a", "finished": "2026-09-11T16:37:54"}
+{"experiment": "diagnosis_donors", "variant": "matched_tight", "seed": 13, "run_dir": "matched_tight/seed13", "status": "ok", "wall_s": 163.0, "config_hash": "40c0ee4dfa4a", "finished": "2026-09-11T16:40:37"}

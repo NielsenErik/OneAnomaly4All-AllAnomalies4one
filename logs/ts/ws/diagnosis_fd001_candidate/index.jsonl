@@ -1,0 +1,5 @@
+{"experiment": "diagnosis_fd001_candidate", "variant": "chow_liu_leaf6", "seed": 21, "run_dir": "chow_liu_leaf6/seed21", "status": "ok", "wall_s": 336.7, "config_hash": "bf51a63be81d", "finished": "2026-09-11T16:09:09"}
+{"experiment": "diagnosis_fd001_candidate", "variant": "chow_liu_leaf6", "seed": 22, "run_dir": "chow_liu_leaf6/seed22", "status": "ok", "wall_s": 127.4, "config_hash": "bf51a63be81d", "finished": "2026-09-11T16:11:17"}
+{"experiment": "diagnosis_fd001_candidate", "variant": "chow_liu_leaf6", "seed": 23, "run_dir": "chow_liu_leaf6/seed23", "status": "ok", "wall_s": 436.2, "config_hash": "bf51a63be81d", "finished": "2026-09-11T16:18:33"}
+{"experiment": "diagnosis_fd001_candidate", "variant": "chow_liu_leaf6", "seed": 24, "run_dir": "chow_liu_leaf6/seed24", "status": "ok", "wall_s": 436.4, "config_hash": "bf51a63be81d", "finished": "2026-09-11T16:25:49"}
+{"experiment": "diagnosis_fd001_candidate", "variant": "chow_liu_leaf6", "seed": 25, "run_dir": "chow_liu_leaf6/seed25", "status": "ok", "wall_s": 165.3, "config_hash": "bf51a63be81d", "finished": "2026-09-11T16:28:35"}
