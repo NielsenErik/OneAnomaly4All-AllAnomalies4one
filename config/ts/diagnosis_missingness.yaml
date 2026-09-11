@@ -1,0 +1,73 @@
+# Step 6 — availability, identifiability and calibration.
+#
+# Three separate questions that the earlier configs ran together:
+#
+#   AVAILABILITY     was the evidence ever there? The witness arms use the
+#                    known witness graph, where removing every witness makes
+#                    the target EXACTLY independent of the rest and zero is the
+#                    correct relational score — so "no signal" is a verified
+#                    fact about the design, not a small number.
+#   IDENTIFIABILITY  the target_hidden mask must leave every remaining query
+#                    numerically unchanged; a method that moves has read
+#                    evidence it does not have.
+#   CALIBRATION      the fixed shared library is the only regime the
+#                    conservative threshold's exchangeability argument covers.
+#                    independent_random is exchangeable ONLY because
+#                    calibration draws by the same rule; fixed_unseen and the
+#                    informative regimes are stress tests and are labelled so
+#                    in every row they produce.
+#
+# The alpha and the mask workload are frozen here, before the data are seen.
+# Repeated calibration draws report the SPREAD of the false-alarm rate; when
+# there are too few independent calibration objects the threshold stays
+# infinite and how often that happened is a reported column.
+name: diagnosis_missingness
+description: Witness availability, informative missingness and operational alarm calibration.
+seeds: [11, 12, 13]
+device: cpu
+stages: [diagnosis]
+log_root: logs/ts/diagnosis_missingness
+dataset:
+  source: synthetic
+  window: 4
+  channels: 5
+model:
+  vtree: channel_blocked
+  K: 4
+  leaf_components: 3
+  epochs: 150
+  min_epochs: 60
+  patience: 25
+  batch_size: 128
+  lr: 0.02
+variants:
+  - name: blocked
+  - name: interface
+    model: {boundary_K: 8, upper_K: 8}
+  - name: conditional
+    model: {conditional_weight: 0.2, select_metric: objective}
+  - name: two_witnesses
+    eval: {diagnosis_witnesses: [1, 2]}
+  - name: one_witness
+    eval: {diagnosis_witnesses: [1]}
+eval:
+  diagnosis_control: true
+  control_train: 1024
+  control_val: 600
+  control_temporal: 0.6
+  # Default witness set for the arms that do not override it. Channel 0 is the
+  # target; 1 and 2 carry every path from it to the rest of the fleet.
+  diagnosis_witnesses: [1, 2]
+  diagnosis_witness_target: 0
+  diagnosis_missingness: [independent_random, fixed_unseen, informative_value, informative_fault]
+  diagnosis_missing_k: 1
+  diagnosis_unseen_dead: [3]
+  diagnosis_operational_trials: 200
+  diagnosis_trajectory: true
+  diagnosis_baselines: [gaussian]
+  diagnosis_max_windows: 200
+  diagnosis_alpha: 0.05
+  mask_ks: [1, 2]
+  masks_per_k: 1
+  oracle_check_windows: 16
+  plots: false

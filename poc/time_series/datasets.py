@@ -229,41 +229,50 @@ def make_ad_task_split(
     std = Standardizer(per_regime=per_regime).fit(train_fleet, fit_ids)
 
     def healthy_windows(ids):
-        Ws, us = [], []
+        Ws, us, rs, hs = [], [], [], []
         for u in ids:
             x = std.transform(train_fleet.series[u], train_fleet.regime[u])
             W, right = windowize(x, window, stride)
             if not len(W):
                 continue
-            sel = train_fleet.health[u][right] < healthy_frac
+            h = train_fleet.health[u][right]
+            sel = h < healthy_frac
             if sel.any():
                 Ws.append(W[sel]); us.append(np.full(int(sel.sum()), int(u)))
-        return Ws, us
+                rs.append(train_fleet.regime[u][right][sel]); hs.append(h[sel])
+        return Ws, us, rs, hs
 
-    X_train, unit_train = healthy_windows(fit_ids)
-    X_val, unit_val = healthy_windows(val_ids)
+    X_train, unit_train, regime_train, health_train = healthy_windows(fit_ids)
+    X_val, unit_val, regime_val, health_val = healthy_windows(val_ids)
     if not X_train:
         raise ValueError(
             "no healthy training windows: healthy_frac is too strict for this "
             "fleet, or `window` exceeds the shortest trajectory")
     X_train = np.concatenate(X_train, axis=0)
     unit_train = np.concatenate(unit_train, axis=0)
+    regime_train = np.concatenate(regime_train, axis=0)
+    health_train = np.concatenate(health_train, axis=0)
     X_val = np.concatenate(X_val, axis=0) if X_val else None
     unit_val = np.concatenate(unit_val, axis=0) if unit_val else None
+    regime_val = np.concatenate(regime_val, axis=0) if regime_val else None
+    health_val = np.concatenate(health_val, axis=0) if health_val else None
 
     donor_pool = X_train
     X_test, y_test, kinds, affected, unit_test = [], [], [], [], []
+    regime_test, health_test = [], []
     for u in range(len(test_fleet)):
         x = std.transform(test_fleet.series[u], test_fleet.regime[u])
         W, right = windowize(x, window, stride)
         if not len(W):
             continue
         h = test_fleet.health[u][right]
+        reg = test_fleet.regime[u][right]
         for i in range(len(W)):
             if h[i] > organic_frac:
                 X_test.append(W[i]); y_test.append(1)
                 kinds.append("organic"); affected.append([])
                 unit_test.append(int(u))
+                regime_test.append(int(reg[i])); health_test.append(float(h[i]))
             elif h[i] < healthy_frac:
                 if rng.random() < inject_rate:
                     seg = W[i].reshape(window, -1)
@@ -276,6 +285,7 @@ def make_ad_task_split(
                     X_test.append(W[i]); y_test.append(0)
                     kinds.append("normal"); affected.append([])
                 unit_test.append(int(u))
+                regime_test.append(int(reg[i])); health_test.append(float(h[i]))
 
     if max_test_windows and len(X_test) > max_test_windows:
         sel = rng.permutation(len(X_test))[:max_test_windows]
@@ -283,6 +293,8 @@ def make_ad_task_split(
         X_test = [X_test[i] for i in sel]; y_test = [y_test[i] for i in sel]
         kinds = [kinds[i] for i in sel]; affected = [affected[i] for i in sel]
         unit_test = [unit_test[i] for i in sel]
+        regime_test = [regime_test[i] for i in sel]
+        health_test = [health_test[i] for i in sel]
 
     return ADTask(
         X_train=torch.from_numpy(np.asarray(X_train, dtype=np.float32)),
@@ -304,6 +316,14 @@ def make_ad_task_split(
         unit_val=(None if unit_val is None
                   else torch.from_numpy(unit_val.astype(np.int64))),
         unit_test=torch.tensor(unit_test, dtype=torch.long),
+        regime_train=torch.from_numpy(regime_train.astype(np.int64)),
+        regime_val=(None if regime_val is None
+                    else torch.from_numpy(regime_val.astype(np.int64))),
+        regime_test=torch.tensor(regime_test, dtype=torch.long),
+        health_train=torch.from_numpy(health_train.astype(np.float32)),
+        health_val=(None if health_val is None
+                    else torch.from_numpy(health_val.astype(np.float32))),
+        health_test=torch.tensor(health_test, dtype=torch.float32),
     )
 
 

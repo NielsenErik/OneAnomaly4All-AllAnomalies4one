@@ -16,7 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import time
-from typing import Dict, List
+from typing import Dict, List, Sequence
 
 import numpy as np
 import torch
@@ -117,6 +117,157 @@ def sweep_masks(counts: List[int], window: int = 8, channels: int = 12,
     return rows
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# Cross-family end-to-end benchmark (roadmap step 7)
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# The circuit's cost claim is only a claim if the comparator is a real model
+# answering the same query on the same data at the same precision on the same
+# device.  Everything below is measured, not derived, and each number is kept
+# separate because they answer different questions and get conflated otherwise:
+#
+#   fit_s              building the model at all
+#   cold_query_s       the FIRST query, with every cache empty — what a fresh
+#                      process or a new mask pattern actually pays
+#   warm_query_s       the median of synchronised repeats afterwards
+#   cache_build_s      cold minus warm: the per-mask construction the fitted
+#                      Gaussian family pays and the circuit's boundary reuse
+#                      does not
+#   cache_bytes        what that construction costs in memory
+#   single_window_s    latency for ONE window, which is not throughput/N
+#   throughput_win_s   windows per second at the benchmark batch, which is not
+#                      latency
+#   end_to_end_s       from raw numpy in, including tensor construction and
+#                      device transfer, because that is what a caller waits for
+#
+# No row here is allowed to stand on the favourable workload alone: the sweeps
+# vary channels, window, batch size and the number of distinct masks, and the
+# writer of any speed claim has to report the sweep, not a point.
+
+def _peak_rss_gb() -> float:
+    try:
+        import resource
+        peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        return peak / (1024 ** 3) if peak > 2 ** 32 else peak / (1024 ** 2)
+    except Exception:
+        return float("nan")
+
+
+def _peak_gpu_gb(device) -> float:
+    if getattr(device, "type", None) != "cuda":
+        return float("nan")
+    torch.cuda.reset_peak_memory_stats(device)
+    return torch.cuda.max_memory_allocated(device) / (1024 ** 3)
+
+
+def _clear_cache(method) -> None:
+    """Put a method back in its cold state without refitting it.
+
+    Only the fitted diagnosers hold a persistent query cache. The circuit's
+    reuse happens INSIDE one call — the boundary values are computed once per
+    query and thrown away — so there is nothing to clear, and a cold circuit
+    query is a warm one. That asymmetry is a result, not an omission: it is why
+    `cache_bytes` below is zero for the circuit and megabytes for the Gaussian
+    family, and why the two families move in opposite directions as the number
+    of distinct masks grows.
+    """
+    model = getattr(method, "model", None)
+    if model is not None and hasattr(model, "_cache"):
+        model._cache = {}
+
+
+def _cache_bytes(method) -> int:
+    """Bytes of PERSISTENT cross-call cache; transient per-query working memory
+    is reported separately as `peak_boundary_bytes` from the cost ledger."""
+    model = getattr(method, "model", None)
+    if model is not None and hasattr(model, "cache_bytes"):
+        return int(model.cache_bytes)
+    return 0
+
+
+def bench_methods(channels: int = 8, window: int = 8, K: int = 4, epochs: int = 5,
+                  n: int = 256, masks: int = 4, baselines=("gaussian", "lowrank", "gmm"),
+                  repeats: int = 3, seed: int = 0) -> List[Dict]:
+    """One workload, every method, identical data / precision / device."""
+    from .diagnosis import CircuitMethod, BaselineMethod
+    from .diagnosis_baselines import build_baselines
+
+    pc, task = _fit(window, channels, K, epochs, seed)
+    X = task.X_test[:n]
+    raw = X.cpu().numpy()
+    rng = np.random.default_rng(seed)
+    patterns = torch.ones(max(masks, 1), channels, dtype=torch.bool)
+    for i in range(1, len(patterns)):
+        patterns[i, rng.choice(channels, size=max(1, channels // 4), replace=False)] = False
+    # One shared mask per row, cycled, so every method sees the same workload.
+    per_row = patterns[torch.arange(len(X)) % len(patterns)]
+
+    methods = [CircuitMethod(pc, "fast" if pc.is_channel_blocked else "oracle")]
+    for model in build_baselines(list(baselines), window, channels, seed=seed):
+        model.fit(task.X_train, task.X_val)
+        methods.append(BaselineMethod(model))
+
+    rows: List[Dict] = []
+    for method in methods:
+        device = method.device
+        _clear_cache(method)
+        _sync(device)
+        t0 = time.perf_counter()
+        result = method.diagnosis_map(X, per_row)
+        _sync(device)
+        cold_s = time.perf_counter() - t0
+        _, warm_s = _timed(lambda: method.diagnosis_map(X, per_row), device, repeats)
+        _, single_s = _timed(lambda: method.diagnosis_map(X[:1], per_row[:1]), device, repeats)
+        _sync(device)
+        t0 = time.perf_counter()
+        method.diagnosis_map(torch.from_numpy(raw), per_row)
+        _sync(device)
+        end_to_end_s = time.perf_counter() - t0
+        cost = result["cost"].as_dict()
+        size = method.size()
+        rows.append({
+            "method": method.name, "channels": channels, "window": window,
+            "batch": len(X), "distinct_masks": int(len(torch.unique(per_row, dim=0))),
+            "parameters": size.get("parameters"), "nodes": size.get("nodes"),
+            "fit_s": round(float(getattr(getattr(method, "model", None), "fit_seconds",
+                                         getattr(pc, "fit_seconds", float("nan")))), 4),
+            "cold_query_s": round(cold_s, 5), "warm_query_s": round(warm_s, 5),
+            "cache_build_s": round(max(cold_s - warm_s, 0.0), 5),
+            "cache_bytes": _cache_bytes(method),
+            "single_window_s": round(single_s, 6),
+            "throughput_win_s": round(len(X) / max(warm_s, 1e-9), 1),
+            "end_to_end_s": round(end_to_end_s, 5),
+            "peak_rss_gb": round(_peak_rss_gb(), 3),
+            "peak_gpu_gb": round(_peak_gpu_gb(device), 3),
+            "device": str(device), "dtype": str(result["log_px"].dtype),
+            "passes": cost["passes"], "node_evaluations": cost["node_evaluations"],
+            "output_elements": cost["output_elements"],
+            "peak_boundary_bytes": cost["peak_boundary_bytes"],
+        })
+        print(f"  {method.name:<18} cold {cold_s:7.3f}s  warm {warm_s:7.3f}s  "
+              f"cache {rows[-1]['cache_build_s']:6.3f}s / {rows[-1]['cache_bytes']:>9,}B  "
+              f"1-window {single_s * 1e3:7.2f}ms  {rows[-1]['throughput_win_s']:>9,.0f} win/s")
+    return rows
+
+
+def sweep_methods(channel_grid, window_grid, batch_grid, mask_grid, K: int = 4,
+                  epochs: int = 5, baselines=("gaussian", "lowrank", "gmm"),
+                  repeats: int = 3, seed: int = 0) -> List[Dict]:
+    """Vary one axis at a time around a fixed centre; never one point."""
+    rows: List[Dict] = []
+    centre = dict(channels=channel_grid[0], window=window_grid[0],
+                  n=batch_grid[0], masks=mask_grid[0])
+    for axis, grid in (("channels", channel_grid), ("window", window_grid),
+                       ("n", batch_grid), ("masks", mask_grid)):
+        for value in grid:
+            spec = {**centre, axis: value}
+            print(f"\n  workload: {spec}")
+            for row in bench_methods(K=K, epochs=epochs, baselines=baselines,
+                                     repeats=repeats, seed=seed, **spec):
+                rows.append({"axis": axis, **row})
+    return rows
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -127,6 +278,14 @@ def main(argv=None) -> int:
     ap.add_argument("--epochs", type=int, default=3)
     ap.add_argument("--windows", type=int, default=64)
     ap.add_argument("--out", default=None, help="write the rows as JSON")
+    ap.add_argument("--methods", action="store_true",
+                    help="also run the cross-family benchmark against the fitted "
+                         "Gaussian / low-rank / GMM diagnosers")
+    ap.add_argument("--method-channels", type=int, nargs="+", default=[8, 12, 16])
+    ap.add_argument("--method-windows", type=int, nargs="+", default=[4, 8, 12])
+    ap.add_argument("--method-batches", type=int, nargs="+", default=[64, 256, 512])
+    ap.add_argument("--method-masks", type=int, nargs="+", default=[1, 4, 16])
+    ap.add_argument("--baselines", nargs="+", default=["gaussian", "lowrank", "gmm"])
     args = ap.parse_args(argv)
 
     print("\nrelational map — cost in C (all channels, one query)")
@@ -144,9 +303,18 @@ def main(argv=None) -> int:
           "layer-parallel evaluator and the\n      two-pass map on the "
           "per-node Python one, so wall clock flatters the oracle\n      at "
           "small C and the gap closes as C grows.")
+    methods = []
+    if args.methods:
+        print("\ncross-family end-to-end benchmark — circuit vs fitted comparators")
+        print("  same data, same precision, same device; cold, warm, cache and "
+              "end-to-end costs kept apart\n")
+        methods = sweep_methods(args.method_channels, args.method_windows,
+                                args.method_batches, args.method_masks,
+                                K=args.K, epochs=args.epochs,
+                                baselines=tuple(args.baselines))
     if args.out:
         with open(args.out, "w") as f:
-            json.dump({"channels": ch, "masks": mk}, f, indent=2)
+            json.dump({"channels": ch, "masks": mk, "methods": methods}, f, indent=2)
         print(f"\nwritten: {args.out}")
     return 0
 

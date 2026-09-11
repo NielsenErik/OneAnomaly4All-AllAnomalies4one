@@ -1,0 +1,102 @@
+# FD001 — push DETECTION, and measure it against detectors that are not circuits.
+#
+# Where this study starts from, on FD001:
+#
+#   1-NN distance            0.844      (existing AD study)
+#   GMM (8 comp.)            0.832
+#   Mahalanobis              0.832
+#   circuit, conditional_max 0.803-0.817  (the diagnosis study, best view)
+#   circuit, relational_max  0.689-0.737
+#   PC, structural-only      0.563      (existing AD study, independent run)
+#
+# The circuit is not yet competitive on detection with a nearest neighbour.
+# Nothing downstream — localisation, missing-sensor operation, cost — is worth
+# arguing before that gap closes or is shown to be the price of something.
+#
+# Three levers, chosen from evidence already in hand rather than from taste:
+#
+# OPTIMISATION  every arm of `diagnosis_fd001.yaml` selected its checkpoint at
+#               epoch 172-179 of 180, and two of three blocked seeds were still
+#               descending faster at the end than thirty epochs earlier.  The
+#               synthetic grid says the learning rate is the binding knob: it
+#               moved the checkpoint NLL 0.64 nats where the budget moved it
+#               nothing, against a 0.06 nat spread between architectures.  So
+#               `lr005` arms get lr 0.05 and room to stop early, and
+#               `blocked_ref` keeps the old setting so the difference is
+#               measured rather than assumed.
+# STRUCTURE     channel blocking buys the fast relational backend, and the
+#               August re-measurement found it COSTS accuracy on real data
+#               (chow_liu topped every FD001 baseline; the blocked boundary
+#               starves the statistic it serves).  chow_liu arms pay the slower
+#               generic backend, which is a cost number this study records
+#               rather than hides.
+# CAPACITY      leaf_components was never crossed with the vtree on real data,
+#               and one uncrossed cell (leaf_components 1 + chain) was already
+#               found degenerate.  6 against 3 is the smallest honest cross.
+#
+# The comparison that decides the study is `diagnosis_detectors`: each of those
+# is refitted on the observed channels of each mask, so the missing-sensor
+# claim is tested against what a practitioner would actually do rather than
+# against a circuit with a handicap.
+#
+# Trajectory reduction and repeated calibration draws are ON here and were off
+# in the earlier FD001 study: an alarm is raised per ENGINE, so the per-engine
+# number is the operational one, and a false-alarm rate without its spread over
+# independent calibration draws is not an operating point.
+name: diagnosis_fd001_detection
+description: FD001 detection push - optimisation, structure and capacity, against refitted detectors.
+seeds: [11, 12, 13]
+# CPU for the whole programme: the fitted comparators are float64 (MPS has
+# no double), and a wall-time column is only comparable across arms measured
+# on one device.
+device: cpu
+stages: [diagnosis]
+log_root: logs/ts/diagnosis_fd001_detection
+skip_if_missing_data: false
+dataset:
+  source: cmapss
+  subset: FD001
+  window: 20
+  stride: 2
+  val_units: 0.3
+  cap: 125
+model:
+  vtree: channel_blocked
+  K: 8
+  leaf_components: 3
+  epochs: 400
+  min_epochs: 100
+  patience: 60
+  batch_size: 256
+  lr: 0.05
+variants:
+  # The setting every earlier FD001 number was produced at. Carried so the
+  # optimisation change is a measured difference inside one config.
+  - name: blocked_ref
+    model: {lr: 0.02, epochs: 180, min_epochs: 60, patience: 30}
+  - name: blocked_conv
+  - name: blocked_conv_leaf6
+    model: {leaf_components: 6}
+  - name: chow_liu_conv
+    model: {vtree: chow_liu}
+  - name: chow_liu_conv_leaf6
+    model: {vtree: chow_liu, leaf_components: 6}
+eval:
+  diagnosis_max_windows: 512
+  diagnosis_alpha: 0.10
+  # Detection comparators, refitted per observation pattern. `impute` is
+  # carried beside `refit` because it is the cheaper thing deployments do,
+  # and the gap between the two is itself the cost of not refitting.
+  diagnosis_detectors: [knn, mahalanobis, gmm, pca, diag_gaussian]
+  diagnosis_detector_policies: [refit, impute]
+  # One fitted masked-query comparator, so the diagnosis axis keeps a
+  # competitor too rather than only the detection axis.
+  diagnosis_baselines: [gaussian]
+  # Operational detection: per-engine alarms and the spread of the
+  # false-alarm rate over repeated independent calibration draws.
+  diagnosis_trajectory: true
+  diagnosis_operational_trials: 200
+  mask_ks: [1, 3, 7]
+  masks_per_k: 1
+  oracle_check_windows: 16
+  plots: false

@@ -1,0 +1,54 @@
+{
+  "method": "lowrank_fitted",
+  "fitted": true,
+  "fit_seconds": 0.0291,
+  "selection": {
+    "split": "checkpoint",
+    "n_train": 1024,
+    "n_checkpoint": 200,
+    "criterion": "mean checkpoint log-density",
+    "grid": {
+      "rank": [
+        1,
+        2,
+        4,
+        8
+      ]
+    },
+    "scores": {
+      "1": -18.433107428536427,
+      "2": -16.549869649043742,
+      "4": -14.70877466838344,
+      "8": -13.07414153379687
+    },
+    "chosen": {
+      "rank": 8
+    },
+    "chosen_score": -13.07414153379687
+  },
+  "stabilization_events": [
+    {
+      "where": "woodbury[16]",
+      "jitter": 2.0342412579324555e-09,
+      "escalations": 0
+    },
+    {
+      "where": "woodbury[16]",
+      "jitter": 1.9501655620011296e-09,
+      "escalations": 0
+    },
+    {
+      "where": "woodbury[16]",
+      "jitter": 1.802855588361387e-09,
+      "escalations": 0
+    },
+    {
+      "where": "woodbury[16]",
+      "jitter": 2.8589073215330056e-09,
+      "escalations": 0
+    }
+  ],
+  "size_parameters": 160,
+  "size_components": 1,
+  "size_rank": 8
+}

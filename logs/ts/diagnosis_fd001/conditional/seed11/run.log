@@ -1,0 +1,59 @@
+[19:08:57] === run start · seed11 · seed 11 · hash 98d97b186119 ===
+[19:08:57] stages ['diagnosis'] · device cpu · dataset cmapss:FD001
+[19:08:57] --- stage: diagnosis ---
+[19:08:57]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[19:08:57]   task: {'kind': 'ad', 'n_train': 3711, 'n_val': 1579, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12869152426719666, 'kind_counts': {'normal': 4042, 'desync': 107, 'offset': 109, 'spike': 98, 'drift': 113, 'decouple': 118, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1579, 'n_regimes': 1, 'seed': 11, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[19:08:57]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  361.086  val  288.627
+    fit channel_blocked K=8: 2/180 (1%) · 0.04 it/s · elapsed 00:47 · ETA 1:10:35
+    fit channel_blocked K=8: 4/180 (2%) · 0.03 it/s · elapsed 02:14 · ETA 1:38:57
+    fit channel_blocked K=8: 5/180 (3%) · 0.03 it/s · elapsed 03:06 · ETA 1:48:43
+    fit channel_blocked K=8: 7/180 (4%) · 0.02 it/s · elapsed 05:31 · ETA 2:16:36
+    fit channel_blocked K=8: 9/180 (5%) · 0.02 it/s · elapsed 06:33 · ETA 2:04:36
+    fit channel_blocked K=8: 11/180 (6%) · 0.03 it/s · elapsed 07:06 · ETA 1:49:13
+    fit channel_blocked K=8: 13/180 (7%) · 0.03 it/s · elapsed 07:40 · ETA 1:38:34
+    fit channel_blocked K=8: 15/180 (8%) · 0.03 it/s · elapsed 08:13 · ETA 1:30:31
+    fit channel_blocked K=8: 17/180 (9%) · 0.03 it/s · elapsed 08:47 · ETA 1:24:16
+    fit channel_blocked K=8: 19/180 (11%) · 0.03 it/s · elapsed 09:20 · ETA 1:19:11
+    fit channel_blocked K=8: 20/180 (11%) · 0.03 it/s · elapsed 10:10 · ETA 1:21:26
+    fit channel_blocked K=8: 22/180 (12%) · 0.03 it/s · elapsed 10:43 · ETA 1:17:02
+    [pc] epoch  22  nll   90.635  val   96.721
+    fit channel_blocked K=8: 24/180 (13%) · 0.04 it/s · elapsed 11:18 · ETA 1:13:31
+    fit channel_blocked K=8: 25/180 (14%) · 0.03 it/s · elapsed 13:02 · ETA 1:20:49
+    fit channel_blocked K=8: 27/180 (15%) · 0.03 it/s · elapsed 13:36 · ETA 1:17:06
+    fit channel_blocked K=8: 29/180 (16%) · 0.03 it/s · elapsed 14:07 · ETA 1:13:35
+    fit channel_blocked K=8: 31/180 (17%) · 0.03 it/s · elapsed 14:54 · ETA 1:11:39
+    fit channel_blocked K=8: 33/180 (18%) · 0.04 it/s · elapsed 15:27 · ETA 1:08:53
+    fit channel_blocked K=8: 34/180 (19%) · 0.03 it/s · elapsed 16:20 · ETA 1:10:08
+    fit channel_blocked K=8: 36/180 (20%) · 0.04 it/s · elapsed 17:06 · ETA 1:08:24
+    fit channel_blocked K=8: 38/180 (21%) · 0.04 it/s · elapsed 17:38 · ETA 1:05:56
+    fit channel_blocked K=8: 39/180 (22%) · 0.03 it/s · elapsed 18:50 · ETA 1:08:07
+    fit channel_blocked K=8: 41/180 (23%) · 0.03 it/s · elapsed 19:47 · ETA 1:07:05
+    fit channel_blocked K=8: 42/180 (23%) · 0.03 it/s · elapsed 21:05 · ETA 1:09:19
+    fit channel_blocked K=8: 44/180 (24%) · 0.03 it/s · elapsed 21:38 · ETA 1:06:53
+    [pc] epoch  44  nll   60.034  val   66.743
+    fit channel_blocked K=8: 45/180 (25%) · 0.03 it/s · elapsed 23:10 · ETA 1:09:30
+    fit channel_blocked K=8: 47/180 (26%) · 0.03 it/s · elapsed 23:46 · ETA 1:07:15
+    fit channel_blocked K=8: 49/180 (27%) · 0.03 it/s · elapsed 24:18 · ETA 1:05:00
+    fit channel_blocked K=8: 51/180 (28%) · 0.03 it/s · elapsed 25:14 · ETA 1:03:52
+    fit channel_blocked K=8: 53/180 (29%) · 0.03 it/s · elapsed 25:50 · ETA 1:01:55
+    fit channel_blocked K=8: 55/180 (31%) · 0.03 it/s · elapsed 26:28 · ETA 1:00:11
+    fit channel_blocked K=8: 57/180 (32%) · 0.04 it/s · elapsed 27:07 · ETA 58:32
+    fit channel_blocked K=8: 59/180 (33%) · 0.04 it/s · elapsed 27:41 · ETA 56:47
+    fit channel_blocked K=8: 61/180 (34%) · 0.04 it/s · elapsed 28:20 · ETA 55:17
+    fit channel_blocked K=8: 63/180 (35%) · 0.04 it/s · elapsed 28:52 · ETA 53:37
+    fit channel_blocked K=8: 65/180 (36%) · 0.04 it/s · elapsed 29:24 · ETA 52:02
+    [pc] epoch  66  nll   51.584  val   59.340
+    fit channel_blocked K=8: 67/180 (37%) · 0.04 it/s · elapsed 30:00 · ETA 50:35
+    fit channel_blocked K=8: 69/180 (38%) · 0.03 it/s · elapsed 34:25 · ETA 55:22
+    fit channel_blocked K=8: 71/180 (39%) · 0.03 it/s · elapsed 34:59 · ETA 53:43
+    fit channel_blocked K=8: 73/180 (41%) · 0.03 it/s · elapsed 36:07 · ETA 52:56
+    fit channel_blocked K=8: 75/180 (42%) · 0.03 it/s · elapsed 36:41 · ETA 51:22
+    fit channel_blocked K=8: 77/180 (43%) · 0.03 it/s · elapsed 37:13 · ETA 49:48
+    fit channel_blocked K=8: 79/180 (44%) · 0.03 it/s · elapsed 40:12 · ETA 51:23
+    fit channel_blocked K=8: 81/180 (45%) · 0.03 it/s · elapsed 40:43 · ETA 49:46
+    fit channel_blocked K=8: 83/180 (46%) · 0.03 it/s · elapsed 41:30 · ETA 48:31
+    fit channel_blocked K=8: 84/180 (47%) · 0.03 it/s · elapsed 42:25 · ETA 48:28
+    fit channel_blocked K=8: 86/180 (48%) · 0.03 it/s · elapsed 43:01 · ETA 47:01
+    fit channel_blocked K=8: 88/180 (49%) · 0.03 it/s · elapsed 43:34 · ETA 45:33
+    [pc] epoch  88  nll   46.807  val   53.021

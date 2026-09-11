@@ -476,3 +476,136 @@ class MaskCalibrator:
                 "alpha": self.alpha,
             })
         return rows
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Missingness REGIMES (step 6)
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# `mask_library` above is one workload: a fixed, externally specified set of
+# patterns, shared by every window.  That is the regime the conservative
+# threshold's exchangeability argument covers, and it is the only one it
+# covers.  Three other regimes exist in the field and none of them inherits
+# that guarantee, so each is generated EXPLICITLY here and labelled with its
+# own mechanism rather than being folded into the same table:
+#
+#   independent_random   a fresh pattern per window, drawn independently of
+#                        the window's values and of its fault.  Exchangeable
+#                        with calibration if calibration draws by the same
+#                        rule — so the rule, not just the alpha, is frozen.
+#   fixed_unseen         one pattern that calibration never saw.  A stress
+#                        test: the null distribution of R moves with the mask,
+#                        so a threshold from other masks is not a guarantee.
+#   informative          the sensor that drops out depends on the HIDDEN value
+#                        or on the fault itself.  This breaks the argument at
+#                        its root, and the point of generating it from a
+#                        written-down mechanism is that the breakage is
+#                        measured rather than assumed away.
+#
+# Everything returns `(N, C)` per-row masks plus a `meta` dict naming the
+# mechanism, because a run that cannot say which mechanism produced its masks
+# cannot support any statement about coverage.
+
+def independent_random_masks(n_rows: int, n_channels: int, k: int = 1,
+                             seed: int = 0) -> Tuple[torch.Tensor, Dict]:
+    """One uniformly drawn k-dead pattern per row, independent of the data."""
+    if not 0 <= k < n_channels:
+        raise ValueError("k dead sensors must leave at least one observed")
+    rng = np.random.default_rng(seed)
+    masks = torch.ones(n_rows, n_channels, dtype=torch.bool)
+    for i in range(n_rows):
+        if k:
+            masks[i, rng.choice(n_channels, size=k, replace=False)] = False
+    return masks, {"mechanism": "independent_random", "k": int(k),
+                   "depends_on_values": False, "depends_on_fault": False,
+                   "exchangeable_with_calibration": "only if calibration draws by this same rule"}
+
+
+def fixed_unseen_mask(n_rows: int, n_channels: int, dead: Sequence[int]
+                      ) -> Tuple[torch.Tensor, Dict]:
+    """One shared pattern, declared as never appearing in calibration."""
+    dead = sorted({int(c) for c in dead})
+    if not dead or len(dead) >= n_channels or any(not 0 <= c < n_channels for c in dead):
+        raise ValueError("the unseen pattern must hide at least one and leave one")
+    mask = torch.ones(n_channels, dtype=torch.bool)
+    mask[dead] = False
+    return mask.unsqueeze(0).expand(n_rows, -1).clone(), {
+        "mechanism": "fixed_unseen", "dead": dead, "depends_on_values": False,
+        "depends_on_fault": False,
+        "exchangeable_with_calibration": "no — calibration never observed this pattern"}
+
+
+def informative_masks(X: torch.Tensor, window: int, n_channels: int,
+                      affected: Optional[Sequence[Sequence[int]]] = None,
+                      mechanism: str = "value", strength: float = 1.0,
+                      fault_dropout: float = 0.5, seed: int = 0
+                      ) -> Tuple[torch.Tensor, Dict]:
+    """Dropout generated FROM the hidden value or the hidden fault.
+
+    `value`  the channel with the largest mean |z| in the window drops out with
+             probability `sigmoid(strength · (|z|max − 1))`.  The sensor most
+             likely to be carrying the anomaly is the one most likely to be
+             missing — the adversarial case for any statistic that needs it.
+    `fault`  each genuinely corrupted channel drops out with probability
+             `fault_dropout`.  The mechanism reads the ground-truth fault, so
+             it is only available in a study that generated the fault, and it
+             is recorded as such.
+    `both`   apply `value`, then `fault`.
+
+    The mechanism is returned alongside the masks and is meant to be written
+    into the run's protocol artifact verbatim.  A mask workload whose mechanism
+    is not recorded cannot support a coverage claim, and this function refuses
+    to produce one silently.
+    """
+    if mechanism not in ("value", "fault", "both"):
+        raise ValueError("mechanism must be value, fault or both")
+    if mechanism in ("fault", "both") and affected is None:
+        raise ValueError("the fault mechanism needs the ground-truth affected channels")
+    rng = np.random.default_rng(seed)
+    n = len(X)
+    masks = torch.ones(n, n_channels, dtype=torch.bool)
+    windows = X.detach().cpu().numpy().reshape(n, window, n_channels)
+    magnitude = np.abs(windows).mean(axis=1)                       # (N, C)
+    if mechanism in ("value", "both"):
+        loudest = magnitude.argmax(axis=1)
+        probability = 1.0 / (1.0 + np.exp(-strength * (magnitude.max(axis=1) - 1.0)))
+        drop = rng.random(n) < probability
+        masks[torch.from_numpy(np.flatnonzero(drop)),
+              torch.from_numpy(loudest[drop])] = False
+    if mechanism in ("fault", "both"):
+        for i, channels in enumerate(affected or []):
+            for c in channels:
+                if rng.random() < fault_dropout:
+                    masks[i, int(c)] = False
+    # A window with nothing observed has no query at all; keep the loudest
+    # sensor rather than emitting an undefined row.
+    empty = ~masks.any(dim=1)
+    if bool(empty.any()):
+        masks[empty, torch.from_numpy(magnitude.argmax(axis=1))[empty]] = True
+    return masks, {"mechanism": f"informative_{mechanism}", "strength": float(strength),
+                   "fault_dropout": float(fault_dropout),
+                   "depends_on_values": mechanism in ("value", "both"),
+                   "depends_on_fault": mechanism in ("fault", "both"),
+                   "rescued_empty_rows": int(empty.sum()),
+                   "exchangeable_with_calibration": "no — the mask depends on the hidden state"}
+
+
+def missingness_workload(regimes: Sequence[str], X: torch.Tensor, window: int,
+                         n_channels: int, affected=None, k: int = 1,
+                         unseen: Optional[Sequence[int]] = None,
+                         seed: int = 0) -> Dict[str, Tuple[torch.Tensor, Dict]]:
+    """Build the requested regimes for one evaluation batch, named per regime."""
+    out: Dict[str, Tuple[torch.Tensor, Dict]] = {}
+    for regime in regimes:
+        if regime == "independent_random":
+            out[regime] = independent_random_masks(len(X), n_channels, k, seed)
+        elif regime == "fixed_unseen":
+            dead = unseen if unseen is not None else [n_channels - 1]
+            out[regime] = fixed_unseen_mask(len(X), n_channels, dead)
+        elif regime in ("informative_value", "informative_fault", "informative_both"):
+            out[regime] = informative_masks(
+                X, window, n_channels, affected,
+                mechanism=regime.split("informative_")[1], seed=seed)
+        else:
+            raise KeyError(f"unknown missingness regime {regime!r}")
+    return out

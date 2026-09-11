@@ -1,0 +1,51 @@
+# Step 4 — the circuit against EQUALLY FITTED comparators.
+#
+# The known-law oracle knows the generating parameters, so it is a correctness
+# reference and not a competitor. These three are competitors: fitted on the
+# same training split, selected on the same checkpoint units, answering the
+# same masked queries, emitting the same artifacts, and compared paired on the
+# same windows. If they win, the report says so.
+name: diagnosis_baselines
+description: Circuit versus fitted Gaussian / low-rank / GMM masked diagnosers.
+seeds: [11, 12, 13]
+device: cpu
+stages: [diagnosis]
+log_root: logs/ts/diagnosis_baselines
+dataset:
+  source: synthetic
+  window: 4
+  channels: 4
+model:
+  vtree: channel_blocked
+  K: 4
+  leaf_components: 3
+  epochs: 150
+  min_epochs: 60
+  patience: 25
+  batch_size: 128
+  lr: 0.02
+variants:
+  - name: blocked
+  - name: interface
+    model: {boundary_K: 8, upper_K: 8}
+  - name: conditional
+    model: {conditional_weight: 0.2, select_metric: objective}
+  - name: unblocked
+    model: {vtree: chow_liu}
+eval:
+  diagnosis_control: true
+  control_train: 1024
+  control_val: 600
+  control_cross: 0.8
+  control_temporal: 0.6
+  diagnosis_baselines: [gaussian, lowrank, gmm]
+  diagnosis_baseline_settings:
+    gaussian: {shrinkage_grid: [0.0, 0.001, 0.01, 0.05, 0.2]}
+    lowrank: {rank_grid: [1, 2, 4, 8]}
+    gmm: {component_grid: [1, 2, 4], reg_grid: [0.0001, 0.01]}
+  diagnosis_max_windows: 200
+  diagnosis_alpha: 0.05
+  mask_ks: [1, 2, 3]
+  masks_per_k: 1
+  oracle_check_windows: 16
+  plots: false

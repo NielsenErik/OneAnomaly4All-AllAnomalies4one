@@ -1,0 +1,66 @@
+# FD001 — pilot variance for the strongest circuit found so far.
+#
+# `diagnosis_fd001_detection.yaml` left one arm level with the fitted
+# full-covariance Gaussian: chow_liu + leaf_components 6.  Paired against the
+# Gaussian on identical windows, all three seeds had detection AUROC and
+# localisation AP intervals containing zero.  Every lower bound sat between
+# -0.025 and -0.030, so the data could not distinguish "equal" from "slightly
+# worse" at the proposed 0.02 margin, and seed 11 selected its checkpoint at
+# epoch 366 of 400.
+#
+# This file answers the two things step 8 needs before a protocol can be
+# frozen, and nothing else:
+#
+#   PILOT VARIANCE  the seed-to-seed spread of the paired delta, which is what
+#                   sizes the confirmation.  Five FRESH seeds (21-25), none of
+#                   which was inspected when the candidate was chosen.
+#   CONVERGENCE     a 600-epoch ceiling, so early stopping and not the budget
+#                   ends every run.  A row that still selects its last epoch
+#                   has not converged and says so.
+#
+# What it is NOT: confirmation.  These are the same FD001 engines the candidate
+# was selected on, and fresh initialisation seeds on inspected data are not
+# fresh confirmation units (IMPLEMENTATION_PLAN_2026-09-10.md, step 8).
+#
+# The per-engine trajectory endpoint is off: in this paired design it reads
+# 1.000 for nearly every method, so it cannot separate them and only costs time.
+name: diagnosis_fd001_candidate
+description: Pilot variance and convergence for the chow_liu leaf6 candidate against the fitted Gaussian.
+seeds: [21, 22, 23, 24, 25]
+# CPU by default for one-device timing; the workstation launcher passes
+# --device cuda, and every query row records the device it was timed on.
+device: cpu
+stages: [diagnosis]
+log_root: logs/ts/diagnosis_fd001_candidate
+skip_if_missing_data: false
+dataset:
+  source: cmapss
+  subset: FD001
+  window: 20
+  stride: 2
+  val_units: 0.3
+  cap: 125
+model:
+  vtree: chow_liu
+  K: 8
+  leaf_components: 6
+  epochs: 600
+  min_epochs: 100
+  patience: 60
+  batch_size: 256
+  lr: 0.05
+variants:
+  - name: chow_liu_leaf6
+eval:
+  diagnosis_max_windows: 512
+  diagnosis_alpha: 0.10
+  diagnosis_baselines: [gaussian]
+  diagnosis_detectors: [mahalanobis, gmm, knn]
+  diagnosis_detector_policies: [refit, impute]
+  # The step-8 false-alarm condition needs the repeated-draw spread.
+  diagnosis_operational_trials: 200
+  diagnosis_trajectory: false
+  mask_ks: [1, 3, 7]
+  masks_per_k: 1
+  oracle_check_windows: 16
+  plots: false

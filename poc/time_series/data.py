@@ -391,7 +391,9 @@ def contaminate_windows(
     kinds: Sequence[str] = ("spike", "offset", "drift", "decouple", "desync"),
     donors: Optional[torch.Tensor] = None,
     seed: int = 0,
-) -> Tuple[torch.Tensor, torch.Tensor, List[str], List[List[int]]]:
+    donor_index: Optional[Sequence[int]] = None,
+    return_donors: bool = False,
+):
     """
     Inject anomalies into an already-windowed healthy set, returning
     (X, y, kinds, affected) in the same layout `ADTask` uses.
@@ -404,6 +406,16 @@ def contaminate_windows(
 
     `donors` supplies the in-distribution replacement windows the `desync`
     kind needs (default: the healthy input itself).
+
+    `donor_index` fixes WHICH donor each recipient gets, which is what turns an
+    uncontrolled replacement into a matched one (roadmap step 5): a uniformly
+    drawn donor can come from a different operating condition or a different
+    point in the degradation, and then the injected "fault" is partly just a
+    context change that the target channel's own marginal already gives away.
+    `-1` means "no admissible donor", and such a row is left UNCORRUPTED and
+    reported as unmatched rather than silently falling back to a random donor.
+    With `return_donors`, the per-row donor index actually used is returned as
+    a fifth element so the run can store it.
     """
     rng = np.random.default_rng(seed)
     Xw = X.detach().cpu().numpy().reshape(len(X), window, n_channels).copy()
@@ -411,16 +423,27 @@ def contaminate_windows(
     y = np.zeros(len(Xw), dtype=np.int64)
     kind_out: List[str] = ["normal"] * len(Xw)
     affected: List[List[int]] = [[] for _ in range(len(Xw))]
+    used = np.full(len(Xw), -1, dtype=np.int64)
+    if donor_index is not None and len(donor_index) != len(Xw):
+        raise ValueError("donor_index must give one donor per recipient window")
     for i in range(len(Xw)):
         if rng.random() >= inject_rate:
             continue
+        if donor_index is None:
+            j = int(rng.integers(len(pool)))
+        else:
+            j = int(donor_index[i])
+            if j < 0:                       # no admissible donor: leave it clean
+                continue
+            if j >= len(pool):
+                raise IndexError(f"donor index {j} is outside the donor pool")
         kind = str(rng.choice(list(kinds)))
-        donor = pool[rng.integers(len(pool))]
-        seg, chans = _inject(Xw[i], kind, rng, strength, donor=donor)
+        seg, chans = _inject(Xw[i], kind, rng, strength, donor=pool[j])
         Xw[i] = seg
-        y[i], kind_out[i], affected[i] = 1, kind, chans
-    return (torch.from_numpy(Xw.reshape(len(Xw), -1).astype(np.float32)),
-            torch.from_numpy(y), kind_out, affected)
+        y[i], kind_out[i], affected[i], used[i] = 1, kind, chans, j
+    out = (torch.from_numpy(Xw.reshape(len(Xw), -1).astype(np.float32)),
+           torch.from_numpy(y), kind_out, affected)
+    return out + (used,) if return_donors else out
 
 
 @dataclass
@@ -450,6 +473,22 @@ class ADTask:
     unit_train: Optional[torch.Tensor] = None
     unit_val: Optional[torch.Tensor] = None
     unit_test: Optional[torch.Tensor] = None
+
+    # Per-window CONTEXT, carried for donor matching (roadmap step 5) and for
+    # nothing else.  `regime_*` is the operating condition at the window's right
+    # edge — exogenous, set by how the machine is being flown, not by its
+    # condition.  `health_*` is the fleet's degradation proxy at the same edge;
+    # it is a legitimate matching variable only because it is frozen before any
+    # model is fitted and is not the detection label.  Both are None on sources
+    # that do not define them (annotated telemetry has no run-to-failure health),
+    # and `diagnosis_donors` refuses to match on a variable that is missing
+    # rather than quietly matching on the remaining ones.
+    regime_train: Optional[torch.Tensor] = None
+    regime_val: Optional[torch.Tensor] = None
+    regime_test: Optional[torch.Tensor] = None
+    health_train: Optional[torch.Tensor] = None
+    health_val: Optional[torch.Tensor] = None
+    health_test: Optional[torch.Tensor] = None
 
     def __repr__(self) -> str:
         v = 0 if self.X_val is None else len(self.X_val)
@@ -503,17 +542,20 @@ def make_ad_task(
         W, right = windowize(x, window, stride)
         return W, fleet.health[u][right] if len(right) else np.zeros(0)
 
-    def healthy_windows(ids) -> Tuple[List[np.ndarray], List[np.ndarray]]:
-        Ws, us = [], []
+    def healthy_windows(ids):
+        Ws, us, rs, hs = [], [], [], []
         for u in ids:
-            W, h = windows_of(u)
+            x = std.transform(fleet.series[u], fleet.regime[u])
+            W, right = windowize(x, window, stride)
+            h = fleet.health[u][right] if len(right) else np.zeros(0)
             sel = h < healthy_frac
             if sel.any():
                 Ws.append(W[sel]); us.append(np.full(int(sel.sum()), int(u)))
-        return Ws, us
+                rs.append(fleet.regime[u][right][sel]); hs.append(h[sel])
+        return Ws, us, rs, hs
 
-    X_train, unit_train = healthy_windows(fit_ids)
-    X_val, unit_val = healthy_windows(val_ids)
+    X_train, unit_train, regime_train, health_train = healthy_windows(fit_ids)
+    X_val, unit_val, regime_val, health_val = healthy_windows(val_ids)
     if not X_train:
         # Loud, because the cause is never the model.  It is almost always a
         # `cap` longer than the units themselves: health = 1 - rul/cap, so on a
@@ -528,20 +570,27 @@ def make_ad_task(
             "`window` fits the trajectories")
     X_train = np.concatenate(X_train, axis=0)
     unit_train = np.concatenate(unit_train, axis=0)
+    regime_train = np.concatenate(regime_train, axis=0)
+    health_train = np.concatenate(health_train, axis=0)
     X_val = np.concatenate(X_val, axis=0) if X_val else None
     unit_val = np.concatenate(unit_val, axis=0) if unit_val else None
+    regime_val = np.concatenate(regime_val, axis=0) if regime_val else None
+    health_val = np.concatenate(health_val, axis=0) if health_val else None
 
     donor_pool = X_train                              # in-distribution donors
     X_test, y_test, kinds, affected, unit_test = [], [], [], [], []
+    regime_test, health_test = [], []
     for u in te_units:
         x = std.transform(fleet.series[u], fleet.regime[u])
         W, right = windowize(x, window, stride)
         h = fleet.health[u][right] if len(right) else np.zeros(0)
+        reg = fleet.regime[u][right] if len(right) else np.zeros(0)
         for i in range(len(W)):
             if h[i] > organic_frac:                       # organic anomaly
                 X_test.append(W[i]); y_test.append(1); kinds.append("organic")
                 affected.append([])           # degradation is fleet-wide, not localised
                 unit_test.append(int(u))
+                regime_test.append(int(reg[i])); health_test.append(float(h[i]))
             elif h[i] < healthy_frac:
                 seg = x[right[i] - window + 1:right[i] + 1]
                 if rng.random() < inject_rate:            # injected anomaly
@@ -555,6 +604,7 @@ def make_ad_task(
                     X_test.append(W[i]); y_test.append(0); kinds.append("normal")
                     affected.append([])
                 unit_test.append(int(u))
+                regime_test.append(int(reg[i])); health_test.append(float(h[i]))
             # else: ambiguous mid-life window, deliberately dropped
 
     return ADTask(
@@ -576,6 +626,14 @@ def make_ad_task(
         unit_val=(None if unit_val is None
                   else torch.from_numpy(unit_val.astype(np.int64))),
         unit_test=torch.tensor(unit_test, dtype=torch.long),
+        regime_train=torch.from_numpy(regime_train.astype(np.int64)),
+        regime_val=(None if regime_val is None
+                    else torch.from_numpy(regime_val.astype(np.int64))),
+        regime_test=torch.tensor(regime_test, dtype=torch.long),
+        health_train=torch.from_numpy(health_train.astype(np.float32)),
+        health_val=(None if health_val is None
+                    else torch.from_numpy(health_val.astype(np.float32))),
+        health_test=torch.tensor(health_test, dtype=torch.float32),
     )
 
 

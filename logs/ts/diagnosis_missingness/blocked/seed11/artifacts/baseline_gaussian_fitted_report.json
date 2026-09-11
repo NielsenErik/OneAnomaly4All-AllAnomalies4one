@@ -1,0 +1,43 @@
+{
+  "method": "gaussian_fitted",
+  "fitted": true,
+  "fit_seconds": 0.001,
+  "selection": {
+    "split": "checkpoint",
+    "n_train": 1024,
+    "n_checkpoint": 200,
+    "criterion": "mean checkpoint log-density",
+    "grid": {
+      "shrinkage": [
+        0.0,
+        0.001,
+        0.01,
+        0.05,
+        0.2,
+        0.5
+      ]
+    },
+    "scores": {
+      "0.0": -20.786919077559613,
+      "0.001": -20.787549746854648,
+      "0.01": -20.80150946058552,
+      "0.05": -20.973611674072863,
+      "0.2": -21.978365098275475,
+      "0.5": -23.860605215663234
+    },
+    "chosen": {
+      "shrinkage": 0.0
+    },
+    "chosen_score": -20.786919077559613
+  },
+  "stabilization_events": [
+    {
+      "where": "full_covariance",
+      "jitter": 9.979205746038569e-09,
+      "escalations": 0
+    }
+  ],
+  "size_parameters": 230,
+  "size_components": 1,
+  "size_rank": 20
+}

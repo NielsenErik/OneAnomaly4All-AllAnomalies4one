@@ -1,0 +1,75 @@
+[11:28:17] === run start · seed12 · seed 12 · hash 606f183486fb ===
+[11:28:17] stages ['diagnosis'] · device cpu · dataset synthetic
+[11:28:17] --- stage: diagnosis ---
+    [pc] epoch   0  nll   25.874  val   24.363
+    [pc] epoch  18  nll   22.466  val   22.429
+    [pc] epoch  36  nll   22.285  val   22.226
+    [pc] epoch  54  nll   22.191  val   22.161
+    [pc] epoch  72  nll   22.090  val   22.179
+    [pc] restored epoch 60 (selected by nll; val nll 22.151, last 22.173)
+[11:28:19]   pc_train_nll: first=25.8736 last=22.0433 (86 epochs)
+[11:28:19]   pc_train_objective: first=25.8736 last=22.0433 (86 epochs)
+[11:28:19]   pc_selection_loss: first=24.3630 last=22.1727 (86 epochs)
+[11:28:19]   pc_val_nll: first=24.3630 last=22.1727 (86 epochs)
+[11:28:19]   pc: fit 1.8s · 1,488 params · score sd 3.600 · device cpu · layered · 48,802 win/s
+[11:28:19]   pc: validation on 200 windows from explicit subset of held-out units · best epoch 60 of 150 · val nll 22.151
+[11:28:19]   shortcut audit: target-channel-only AUROC 0.456 (0.5 = no marginal shortcut)
+[11:28:19]   diagnosis: full (4.0 observed on average), 400 paired windows, 1 method(s)
+[11:28:19]   diagnosis: random1:0 (3.0 observed on average), 400 paired windows, 1 method(s)
+[11:28:19]   diagnosis: random2:1-2 (2.0 observed on average), 400 paired windows, 1 method(s)
+[11:28:19]   diagnosis: random3:1-2-3 (1.0 observed on average), 400 paired windows, 1 method(s)
+[11:28:20]   diagnosis: bank0:0-1 (2.0 observed on average), 400 paired windows, 1 method(s)
+[11:28:20]   diagnosis: single_sensor_0 (1.0 observed on average), 400 paired windows, 1 method(s)
+[11:28:20]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[11:28:20] --- stage diagnosis done in 2.2s ---
+[11:28:20] === run ok · 2.3s · peak RSS 0.37 GB ===
+[11:50:08] === run start · seed12 · seed 12 · hash 8bfc0bacd8d5 ===
+[11:50:08] stages ['diagnosis'] · device cpu · dataset synthetic
+[11:50:08] --- stage: diagnosis ---
+    [pc] epoch   0  nll   25.874  val   24.363
+    [pc] epoch  18  nll   22.466  val   22.429
+    [pc] epoch  36  nll   22.285  val   22.226
+    [pc] epoch  54  nll   22.191  val   22.161
+    [pc] epoch  72  nll   22.090  val   22.179
+    [pc] restored epoch 60 (selected by nll; val nll 22.151, last 22.173)
+[11:50:10]   pc_train_nll: first=25.8736 last=22.0433 (86 epochs)
+[11:50:10]   pc_train_objective: first=25.8736 last=22.0433 (86 epochs)
+[11:50:10]   pc_selection_loss: first=24.3630 last=22.1727 (86 epochs)
+[11:50:10]   pc_val_nll: first=24.3630 last=22.1727 (86 epochs)
+[11:50:10]   pc: fit 2.4s · 1,488 params · score sd 3.600 · device cpu · layered · 36,946 win/s
+[11:50:10]   pc: validation on 200 windows from explicit subset of held-out units · best epoch 60 of 150 · val nll 22.151
+[11:50:10]   shortcut audit: target-channel-only AUROC 0.456 (0.5 = no marginal shortcut)
+[11:50:10]   diagnosis: full (4.0 observed on average), 400 paired windows, 2 method(s)
+[11:50:10]   diagnosis: random1:0 (3.0 observed on average), 400 paired windows, 2 method(s)
+[11:50:10]   diagnosis: random2:1-2 (2.0 observed on average), 400 paired windows, 2 method(s)
+[11:50:11]   diagnosis: random3:1-2-3 (1.0 observed on average), 400 paired windows, 2 method(s)
+[11:50:11]   diagnosis: bank0:0-1 (2.0 observed on average), 400 paired windows, 2 method(s)
+[11:50:11]   diagnosis: single_sensor_0 (1.0 observed on average), 400 paired windows, 2 method(s)
+[11:50:11]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[11:50:11] --- stage diagnosis done in 3.1s ---
+[11:50:11] === run ok · 3.2s · peak RSS 0.366 GB ===
+[20:03:54] === run start · seed12 · seed 12 · hash 1eca7033de79 ===
+[20:03:54] stages ['diagnosis'] · device cpu · dataset synthetic
+[20:03:54] --- stage: diagnosis ---
+    [pc] epoch   0  nll   25.874  val   24.363
+    [pc] epoch  18  nll   22.466  val   22.429
+    [pc] epoch  36  nll   22.285  val   22.226
+    [pc] epoch  54  nll   22.191  val   22.161
+    [pc] epoch  72  nll   22.090  val   22.179
+    [pc] restored epoch 60 (selected by nll; val nll 22.151, last 22.173)
+[20:03:56]   pc_train_nll: first=25.8736 last=22.0433 (86 epochs)
+[20:03:56]   pc_train_objective: first=25.8736 last=22.0433 (86 epochs)
+[20:03:56]   pc_selection_loss: first=24.3630 last=22.1727 (86 epochs)
+[20:03:56]   pc_val_nll: first=24.3630 last=22.1727 (86 epochs)
+[20:03:56]   pc: fit 1.9s · 1,488 params · score sd 3.600 · device cpu · layered · 46,415 win/s
+[20:03:56]   pc: validation on 200 windows from explicit subset of held-out units · best epoch 60 of 150 · val nll 22.151
+[20:03:56]   shortcut audit: target-channel-only AUROC 0.456 (0.5 = no marginal shortcut)
+[20:03:56]   diagnosis: full (4.0 observed on average), 400 paired windows, 2 method(s)
+[20:03:56]   diagnosis: random1:0 (3.0 observed on average), 400 paired windows, 2 method(s)
+[20:03:56]   diagnosis: random2:1-2 (2.0 observed on average), 400 paired windows, 2 method(s)
+[20:03:56]   diagnosis: random3:1-2-3 (1.0 observed on average), 400 paired windows, 2 method(s)
+[20:03:56]   diagnosis: bank0:0-1 (2.0 observed on average), 400 paired windows, 2 method(s)
+[20:03:56]   diagnosis: single_sensor_0 (1.0 observed on average), 400 paired windows, 2 method(s)
+[20:03:56]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[20:03:56] --- stage diagnosis done in 2.5s ---
+[20:03:56] === run ok · 2.5s · peak RSS 0.379 GB ===

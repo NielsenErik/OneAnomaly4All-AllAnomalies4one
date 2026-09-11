@@ -1,0 +1,70 @@
+[01:51:18] === run start · seed11 · seed 11 · hash f58152917d11 ===
+[01:51:18] stages ['diagnosis'] · device cpu · dataset cmapss:FD001
+[01:51:18] --- stage: diagnosis ---
+[01:51:18]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[01:51:18]   task: {'kind': 'ad', 'n_train': 3711, 'n_val': 1579, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12869152426719666, 'kind_counts': {'normal': 4042, 'desync': 107, 'offset': 109, 'spike': 98, 'drift': 113, 'decouple': 118, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1579, 'n_regimes': 1, 'seed': 11, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[01:51:18]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  495.806  val  260.069
+    fit channel_blocked K=8: 4/400 (1%) · 0.03 it/s · elapsed 02:34 · ETA 4:14:30
+    fit channel_blocked K=8: 12/400 (3%) · 0.06 it/s · elapsed 03:07 · ETA 1:41:07
+    fit channel_blocked K=8: 19/400 (5%) · 0.08 it/s · elapsed 03:47 · ETA 1:16:05
+    fit channel_blocked K=8: 26/400 (6%) · 0.10 it/s · elapsed 04:24 · ETA 1:03:20
+    fit channel_blocked K=8: 31/400 (8%) · 0.04 it/s · elapsed 13:05 · ETA 2:35:46
+    fit channel_blocked K=8: 39/400 (10%) · 0.05 it/s · elapsed 13:38 · ETA 2:06:11
+    fit channel_blocked K=8: 47/400 (12%) · 0.06 it/s · elapsed 14:12 · ETA 1:46:44
+    [pc] epoch  50  nll   34.200  val   37.124
+    fit channel_blocked K=8: 51/400 (13%) · 0.05 it/s · elapsed 17:53 · ETA 2:02:26
+    fit channel_blocked K=8: 58/400 (14%) · 0.03 it/s · elapsed 28:49 · ETA 2:49:57
+    fit channel_blocked K=8: 62/400 (16%) · 0.03 it/s · elapsed 29:47 · ETA 2:42:23
+    fit channel_blocked K=8: 70/400 (18%) · 0.04 it/s · elapsed 30:19 · ETA 2:22:57
+    fit channel_blocked K=8: 77/400 (19%) · 0.04 it/s · elapsed 30:53 · ETA 2:09:35
+    fit channel_blocked K=8: 83/400 (21%) · 0.04 it/s · elapsed 31:26 · ETA 2:00:03
+    fit channel_blocked K=8: 91/400 (23%) · 0.05 it/s · elapsed 31:57 · ETA 1:48:32
+    fit channel_blocked K=8: 92/400 (23%) · 0.03 it/s · elapsed 48:12 · ETA 2:41:24
+    fit channel_blocked K=8: 100/400 (25%) · 0.03 it/s · elapsed 48:45 · ETA 2:26:16
+    [pc] epoch 100  nll   31.443  val   34.650
+    fit channel_blocked K=8: 107/400 (27%) · 0.04 it/s · elapsed 49:16 · ETA 2:14:57
+    fit channel_blocked K=8: 111/400 (28%) · 0.03 it/s · elapsed 58:11 · ETA 2:31:31
+    fit channel_blocked K=8: 113/400 (28%) · 0.03 it/s · elapsed 59:13 · ETA 2:30:26
+    fit channel_blocked K=8: 115/400 (29%) · 0.02 it/s · elapsed 1:17:10 · ETA 3:11:14
+    fit channel_blocked K=8: 123/400 (31%) · 0.03 it/s · elapsed 1:17:44 · ETA 2:55:03
+    fit channel_blocked K=8: 129/400 (32%) · 0.03 it/s · elapsed 1:19:29 · ETA 2:46:58
+    fit channel_blocked K=8: 137/400 (34%) · 0.03 it/s · elapsed 1:20:01 · ETA 2:33:37
+    fit channel_blocked K=8: 139/400 (35%) · 0.02 it/s · elapsed 1:33:43 · ETA 2:55:58
+    fit channel_blocked K=8: 147/400 (37%) · 0.03 it/s · elapsed 1:34:15 · ETA 2:42:13
+    [pc] epoch 150  nll   26.893  val   30.899
+    fit channel_blocked K=8: 155/400 (39%) · 0.03 it/s · elapsed 1:34:49 · ETA 2:29:52
+    fit channel_blocked K=8: 163/400 (41%) · 0.03 it/s · elapsed 1:35:21 · ETA 2:18:38
+    fit channel_blocked K=8: 165/400 (41%) · 0.03 it/s · elapsed 1:49:51 · ETA 2:36:27
+    fit channel_blocked K=8: 173/400 (43%) · 0.03 it/s · elapsed 1:50:23 · ETA 2:24:50
+    fit channel_blocked K=8: 176/400 (44%) · 0.02 it/s · elapsed 2:04:09 · ETA 2:38:01
+    fit channel_blocked K=8: 184/400 (46%) · 0.02 it/s · elapsed 2:04:41 · ETA 2:26:22
+    fit channel_blocked K=8: 192/400 (48%) · 0.03 it/s · elapsed 2:05:15 · ETA 2:15:41
+    fit channel_blocked K=8: 200/400 (50%) · 0.03 it/s · elapsed 2:05:49 · ETA 2:05:49
+    [pc] epoch 200  nll   26.954  val   34.673
+    fit channel_blocked K=8: 206/400 (52%) · 0.03 it/s · elapsed 2:06:20 · ETA 1:58:59
+    fit channel_blocked K=8: 209/400 (52%) · 0.03 it/s · elapsed 2:18:52 · ETA 2:06:54
+    fit channel_blocked K=8: 217/400 (54%) · 0.03 it/s · elapsed 2:19:25 · ETA 1:57:34
+    fit channel_blocked K=8: 220/400 (55%) · 0.03 it/s · elapsed 2:20:10 · ETA 1:54:41
+    fit channel_blocked K=8: 228/400 (57%) · 0.03 it/s · elapsed 2:20:43 · ETA 1:46:09
+    [pc] restored epoch 171 (selected by nll; val nll 28.725, last 31.729)
+[04:12:20]   pc_train_nll: first=495.8055 last=27.9514 (232 epochs)
+[04:12:20]   pc_train_objective: first=495.8055 last=27.9514 (232 epochs)
+[04:12:20]   pc_selection_loss: first=260.0685 last=31.7288 (232 epochs)
+[04:12:20]   pc_val_nll: first=260.0685 last=31.7288 (232 epochs)
+[04:12:21]   pc: fit 8461.9s · 195,840 params · score sd 19.635 · device cpu · layered · 102 win/s
+[04:12:21]   pc: validation on 546 windows from explicit subset of held-out units · best epoch 171 of 400 · val nll 28.725
+[04:12:22]   shortcut audit: target-channel-only AUROC 0.559 (0.5 = no marginal shortcut)
+[04:12:23]   baseline gaussian_fitted: fit 0.31s · 45,450 params · selection {'shrinkage': 0.01}
+[04:12:23]   detection comparators: ['knn_refit', 'knn_impute', 'mahalanobis_refit', 'mahalanobis_impute', 'gmm_refit', 'gmm_impute', 'pca_refit', 'pca_impute', 'diag_gaussian_refit', 'diag_gaussian_impute']
+[04:12:23]   diagnosis: full (15.0 observed on average), 940 paired windows, 2 method(s)
+[04:12:28]   diagnosis: random1:1 (14.0 observed on average), 940 paired windows, 2 method(s)
+[04:12:32]   diagnosis: random3:5-8-14 (12.0 observed on average), 940 paired windows, 2 method(s)
+[04:12:35]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 940 paired windows, 2 method(s)
+[04:12:38]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 940 paired windows, 2 method(s)
+[04:12:41]   diagnosis: bank1:3 (14.0 observed on average), 940 paired windows, 2 method(s)
+[04:12:45]   diagnosis: bank2:6-10 (13.0 observed on average), 940 paired windows, 2 method(s)
+[04:12:48]   diagnosis: single_sensor_0 (1.0 observed on average), 940 paired windows, 2 method(s)
+[04:12:51]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[04:12:51] --- stage diagnosis done in 8493.0s ---
+[04:12:51] === run ok · 8493.2s · peak RSS 1.575 GB ===

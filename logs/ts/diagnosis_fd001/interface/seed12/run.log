@@ -1,0 +1,142 @@
+[15:57:45] === run start · seed12 · seed 12 · hash 5d704df7dd3e ===
+[15:57:45] stages ['diagnosis'] · device cpu · dataset cmapss:FD001
+[15:57:45] --- stage: diagnosis ---
+[15:57:45]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:57:45]   task: {'kind': 'ad', 'n_train': 3753, 'n_val': 1537, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12416469305753708, 'kind_counts': {'decouple': 113, 'normal': 4063, 'spike': 89, 'offset': 117, 'desync': 103, 'drift': 102, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1537, 'n_regimes': 1, 'seed': 12, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:57:45]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  359.792  val  335.980
+    fit channel_blocked K=8: 6/180 (3%) · 0.20 it/s · elapsed 00:30 · ETA 14:44
+    fit channel_blocked K=8: 12/180 (7%) · 0.19 it/s · elapsed 01:02 · ETA 14:30
+    fit channel_blocked K=8: 19/180 (11%) · 0.20 it/s · elapsed 01:36 · ETA 13:36
+    [pc] epoch  22  nll   65.153  val   77.189
+    fit channel_blocked K=8: 26/180 (14%) · 0.20 it/s · elapsed 02:09 · ETA 12:48
+    fit channel_blocked K=8: 33/180 (18%) · 0.20 it/s · elapsed 02:42 · ETA 12:05
+    fit channel_blocked K=8: 40/180 (22%) · 0.20 it/s · elapsed 03:16 · ETA 11:26
+    [pc] epoch  44  nll   46.231  val   56.898
+    fit channel_blocked K=8: 47/180 (26%) · 0.20 it/s · elapsed 03:49 · ETA 10:49
+    fit channel_blocked K=8: 54/180 (30%) · 0.21 it/s · elapsed 04:23 · ETA 10:13
+    fit channel_blocked K=8: 61/180 (34%) · 0.21 it/s · elapsed 04:57 · ETA 09:39
+    [pc] epoch  66  nll   36.034  val   45.547
+    fit channel_blocked K=8: 67/180 (37%) · 0.20 it/s · elapsed 05:32 · ETA 09:20
+    fit channel_blocked K=8: 73/180 (41%) · 0.20 it/s · elapsed 06:06 · ETA 08:57
+    fit channel_blocked K=8: 79/180 (44%) · 0.20 it/s · elapsed 06:39 · ETA 08:30
+    fit channel_blocked K=8: 85/180 (47%) · 0.20 it/s · elapsed 07:11 · ETA 08:01
+    [pc] epoch  88  nll   31.999  val   40.703
+    fit channel_blocked K=8: 91/180 (51%) · 0.20 it/s · elapsed 07:42 · ETA 07:32
+    fit channel_blocked K=8: 97/180 (54%) · 0.20 it/s · elapsed 08:16 · ETA 07:05
+    fit channel_blocked K=8: 102/180 (57%) · 0.19 it/s · elapsed 08:48 · ETA 06:44
+    fit channel_blocked K=8: 108/180 (60%) · 0.19 it/s · elapsed 09:23 · ETA 06:15
+    [pc] epoch 110  nll   30.187  val   39.185
+    fit channel_blocked K=8: 114/180 (63%) · 0.19 it/s · elapsed 09:59 · ETA 05:46
+    fit channel_blocked K=8: 119/180 (66%) · 0.19 it/s · elapsed 10:30 · ETA 05:23
+    fit channel_blocked K=8: 124/180 (69%) · 0.19 it/s · elapsed 11:01 · ETA 04:58
+    fit channel_blocked K=8: 130/180 (72%) · 0.19 it/s · elapsed 11:36 · ETA 04:27
+    [pc] epoch 132  nll   28.988  val   37.510
+    fit channel_blocked K=8: 136/180 (76%) · 0.19 it/s · elapsed 12:12 · ETA 03:56
+    fit channel_blocked K=8: 141/180 (78%) · 0.18 it/s · elapsed 12:43 · ETA 03:31
+    fit channel_blocked K=8: 146/180 (81%) · 0.18 it/s · elapsed 13:15 · ETA 03:05
+    fit channel_blocked K=8: 151/180 (84%) · 0.18 it/s · elapsed 13:47 · ETA 02:38
+    [pc] epoch 154  nll   27.453  val   36.642
+    fit channel_blocked K=8: 156/180 (87%) · 0.18 it/s · elapsed 14:19 · ETA 02:12
+    fit channel_blocked K=8: 161/180 (89%) · 0.18 it/s · elapsed 14:50 · ETA 01:45
+    fit channel_blocked K=8: 166/180 (92%) · 0.18 it/s · elapsed 15:25 · ETA 01:18
+    fit channel_blocked K=8: 171/180 (95%) · 0.18 it/s · elapsed 15:56 · ETA 00:50
+    [pc] epoch 176  nll   26.664  val   35.827
+    fit channel_blocked K=8: 177/180 (98%) · 0.18 it/s · elapsed 16:27 · ETA 00:16
+    fit channel_blocked K=8: done 180/180 in 16:42
+    [pc] restored epoch 176 (selected by nll; val nll 35.827, last 36.424)
+[16:14:31]   pc_train_nll: first=359.7919 last=27.2683 (180 epochs)
+[16:14:31]   pc_train_objective: first=359.7919 last=27.2683 (180 epochs)
+[16:14:31]   pc_selection_loss: first=335.9805 last=36.4240 (180 epochs)
+[16:14:31]   pc_val_nll: first=335.9805 last=36.4240 (180 epochs)
+[16:14:33]   pc: fit 1005.4s · 193,968 params · score sd 19.939 · device cpu · layered · 672 win/s
+[16:14:33]   pc: validation on 650 windows from explicit subset of held-out units · best epoch 176 of 180 · val nll 35.827
+[16:14:35]   shortcut audit: target-channel-only AUROC 0.547 (0.5 = no marginal shortcut)
+[16:14:35]   diagnosis: full (15.0 observed on average), 830 paired windows, 1 method(s)
+[16:14:38]   diagnosis: random1:1 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:14:40]   diagnosis: random3:5-8-14 (12.0 observed on average), 830 paired windows, 1 method(s)
+[16:14:43]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:14:45]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 830 paired windows, 1 method(s)
+[16:14:47]   diagnosis: bank1:3 (14.0 observed on average), 830 paired windows, 1 method(s)
+[16:14:50]   diagnosis: bank2:6-10 (13.0 observed on average), 830 paired windows, 1 method(s)
+[16:14:52]   diagnosis: single_sensor_0 (1.0 observed on average), 830 paired windows, 1 method(s)
+[16:14:54]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[16:14:54] --- stage diagnosis done in 1028.9s ---
+[16:14:54] === run ok · 1029.0s · peak RSS 1.404 GB ===
+[15:00:39] === run start · seed12 · seed 12 · hash 10b77bb6faa0 ===
+[15:00:39] stages ['diagnosis'] · device cpu · dataset cmapss:FD001
+[15:00:39] --- stage: diagnosis ---
+[15:00:39]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:00:39]   task: {'kind': 'ad', 'n_train': 3753, 'n_val': 1537, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12416469305753708, 'kind_counts': {'decouple': 113, 'normal': 4063, 'spike': 89, 'offset': 117, 'desync': 103, 'drift': 102, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1537, 'n_regimes': 1, 'seed': 12, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:00:39]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  359.792  val  335.980
+    fit channel_blocked K=8: 4/180 (2%) · 0.13 it/s · elapsed 00:31 · ETA 22:54
+    fit channel_blocked K=8: 8/180 (4%) · 0.13 it/s · elapsed 01:02 · ETA 22:30
+    fit channel_blocked K=8: 12/180 (7%) · 0.12 it/s · elapsed 01:37 · ETA 22:48
+    fit channel_blocked K=8: 16/180 (9%) · 0.12 it/s · elapsed 02:09 · ETA 22:08
+    fit channel_blocked K=8: 20/180 (11%) · 0.12 it/s · elapsed 02:40 · ETA 21:25
+    [pc] epoch  22  nll   65.856  val   77.756
+    fit channel_blocked K=8: 24/180 (13%) · 0.13 it/s · elapsed 03:10 · ETA 20:39
+    fit channel_blocked K=8: 29/180 (16%) · 0.13 it/s · elapsed 03:47 · ETA 19:46
+    fit channel_blocked K=8: 34/180 (19%) · 0.13 it/s · elapsed 04:24 · ETA 18:56
+    fit channel_blocked K=8: 39/180 (22%) · 0.13 it/s · elapsed 05:01 · ETA 18:10
+    fit channel_blocked K=8: 44/180 (24%) · 0.13 it/s · elapsed 05:38 · ETA 17:26
+    [pc] epoch  44  nll   45.269  val   56.386
+    fit channel_blocked K=8: 48/180 (27%) · 0.13 it/s · elapsed 06:13 · ETA 17:08
+    fit channel_blocked K=8: 51/180 (28%) · 0.13 it/s · elapsed 06:46 · ETA 17:07
+    fit channel_blocked K=8: 55/180 (31%) · 0.13 it/s · elapsed 07:17 · ETA 16:34
+    fit channel_blocked K=8: 60/180 (33%) · 0.13 it/s · elapsed 07:53 · ETA 15:46
+    fit channel_blocked K=8: 64/180 (36%) · 0.13 it/s · elapsed 08:23 · ETA 15:12
+    [pc] epoch  66  nll   36.375  val   45.877
+    fit channel_blocked K=8: 69/180 (38%) · 0.13 it/s · elapsed 09:00 · ETA 14:29
+    fit channel_blocked K=8: 73/180 (41%) · 0.13 it/s · elapsed 09:31 · ETA 13:58
+    fit channel_blocked K=8: 77/180 (43%) · 0.13 it/s · elapsed 10:04 · ETA 13:28
+    fit channel_blocked K=8: 81/180 (45%) · 0.13 it/s · elapsed 10:38 · ETA 13:00
+    fit channel_blocked K=8: 85/180 (47%) · 0.13 it/s · elapsed 11:16 · ETA 12:36
+    [pc] epoch  88  nll   28.124  val   36.467
+    fit channel_blocked K=8: 89/180 (49%) · 0.13 it/s · elapsed 11:50 · ETA 12:06
+    fit channel_blocked K=8: 94/180 (52%) · 0.13 it/s · elapsed 12:24 · ETA 11:21
+    fit channel_blocked K=8: 98/180 (54%) · 0.13 it/s · elapsed 12:59 · ETA 10:52
+    fit channel_blocked K=8: 102/180 (57%) · 0.13 it/s · elapsed 13:33 · ETA 10:21
+    fit channel_blocked K=8: 106/180 (59%) · 0.13 it/s · elapsed 14:03 · ETA 09:49
+    [pc] epoch 110  nll   26.715  val   34.931
+    fit channel_blocked K=8: 111/180 (62%) · 0.13 it/s · elapsed 14:40 · ETA 09:07
+    fit channel_blocked K=8: 116/180 (64%) · 0.13 it/s · elapsed 15:16 · ETA 08:25
+    fit channel_blocked K=8: 120/180 (67%) · 0.13 it/s · elapsed 15:47 · ETA 07:53
+    fit channel_blocked K=8: 124/180 (69%) · 0.13 it/s · elapsed 16:24 · ETA 07:24
+    fit channel_blocked K=8: 128/180 (71%) · 0.13 it/s · elapsed 16:56 · ETA 06:52
+    [pc] epoch 132  nll   25.057  val   33.353
+    fit channel_blocked K=8: 133/180 (74%) · 0.13 it/s · elapsed 17:32 · ETA 06:12
+    fit channel_blocked K=8: 138/180 (77%) · 0.13 it/s · elapsed 18:07 · ETA 05:31
+    fit channel_blocked K=8: 143/180 (79%) · 0.13 it/s · elapsed 18:38 · ETA 04:49
+    fit channel_blocked K=8: 148/180 (82%) · 0.13 it/s · elapsed 19:09 · ETA 04:08
+    fit channel_blocked K=8: 153/180 (85%) · 0.13 it/s · elapsed 19:44 · ETA 03:28
+    [pc] epoch 154  nll   23.733  val   32.666
+    fit channel_blocked K=8: 157/180 (87%) · 0.13 it/s · elapsed 20:15 · ETA 02:58
+    fit channel_blocked K=8: 161/180 (89%) · 0.13 it/s · elapsed 20:52 · ETA 02:27
+    fit channel_blocked K=8: 164/180 (91%) · 0.13 it/s · elapsed 21:25 · ETA 02:05
+    fit channel_blocked K=8: 168/180 (93%) · 0.13 it/s · elapsed 22:00 · ETA 01:34
+    fit channel_blocked K=8: 173/180 (96%) · 0.13 it/s · elapsed 22:37 · ETA 00:54
+    [pc] epoch 176  nll   22.678  val   31.448
+    fit channel_blocked K=8: 177/180 (98%) · 0.13 it/s · elapsed 23:09 · ETA 00:23
+    fit channel_blocked K=8: 180/180 (100%) · 0.13 it/s · elapsed 23:41 · ETA 00:00
+    fit channel_blocked K=8: done 180/180 in 23:41
+    [pc] restored epoch 176 (selected by nll; val nll 31.448, last 31.478)
+[15:24:23]   pc_train_nll: first=359.7919 last=22.6535 (180 epochs)
+[15:24:23]   pc_train_objective: first=359.7919 last=22.6535 (180 epochs)
+[15:24:23]   pc_selection_loss: first=335.9805 last=31.4783 (180 epochs)
+[15:24:23]   pc_val_nll: first=335.9805 last=31.4783 (180 epochs)
+[15:24:27]   pc: fit 1424.2s · 193,968 params · score sd 19.450 · device cpu · layered · 474 win/s
+[15:24:27]   pc: validation on 650 windows from explicit subset of held-out units · best epoch 176 of 180 · val nll 31.448
+[15:24:29]   shortcut audit: target-channel-only AUROC 0.547 (0.5 = no marginal shortcut)
+[15:24:29]   diagnosis: full (15.0 observed on average), 830 paired windows, 1 method(s)
+[15:24:33]   diagnosis: random1:1 (14.0 observed on average), 830 paired windows, 1 method(s)
+[15:24:37]   diagnosis: random3:5-8-14 (12.0 observed on average), 830 paired windows, 1 method(s)
+[15:24:41]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 830 paired windows, 1 method(s)
+[15:24:44]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 830 paired windows, 1 method(s)
+[15:24:48]   diagnosis: bank1:3 (14.0 observed on average), 830 paired windows, 1 method(s)
+[15:24:52]   diagnosis: bank2:6-10 (13.0 observed on average), 830 paired windows, 1 method(s)
+[15:24:55]   diagnosis: single_sensor_0 (1.0 observed on average), 830 paired windows, 1 method(s)
+[15:24:58]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[15:24:59] --- stage diagnosis done in 1459.7s ---
+[15:24:59] === run ok · 1459.9s · peak RSS 1.363 GB ===

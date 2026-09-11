@@ -1,5 +1,7 @@
 # One Anomaly For All — All Anomaly For One
 
+Current time-series work: [implementation roadmap](IMPLEMENTATION_PLAN_2026-09-10.md), [verified completion status](DIAGNOSIS_IMPLEMENTATION_STATUS_2026-09-09.md), and [diagnosis test protocol](DIAGNOSIS_TEST_PLAN_2026-09-09.md). The focused research target is sensor-inconsistency diagnosis under partial observation; the broader framework below remains available.
+
 A **multimodal probabilistic circuit (PC)** framework for anomaly detection
 across data types (images, text/hallucinations, tabular, …) with **exact**
 density estimation and **exact** marginals as the non-negotiable invariant.

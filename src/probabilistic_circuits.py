@@ -1346,8 +1346,20 @@ class LeafNode(nn.Module):
         return self.log_prob(x)
 
     def log_integral(self) -> torch.Tensor:
-        """log ∫ f(v) dv = 0 — every leaf is normalized by construction."""
-        return torch.tensor(0.0)
+        """log ∫ f(v) dv = 0 — every leaf is normalized by construction.
+
+        Placed on the leaf's OWN device and dtype.  `log_partition` stacks this
+        constant beside sum-node log-weights, so a value pinned to the CPU
+        makes the partition function — the normalisation assertion every study
+        runs before it trusts a density — raise a device mismatch on any
+        accelerator, rather than returning the zero it should.
+        """
+        ref = next(self.parameters(), None)
+        if ref is None:
+            ref = next(self.buffers(), None)
+        if ref is None:
+            return torch.tensor(0.0)
+        return torch.zeros((), dtype=ref.dtype, device=ref.device)
 
     def mode(self) -> float:
         raise NotImplementedError

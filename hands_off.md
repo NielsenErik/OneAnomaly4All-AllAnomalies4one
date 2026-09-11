@@ -1,5 +1,7 @@
 # Hand-off — time-series PoC
 
+**Latest handoff — 2026-09-10:** the September 9 diagnosis implementation has been audited: **470 tests passed, one legacy slow test deselected, and all five fresh smoke runs completed**. Read [completion status](DIAGNOSIS_IMPLEMENTATION_STATUS_2026-09-09.md), then the [current implementation plan](IMPLEMENTATION_PLAN_2026-09-10.md). Full scientific studies and fitted diagnosis baselines remain pending. The historical Tier 1 FAIL is unchanged. Sections below retain the September 8 and earlier record; their interpretation of dependence magnitude is superseded by the September 9 review and diagnosis protocol.
+
 _Last updated: 2026-09-08 (§E). §D (2026-08-11, late) follows it and is still
 the reference for the leaf-components crossover; §C from earlier that day is
 partly superseded — read §D.6 before citing it. The 2026-08-05 diagnostic-suite

@@ -1,0 +1,108 @@
+[11:22:00] === run start · seed11 · seed 11 · hash ef98718a32fd ===
+[11:22:00] stages ['diagnosis'] · device cpu · dataset cmapss:FD001
+[11:22:00] --- stage: diagnosis ---
+[11:22:00]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[11:22:00]   task: {'kind': 'ad', 'n_train': 3711, 'n_val': 1579, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.12869152426719666, 'kind_counts': {'normal': 4042, 'desync': 107, 'offset': 109, 'spike': 98, 'drift': 113, 'decouple': 118, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1579, 'n_regimes': 1, 'seed': 11, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[11:22:00]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  494.126  val  257.670
+    fit chow_liu K=8: 6/400 (2%) · 0.18 it/s · elapsed 00:33 · ETA 36:58
+    fit chow_liu K=8: 11/400 (3%) · 0.17 it/s · elapsed 01:04 · ETA 37:57
+    fit chow_liu K=8: 16/400 (4%) · 0.17 it/s · elapsed 01:36 · ETA 38:26
+    fit chow_liu K=8: 21/400 (5%) · 0.16 it/s · elapsed 02:07 · ETA 38:29
+    fit chow_liu K=8: 26/400 (6%) · 0.16 it/s · elapsed 02:40 · ETA 38:22
+    fit chow_liu K=8: 31/400 (8%) · 0.16 it/s · elapsed 03:11 · ETA 37:57
+    fit chow_liu K=8: 36/400 (9%) · 0.16 it/s · elapsed 03:41 · ETA 37:24
+    fit chow_liu K=8: 42/400 (10%) · 0.16 it/s · elapsed 04:17 · ETA 36:32
+    fit chow_liu K=8: 48/400 (12%) · 0.16 it/s · elapsed 04:52 · ETA 35:47
+    [pc] epoch  50  nll   53.172  val   58.757
+    fit chow_liu K=8: 54/400 (14%) · 0.16 it/s · elapsed 05:28 · ETA 35:02
+    fit chow_liu K=8: 60/400 (15%) · 0.17 it/s · elapsed 06:03 · ETA 34:17
+    fit chow_liu K=8: 66/400 (16%) · 0.17 it/s · elapsed 06:37 · ETA 33:30
+    fit chow_liu K=8: 71/400 (18%) · 0.17 it/s · elapsed 07:09 · ETA 33:10
+    fit chow_liu K=8: 76/400 (19%) · 0.16 it/s · elapsed 07:41 · ETA 32:48
+    fit chow_liu K=8: 81/400 (20%) · 0.16 it/s · elapsed 08:14 · ETA 32:27
+    fit chow_liu K=8: 86/400 (22%) · 0.16 it/s · elapsed 08:45 · ETA 31:57
+    fit chow_liu K=8: 91/400 (23%) · 0.16 it/s · elapsed 09:15 · ETA 31:26
+    fit chow_liu K=8: 96/400 (24%) · 0.16 it/s · elapsed 09:46 · ETA 30:57
+    [pc] epoch 100  nll   49.141  val   53.565
+    fit chow_liu K=8: 101/400 (25%) · 0.16 it/s · elapsed 10:16 · ETA 30:25
+    fit chow_liu K=8: 107/400 (27%) · 0.16 it/s · elapsed 10:50 · ETA 29:40
+    fit chow_liu K=8: 113/400 (28%) · 0.16 it/s · elapsed 11:24 · ETA 28:59
+    fit chow_liu K=8: 119/400 (30%) · 0.17 it/s · elapsed 12:00 · ETA 28:20
+    fit chow_liu K=8: 125/400 (31%) · 0.17 it/s · elapsed 12:34 · ETA 27:38
+    fit chow_liu K=8: 131/400 (33%) · 0.17 it/s · elapsed 13:09 · ETA 27:01
+    fit chow_liu K=8: 137/400 (34%) · 0.17 it/s · elapsed 13:43 · ETA 26:20
+    fit chow_liu K=8: 143/400 (36%) · 0.17 it/s · elapsed 14:16 · ETA 25:39
+    fit chow_liu K=8: 149/400 (37%) · 0.17 it/s · elapsed 14:49 · ETA 24:58
+    [pc] epoch 150  nll   44.274  val   55.517
+    fit chow_liu K=8: 155/400 (39%) · 0.17 it/s · elapsed 15:22 · ETA 24:17
+    fit chow_liu K=8: 161/400 (40%) · 0.17 it/s · elapsed 15:54 · ETA 23:37
+    fit chow_liu K=8: 167/400 (42%) · 0.17 it/s · elapsed 16:27 · ETA 22:57
+    fit chow_liu K=8: 173/400 (43%) · 0.17 it/s · elapsed 17:00 · ETA 22:18
+    fit chow_liu K=8: 179/400 (45%) · 0.17 it/s · elapsed 17:35 · ETA 21:43
+    fit chow_liu K=8: 184/400 (46%) · 0.17 it/s · elapsed 18:10 · ETA 21:20
+    fit chow_liu K=8: 190/400 (48%) · 0.17 it/s · elapsed 18:44 · ETA 20:43
+    fit chow_liu K=8: 196/400 (49%) · 0.17 it/s · elapsed 19:18 · ETA 20:05
+    [pc] epoch 200  nll   44.128  val   48.917
+    fit chow_liu K=8: 201/400 (50%) · 0.17 it/s · elapsed 19:51 · ETA 19:39
+    fit chow_liu K=8: 206/400 (52%) · 0.17 it/s · elapsed 20:25 · ETA 19:13
+    fit chow_liu K=8: 211/400 (53%) · 0.17 it/s · elapsed 20:56 · ETA 18:45
+    fit chow_liu K=8: 217/400 (54%) · 0.17 it/s · elapsed 21:30 · ETA 18:08
+    fit chow_liu K=8: 223/400 (56%) · 0.17 it/s · elapsed 22:05 · ETA 17:31
+    fit chow_liu K=8: 229/400 (57%) · 0.17 it/s · elapsed 22:40 · ETA 16:55
+    fit chow_liu K=8: 234/400 (58%) · 0.17 it/s · elapsed 23:11 · ETA 16:26
+    fit chow_liu K=8: 239/400 (60%) · 0.17 it/s · elapsed 23:42 · ETA 15:58
+    fit chow_liu K=8: 245/400 (61%) · 0.17 it/s · elapsed 24:18 · ETA 15:22
+    [pc] epoch 250  nll   36.062  val   40.503
+    fit chow_liu K=8: 251/400 (63%) · 0.17 it/s · elapsed 24:54 · ETA 14:47
+    fit chow_liu K=8: 257/400 (64%) · 0.17 it/s · elapsed 25:29 · ETA 14:11
+    fit chow_liu K=8: 262/400 (66%) · 0.17 it/s · elapsed 25:59 · ETA 13:41
+    fit chow_liu K=8: 267/400 (67%) · 0.17 it/s · elapsed 26:30 · ETA 13:12
+    fit chow_liu K=8: 273/400 (68%) · 0.17 it/s · elapsed 27:06 · ETA 12:36
+    fit chow_liu K=8: 279/400 (70%) · 0.17 it/s · elapsed 27:40 · ETA 12:00
+    fit chow_liu K=8: 284/400 (71%) · 0.17 it/s · elapsed 28:15 · ETA 11:32
+    fit chow_liu K=8: 289/400 (72%) · 0.17 it/s · elapsed 28:45 · ETA 11:02
+    fit chow_liu K=8: 295/400 (74%) · 0.17 it/s · elapsed 29:20 · ETA 10:26
+    fit chow_liu K=8: 300/400 (75%) · 0.17 it/s · elapsed 29:52 · ETA 09:57
+    [pc] epoch 300  nll   32.250  val   40.204
+    fit chow_liu K=8: 306/400 (76%) · 0.17 it/s · elapsed 30:26 · ETA 09:21
+    fit chow_liu K=8: 312/400 (78%) · 0.17 it/s · elapsed 31:01 · ETA 08:45
+    fit chow_liu K=8: 318/400 (80%) · 0.17 it/s · elapsed 31:36 · ETA 08:09
+    fit chow_liu K=8: 324/400 (81%) · 0.17 it/s · elapsed 32:09 · ETA 07:32
+    fit chow_liu K=8: 330/400 (82%) · 0.17 it/s · elapsed 32:42 · ETA 06:56
+    fit chow_liu K=8: 336/400 (84%) · 0.17 it/s · elapsed 33:18 · ETA 06:20
+    fit chow_liu K=8: 342/400 (86%) · 0.17 it/s · elapsed 33:53 · ETA 05:44
+    fit chow_liu K=8: 347/400 (87%) · 0.17 it/s · elapsed 34:23 · ETA 05:15
+    [pc] epoch 350  nll   29.106  val   34.652
+    fit chow_liu K=8: 352/400 (88%) · 0.17 it/s · elapsed 34:54 · ETA 04:45
+    fit chow_liu K=8: 357/400 (89%) · 0.17 it/s · elapsed 35:26 · ETA 04:16
+    fit chow_liu K=8: 362/400 (90%) · 0.17 it/s · elapsed 35:57 · ETA 03:46
+    fit chow_liu K=8: 367/400 (92%) · 0.17 it/s · elapsed 36:29 · ETA 03:16
+    fit chow_liu K=8: 372/400 (93%) · 0.17 it/s · elapsed 36:59 · ETA 02:47
+    fit chow_liu K=8: 378/400 (94%) · 0.17 it/s · elapsed 37:35 · ETA 02:11
+    fit chow_liu K=8: 383/400 (96%) · 0.17 it/s · elapsed 38:11 · ETA 01:41
+    fit chow_liu K=8: 388/400 (97%) · 0.17 it/s · elapsed 38:42 · ETA 01:11
+    fit chow_liu K=8: 393/400 (98%) · 0.17 it/s · elapsed 39:13 · ETA 00:41
+    fit chow_liu K=8: 398/400 (100%) · 0.17 it/s · elapsed 39:50 · ETA 00:12
+    fit chow_liu K=8: done 400/400 in 40:05
+    [pc] restored epoch 366 (selected by nll; val nll 33.502, last 34.271)
+[12:02:08]   pc_train_nll: first=494.1256 last=29.8602 (400 epochs)
+[12:02:08]   pc_train_objective: first=494.1256 last=29.8602 (400 epochs)
+[12:02:08]   pc_selection_loss: first=257.6700 last=34.2711 (400 epochs)
+[12:02:08]   pc_val_nll: first=257.6700 last=34.2711 (400 epochs)
+[12:02:10]   pc: fit 2408.1s · 195,840 params · score sd 19.543 · device cpu · layered · 616 win/s
+[12:02:10]   pc: validation on 546 windows from explicit subset of held-out units · best epoch 366 of 400 · val nll 33.502
+[12:02:11]   shortcut audit: target-channel-only AUROC 0.559 (0.5 = no marginal shortcut)
+[12:02:12]   baseline gaussian_fitted: fit 0.38s · 45,450 params · selection {'shrinkage': 0.01}
+[12:02:13]   detection comparators: ['knn_refit', 'knn_impute', 'mahalanobis_refit', 'mahalanobis_impute', 'gmm_refit', 'gmm_impute', 'pca_refit', 'pca_impute', 'diag_gaussian_refit', 'diag_gaussian_impute']
+[12:02:13]   diagnosis: full (15.0 observed on average), 940 paired windows, 2 method(s)
+[12:02:40]   diagnosis: random1:1 (14.0 observed on average), 940 paired windows, 2 method(s)
+[12:03:06]   diagnosis: random3:5-8-14 (12.0 observed on average), 940 paired windows, 2 method(s)
+[12:03:28]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 940 paired windows, 2 method(s)
+[12:03:43]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 940 paired windows, 2 method(s)
+[12:03:59]   diagnosis: bank1:3 (14.0 observed on average), 940 paired windows, 2 method(s)
+[12:04:25]   diagnosis: bank2:6-10 (13.0 observed on average), 940 paired windows, 2 method(s)
+[12:04:49]   diagnosis: single_sensor_0 (1.0 observed on average), 940 paired windows, 2 method(s)
+[12:04:54]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[12:04:54] --- stage diagnosis done in 2574.1s ---
+[12:04:54] === run ok · 2574.2s · peak RSS 1.612 GB ===

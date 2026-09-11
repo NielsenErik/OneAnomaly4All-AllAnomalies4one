@@ -1,0 +1,69 @@
+# FD001 — is the architecture table an architecture result, or a budget result?
+#
+# Every arm of `diagnosis_fd001.yaml` selected its checkpoint at epoch 172-179
+# of 180, and two of three blocked seeds were still dropping FASTER in their
+# last thirty epochs than in the thirty before.  A comparison between arms that
+# all stopped because the budget ran out is a comparison of budgets.
+#
+# The synthetic optimisation grid (`diagnosis_optimization.yaml`) says which
+# knob to turn.  There, raising the budget 150 -> 300 at lr >= 0.02 changed the
+# checkpoint NLL by nothing at all -- the run had already stopped early -- while
+# the learning rate moved it 0.64 nats, against a spread of 0.06 nats between
+# the three architectures at a fixed learning rate.  Optimisation dominated
+# architecture by an order of magnitude on the task where both were measured.
+#
+# So this file turns the learning rate, and gives the budget enough room that
+# early stopping — not the ceiling — is what ends the run.  `patience: 60` is
+# what makes that claim checkable: an arm that still selects its last epoch
+# here has not converged either, and its row says so.
+#
+# ONE architecture only.  The question is whether the relational statistic's
+# deficit against the cheaper marginal statistic survives a converged fit; it
+# is not a second architecture sweep, and reading it as one would repeat the
+# confound this file exists to remove.
+name: diagnosis_fd001_budget
+description: Converged-fit control for the FD001 arms; blocked architecture at a higher learning rate.
+seeds: [11, 12, 13]
+# CPU for the whole programme: the fitted comparators are float64 (MPS has
+# no double), and a wall-time column is only comparable across arms measured
+# on one device.
+device: cpu
+stages: [diagnosis]
+log_root: logs/ts/diagnosis_fd001_budget
+skip_if_missing_data: false
+dataset:
+  source: cmapss
+  subset: FD001
+  window: 20
+  stride: 2
+  val_units: 0.3
+  cap: 125
+model:
+  vtree: channel_blocked
+  K: 8
+  leaf_components: 3
+  epochs: 400
+  min_epochs: 100
+  patience: 60
+  batch_size: 256
+variants:
+  # The reference arm, re-run here so the comparison is within one config and
+  # one device rather than across two studies.
+  - name: lr002_reference
+    model: {lr: 0.02, epochs: 180}
+  - name: lr005
+    model: {lr: 0.05}
+  - name: lr002_long
+    model: {lr: 0.02}
+eval:
+  diagnosis_max_windows: 512
+  diagnosis_alpha: 0.10
+  # The comparator that matters here is not another circuit: it is the
+  # marginal score, which needs no cross-channel reasoning and is already
+  # computed from the same model. The fitted Gaussian is carried so the
+  # converged circuit is also measured against a real fitted competitor.
+  diagnosis_baselines: [gaussian]
+  mask_ks: [1, 3, 7]
+  masks_per_k: 1
+  oracle_check_windows: 16
+  plots: false

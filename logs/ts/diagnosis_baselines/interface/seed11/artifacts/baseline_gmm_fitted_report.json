@@ -1,0 +1,110 @@
+{
+  "method": "gmm_fitted",
+  "fitted": true,
+  "fit_seconds": 0.2787,
+  "selection": {
+    "split": "checkpoint",
+    "n_train": 1024,
+    "n_checkpoint": 200,
+    "criterion": "mean checkpoint log-density",
+    "grid": {
+      "components": [
+        1,
+        2,
+        4
+      ],
+      "reg": [
+        0.0001,
+        0.01
+      ]
+    },
+    "scores": {
+      "K=1,reg=0.0001": -12.687195781814548,
+      "K=1,reg=0.01": -12.713518919545468,
+      "K=2,reg=0.0001": -12.819856428085053,
+      "K=2,reg=0.01": -12.780241284614101,
+      "K=4,reg=0.0001": -12.860625230623013,
+      "K=4,reg=0.01": -12.894950038552633
+    },
+    "chosen": {
+      "components": 1,
+      "reg": 0.0001
+    },
+    "chosen_score": -12.687195781814548
+  },
+  "stabilization_events": [
+    {
+      "where": "component0[16]",
+      "jitter": 1.0559133209602912e-10,
+      "escalations": 0
+    },
+    {
+      "where": "component0[16]",
+      "jitter": 1.0658133209602912e-10,
+      "escalations": 0
+    },
+    {
+      "where": "component0[16]",
+      "jitter": 1.0669950703518499e-10,
+      "escalations": 0
+    },
+    {
+      "where": "component1[16]",
+      "jitter": 1.0025932022089878e-10,
+      "escalations": 0
+    },
+    {
+      "where": "component0[16]",
+      "jitter": 9.189580988710782e-11,
+      "escalations": 0
+    },
+    {
+      "where": "component1[16]",
+      "jitter": 9.893333030942093e-11,
+      "escalations": 0
+    },
+    {
+      "where": "component0[16]",
+      "jitter": 8.170621752784051e-11,
+      "escalations": 0
+    },
+    {
+      "where": "component1[16]",
+      "jitter": 8.9859309265221e-11,
+      "escalations": 0
+    },
+    {
+      "where": "component2[16]",
+      "jitter": 6.402788170072546e-11,
+      "escalations": 0
+    },
+    {
+      "where": "component3[16]",
+      "jitter": 9.081616808692036e-11,
+      "escalations": 0
+    },
+    {
+      "where": "component0[16]",
+      "jitter": 7.706880551027878e-11,
+      "escalations": 0
+    },
+    {
+      "where": "component1[16]",
+      "jitter": 7.59586529114958e-11,
+      "escalations": 0
+    },
+    {
+      "where": "component2[16]",
+      "jitter": 7.184258872689307e-11,
+      "escalations": 0
+    },
+    {
+      "where": "component3[16]",
+      "jitter": 8.974082128482684e-11,
+      "escalations": 0
+    }
+  ],
+  "size_parameters": 152,
+  "size_components": 1,
+  "size_rank": 16
+}

@@ -1,0 +1,50 @@
+# Step 3 — separate CAPACITY from OPTIMIZATION.
+#
+# A weak arm and an undertrained arm produce the same table. This grid is the
+# only thing that tells them apart: the same three architectures are run across
+# a frozen learning-rate and budget grid, and every run records its actual
+# optimiser updates, selected epoch, wall time and parameter count. Read the
+# capacity comparison ONLY after checking that the arms being compared reached
+# their own best checkpoint; a larger-width result is a capacity ablation until
+# budget matching is measured.
+#
+# Selection is on CHECKPOINT units only. Training seeds are distinct from the
+# independent evaluation units by construction (validation_partitions).
+name: diagnosis_optimization
+description: Learning-rate and budget grid across architectures on the known-law control.
+seeds: [11, 12, 13]
+device: cpu
+stages: [diagnosis]
+log_root: logs/ts/diagnosis_optimization
+dataset:
+  source: synthetic
+  window: 4
+  channels: 4
+model:
+  vtree: channel_blocked
+  K: 4
+  leaf_components: 3
+  min_epochs: 40
+  patience: 30
+  batch_size: 128
+grid:
+  model.lr: [0.005, 0.02, 0.05]
+  model.epochs: [60, 150, 300]
+variants:
+  - name: blocked
+  - name: interface
+    model: {boundary_K: 8, upper_K: 8}
+  - name: conditional
+    model: {conditional_weight: 0.2, select_metric: objective}
+eval:
+  diagnosis_control: true
+  control_train: 1024
+  control_val: 600
+  control_cross: 0.8
+  control_temporal: 0.6
+  diagnosis_max_windows: 200
+  diagnosis_alpha: 0.05
+  mask_ks: [1, 2]
+  masks_per_k: 1
+  oracle_check_windows: 16
+  plots: false

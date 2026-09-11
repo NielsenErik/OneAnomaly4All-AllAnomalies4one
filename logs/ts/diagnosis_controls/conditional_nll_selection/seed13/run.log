@@ -1,0 +1,87 @@
+[11:23:52] === run start · seed13 · seed 13 · hash 8b9ff7e962ad ===
+[11:23:52] stages ['diagnosis'] · device cpu · dataset synthetic
+[11:23:52] --- stage: diagnosis ---
+    [pc] epoch   0  nll   26.241  val   25.977
+    [pc] epoch  18  nll   21.993  val   22.354
+    [pc] epoch  36  nll   20.431  val   20.658
+    [pc] epoch  54  nll   19.756  val   20.079
+    [pc] epoch  72  nll   19.567  val   19.922
+    [pc] epoch  90  nll   19.432  val   19.837
+    [pc] epoch 108  nll   19.216  val   19.696
+    [pc] epoch 126  nll   19.159  val   19.675
+    [pc] epoch 144  nll   19.140  val   19.679
+    [pc] restored epoch 138 (selected by nll; val nll 19.653, last 19.683)
+[11:24:00]   pc_train_nll: first=26.2405 last=19.1270 (150 epochs)
+[11:24:00]   pc_train_objective: first=31.5223 last=22.8360 (150 epochs)
+[11:24:00]   pc_selection_loss: first=25.9772 last=19.6830 (150 epochs)
+[11:24:00]   pc_val_nll: first=25.9772 last=19.6830 (150 epochs)
+[11:24:00]   pc: fit 8.4s · 1,488 params · score sd 4.383 · device cpu · layered · 18,194 win/s
+[11:24:00]   pc: validation on 200 windows from explicit subset of held-out units · best epoch 138 of 150 · val nll 19.653
+[11:24:00]   shortcut audit: target-channel-only AUROC 0.498 (0.5 = no marginal shortcut)
+[11:24:00]   diagnosis: full (4.0 observed on average), 400 paired windows, 1 method(s)
+[11:24:00]   diagnosis: random1:0 (3.0 observed on average), 400 paired windows, 1 method(s)
+[11:24:00]   diagnosis: random2:1-2 (2.0 observed on average), 400 paired windows, 1 method(s)
+[11:24:00]   diagnosis: random3:1-2-3 (1.0 observed on average), 400 paired windows, 1 method(s)
+[11:24:00]   diagnosis: bank0:0-1 (2.0 observed on average), 400 paired windows, 1 method(s)
+[11:24:00]   diagnosis: single_sensor_0 (1.0 observed on average), 400 paired windows, 1 method(s)
+[11:24:00]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[11:24:00] --- stage diagnosis done in 8.8s ---
+[11:24:00] === run ok · 8.9s · peak RSS 0.33 GB ===
+[11:42:51] === run start · seed13 · seed 13 · hash d7a641cfd871 ===
+[11:42:51] stages ['diagnosis'] · device cpu · dataset synthetic
+[11:42:51] --- stage: diagnosis ---
+    [pc] epoch   0  nll   26.241  val   25.977
+    [pc] epoch  18  nll   21.993  val   22.354
+    [pc] epoch  36  nll   20.431  val   20.658
+    [pc] epoch  54  nll   19.756  val   20.079
+    [pc] epoch  72  nll   19.567  val   19.922
+    [pc] epoch  90  nll   19.432  val   19.837
+    [pc] epoch 108  nll   19.216  val   19.696
+    [pc] epoch 126  nll   19.159  val   19.675
+    [pc] epoch 144  nll   19.140  val   19.679
+    [pc] restored epoch 138 (selected by nll; val nll 19.653, last 19.683)
+[11:43:05]   pc_train_nll: first=26.2405 last=19.1270 (150 epochs)
+[11:43:05]   pc_train_objective: first=31.5223 last=22.8360 (150 epochs)
+[11:43:05]   pc_selection_loss: first=25.9772 last=19.6830 (150 epochs)
+[11:43:05]   pc_val_nll: first=25.9772 last=19.6830 (150 epochs)
+[11:43:05]   pc: fit 14.0s · 1,488 params · score sd 4.383 · device cpu · layered · 10,938 win/s
+[11:43:05]   pc: validation on 200 windows from explicit subset of held-out units · best epoch 138 of 150 · val nll 19.653
+[11:43:05]   shortcut audit: target-channel-only AUROC 0.498 (0.5 = no marginal shortcut)
+[11:43:05]   diagnosis: full (4.0 observed on average), 400 paired windows, 2 method(s)
+[11:43:05]   diagnosis: random1:0 (3.0 observed on average), 400 paired windows, 2 method(s)
+[11:43:05]   diagnosis: random2:1-2 (2.0 observed on average), 400 paired windows, 2 method(s)
+[11:43:06]   diagnosis: random3:1-2-3 (1.0 observed on average), 400 paired windows, 2 method(s)
+[11:43:06]   diagnosis: bank0:0-1 (2.0 observed on average), 400 paired windows, 2 method(s)
+[11:43:06]   diagnosis: single_sensor_0 (1.0 observed on average), 400 paired windows, 2 method(s)
+[11:43:06]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[11:43:06] --- stage diagnosis done in 15.3s ---
+[11:43:06] === run ok · 15.4s · peak RSS 0.362 GB ===
+[19:57:00] === run start · seed13 · seed 13 · hash 3beefc7664c8 ===
+[19:57:00] stages ['diagnosis'] · device cpu · dataset synthetic
+[19:57:00] --- stage: diagnosis ---
+    [pc] epoch   0  nll   26.241  val   25.977
+    [pc] epoch  18  nll   21.993  val   22.354
+    [pc] epoch  36  nll   20.431  val   20.658
+    [pc] epoch  54  nll   19.756  val   20.079
+    [pc] epoch  72  nll   19.567  val   19.922
+    [pc] epoch  90  nll   19.432  val   19.837
+    [pc] epoch 108  nll   19.216  val   19.696
+    [pc] epoch 126  nll   19.159  val   19.675
+    [pc] epoch 144  nll   19.140  val   19.679
+    [pc] restored epoch 138 (selected by nll; val nll 19.653, last 19.683)
+[19:57:08]   pc_train_nll: first=26.2405 last=19.1270 (150 epochs)
+[19:57:08]   pc_train_objective: first=31.5223 last=22.8360 (150 epochs)
+[19:57:08]   pc_selection_loss: first=25.9772 last=19.6830 (150 epochs)
+[19:57:08]   pc_val_nll: first=25.9772 last=19.6830 (150 epochs)
+[19:57:08]   pc: fit 8.1s · 1,488 params · score sd 4.383 · device cpu · layered · 18,867 win/s
+[19:57:08]   pc: validation on 200 windows from explicit subset of held-out units · best epoch 138 of 150 · val nll 19.653
+[19:57:08]   shortcut audit: target-channel-only AUROC 0.498 (0.5 = no marginal shortcut)
+[19:57:08]   diagnosis: full (4.0 observed on average), 400 paired windows, 2 method(s)
+[19:57:09]   diagnosis: random1:0 (3.0 observed on average), 400 paired windows, 2 method(s)
+[19:57:09]   diagnosis: random2:1-2 (2.0 observed on average), 400 paired windows, 2 method(s)
+[19:57:09]   diagnosis: random3:1-2-3 (1.0 observed on average), 400 paired windows, 2 method(s)
+[19:57:09]   diagnosis: bank0:0-1 (2.0 observed on average), 400 paired windows, 2 method(s)
+[19:57:09]   diagnosis: single_sensor_0 (1.0 observed on average), 400 paired windows, 2 method(s)
+[19:57:09]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[19:57:09] --- stage diagnosis done in 8.6s ---
+[19:57:09] === run ok · 8.7s · peak RSS 0.367 GB ===

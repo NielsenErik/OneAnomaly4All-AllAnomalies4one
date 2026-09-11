@@ -1,5 +1,7 @@
 # Circuit diagnosis development and assumption test plan
 
+**Completion audit (September 10):** [implementation status](DIAGNOSIS_IMPLEMENTATION_STATUS_2026-09-09.md) records 470 passing tests and a fresh five-arm smoke run. [Current implementation roadmap](IMPLEMENTATION_PLAN_2026-09-10.md) specifies the remaining files, dependencies and acceptance criteria. This document remains the scientific test protocol.
+
 ## Objective and invariant
 
 The research target is an accuracy–cost advantage for **statistical sensor-inconsistency diagnosis under partial observation**. The method remains a normalized probabilistic circuit over raw sensor windows. Joint densities, channel marginals, complement marginals, and masked conditional objectives are computed exactly under that fitted circuit, subject to floating-point arithmetic. No imputation, Monte Carlo marginalization, noninvertible encoder, or input-dependent mixture weights have been introduced.

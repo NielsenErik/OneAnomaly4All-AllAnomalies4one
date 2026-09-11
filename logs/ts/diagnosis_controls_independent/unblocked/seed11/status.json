@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "seed": 11,
+  "config_hash": "7b9bb667a316",
+  "attempt": "20260910T200338-51370a",
+  "updated": "2026-09-10T20:03:44",
+  "wall_s": 5.85,
+  "peak_rss_gb": 0.379,
+  "peak_gpu_gb": null,
+  "stages": {
+    "diagnosis": "ok"
+  }
+}

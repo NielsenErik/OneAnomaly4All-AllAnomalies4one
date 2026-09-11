@@ -221,6 +221,47 @@ DEFAULTS: Dict[str, Any] = {
         "diagnosis_alpha": 0.10,
         "diagnosis_single_sensor": True,
 
+        # --- step 4: fitted masked-diagnosis comparators ----------------
+        # Empty by default: adding a comparator changes what a run costs and
+        # what its tables mean, so it is opted into by the config that wants
+        # the comparison rather than inherited silently by every old one.
+        "diagnosis_baselines": [],            # gaussian | lowrank | gmm
+        "diagnosis_baseline_settings": {},    # per-name constructor overrides
+        # The known generating law scored as a method, not only as an error
+        # reference: it is what says whether the task was detectable at all.
+        # Only available where a control supplies a covariance.
+        "diagnosis_oracle_method": True,
+        # Trivial DETECTION comparators under the same mask workload: a
+        # detector refitted on the sensors that are left is what exact
+        # marginalisation has to beat before any of this is worth doing.
+        # See diagnosis_detectors.available().
+        "diagnosis_detectors": [],
+        "diagnosis_detector_policies": ["refit"],   # refit | impute
+
+        # --- step 5: matched donors and the marginal-shortcut audit -----
+        "diagnosis_donor_matching": False,
+        "diagnosis_donor_caliper": 0.25,      # standardised health units
+        "diagnosis_donor_strategy": "caliper_random",   # nearest | caliper_random
+        "diagnosis_shortcut_audit": True,
+
+        # --- step 6: availability, identifiability, calibration ---------
+        # `diagnosis_witnesses` switches the known-law control to the witness
+        # graph, where WHICH channels carry the target's dependence is known in
+        # advance, so "unidentifiable" is a fact about the design and not a
+        # conclusion drawn from a small number.
+        "diagnosis_witnesses": [],
+        "diagnosis_witness_target": 0,
+        "diagnosis_missingness": [],          # independent_random | fixed_unseen
+                                              # | informative_value | informative_fault
+                                              # | informative_both
+        "diagnosis_missing_k": 1,
+        "diagnosis_unseen_dead": None,
+        # Repeat the calibration draw this many times and report the SPREAD of
+        # the false-alarm rate; 0 keeps the single-draw point estimate only.
+        "diagnosis_operational_trials": 0,
+        "diagnosis_operational": False,       # one window per evaluation engine
+        "diagnosis_trajectory": False,        # calibrate and alarm on per-engine maxima
+
         # --- Tier 1.3-1.6: relational diagnosis ------------------------
         "oracle_check_windows": 64,            # two-pass vs the 3·C reference
         "oracle_tolerance": 1e-3,              # nats; float32 round-off is ~1e-5

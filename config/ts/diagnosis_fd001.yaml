@@ -3,7 +3,10 @@
 name: diagnosis_fd001
 description: Circuit score/architecture study on held-out FD001 engines; official test fleet unused.
 seeds: [11, 12, 13]
-device: auto
+# CPU for the whole programme: the fitted comparators are float64 (MPS has
+# no double), and a wall-time column is only comparable across arms measured
+# on one device.
+device: cpu
 stages: [diagnosis]
 log_root: logs/ts/diagnosis_fd001
 skip_if_missing_data: false

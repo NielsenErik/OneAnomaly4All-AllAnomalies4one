@@ -1,0 +1,62 @@
+[12:05:56] === run start · seed11 · seed 11 · hash 5208e3a40d05 ===
+[12:05:56] stages ['diagnosis'] · device cpu · dataset synthetic
+[12:05:56] --- stage: diagnosis ---
+    [pc] epoch   0  nll   26.353  val   24.591
+    [pc] epoch  18  nll   19.357  val   18.847
+    [pc] epoch  36  nll   17.485  val   17.007
+    [pc] epoch  54  nll   16.815  val   16.442
+    [pc] epoch  72  nll   16.665  val   16.397
+    [pc] epoch  90  nll   16.583  val   16.346
+    [pc] epoch 108  nll   16.529  val   16.314
+    [pc] epoch 126  nll   16.495  val   16.274
+    [pc] epoch 144  nll   16.443  val   16.196
+[12:06:00]   pc_train_nll: first=26.3532 last=16.4179 (150 epochs)
+[12:06:00]   pc_train_objective: first=26.3532 last=16.4179 (150 epochs)
+[12:06:00]   pc_selection_loss: first=24.5906 last=16.1528 (150 epochs)
+[12:06:00]   pc_val_nll: first=24.5906 last=16.1528 (150 epochs)
+[12:06:00]   pc: fit 4.8s · 1,488 params · score sd 4.129 · device cpu · layered · 31,947 win/s
+[12:06:00]   pc: validation on 200 windows from explicit subset of held-out units · best epoch 149 of 150 · val nll 16.153
+[12:06:00]   shortcut audit: target-channel-only AUROC 0.491 (0.5 = no marginal shortcut)
+[12:06:00]   baseline gaussian_fitted: fit 0.00s · 152 params · selection {'shrinkage': 0.001}
+[12:06:00]   baseline lowrank_fitted: fit 0.04s · 160 params · selection {'rank': 8}
+[12:06:01]   baseline gmm_fitted: fit 0.38s · 152 params · selection {'components': 1, 'reg': 0.0001}
+[12:06:01]   diagnosis: full (4.0 observed on average), 400 paired windows, 5 method(s)
+[12:06:01]   diagnosis: random1:0 (3.0 observed on average), 400 paired windows, 5 method(s)
+[12:06:01]   diagnosis: random2:1-2 (2.0 observed on average), 400 paired windows, 5 method(s)
+[12:06:02]   diagnosis: random3:1-2-3 (1.0 observed on average), 400 paired windows, 5 method(s)
+[12:06:02]   diagnosis: bank0:0-1 (2.0 observed on average), 400 paired windows, 5 method(s)
+[12:06:02]   diagnosis: single_sensor_0 (1.0 observed on average), 400 paired windows, 5 method(s)
+[12:06:02]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[12:06:02] --- stage diagnosis done in 6.8s ---
+[12:06:02] === run ok · 6.9s · peak RSS 0.33 GB ===
+[20:46:09] === run start · seed11 · seed 11 · hash 4f789696f9b7 ===
+[20:46:09] stages ['diagnosis'] · device cpu · dataset synthetic
+[20:46:09] --- stage: diagnosis ---
+    [pc] epoch   0  nll   26.353  val   24.591
+    [pc] epoch  18  nll   19.357  val   18.847
+    [pc] epoch  36  nll   17.485  val   17.007
+    [pc] epoch  54  nll   16.815  val   16.442
+    [pc] epoch  72  nll   16.665  val   16.397
+    [pc] epoch  90  nll   16.583  val   16.346
+    [pc] epoch 108  nll   16.529  val   16.314
+    [pc] epoch 126  nll   16.495  val   16.274
+    [pc] epoch 144  nll   16.443  val   16.196
+[20:46:13]   pc_train_nll: first=26.3532 last=16.4179 (150 epochs)
+[20:46:13]   pc_train_objective: first=26.3532 last=16.4179 (150 epochs)
+[20:46:13]   pc_selection_loss: first=24.5906 last=16.1528 (150 epochs)
+[20:46:13]   pc_val_nll: first=24.5906 last=16.1528 (150 epochs)
+[20:46:13]   pc: fit 3.7s · 1,488 params · score sd 4.129 · device cpu · layered · 41,432 win/s
+[20:46:13]   pc: validation on 200 windows from explicit subset of held-out units · best epoch 149 of 150 · val nll 16.153
+[20:46:13]   shortcut audit: target-channel-only AUROC 0.491 (0.5 = no marginal shortcut)
+[20:46:13]   baseline gaussian_fitted: fit 0.00s · 152 params · selection {'shrinkage': 0.001}
+[20:46:13]   baseline lowrank_fitted: fit 0.03s · 160 params · selection {'rank': 8}
+[20:46:13]   baseline gmm_fitted: fit 0.27s · 152 params · selection {'components': 1, 'reg': 0.0001}
+[20:46:13]   diagnosis: full (4.0 observed on average), 400 paired windows, 5 method(s)
+[20:46:13]   diagnosis: random1:0 (3.0 observed on average), 400 paired windows, 5 method(s)
+[20:46:13]   diagnosis: random2:1-2 (2.0 observed on average), 400 paired windows, 5 method(s)
+[20:46:14]   diagnosis: random3:1-2-3 (1.0 observed on average), 400 paired windows, 5 method(s)
+[20:46:14]   diagnosis: bank0:0-1 (2.0 observed on average), 400 paired windows, 5 method(s)
+[20:46:14]   diagnosis: single_sensor_0 (1.0 observed on average), 400 paired windows, 5 method(s)
+[20:46:14]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[20:46:14] --- stage diagnosis done in 5.0s ---
+[20:46:14] === run ok · 5.1s · peak RSS 0.367 GB ===

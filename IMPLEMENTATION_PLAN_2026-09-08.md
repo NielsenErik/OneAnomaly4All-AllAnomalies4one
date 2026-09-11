@@ -1,5 +1,7 @@
 # Implementation plan — 8 September 2026
 
+**Historical plan:** the Tier 1 gate failed. The [September 10 implementation roadmap](IMPLEMENTATION_PLAN_2026-09-10.md) is the current plan. Its protocol supersedes the constant-cost and uncached-baseline assumptions below; this file preserves the original preregistration and development record.
+
 **Companion to `POC_REVIEW_2026-09-08.md`.** The review establishes that the broad
 "universal anomaly detector" thesis is unsupported and that one question survives:
 *can a compact tractable joint model retain useful relational fault localization when
