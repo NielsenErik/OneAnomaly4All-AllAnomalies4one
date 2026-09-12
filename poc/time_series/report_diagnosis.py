@@ -40,7 +40,7 @@ import argparse
 import csv
 import json
 import os
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Union, Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -198,7 +198,8 @@ def quality_cost_frontier(rows: List[dict], quality: str = "auroc",
 # Paired comparisons, generated exhaustively
 # ═══════════════════════════════════════════════════════════════════════════
 
-def paired_comparisons(root: str, inventory: Dict[str, Any], score: str,
+def paired_comparisons(root: str, inventory: Dict[str, Any],
+                       score: Union[str, Sequence[str]],
                        reps: int, seed: int, metrics: Sequence[str]
                        ) -> List[Dict[str, Any]]:
     """Circuit versus every fitted comparator, within each completed run.
@@ -206,7 +207,16 @@ def paired_comparisons(root: str, inventory: Dict[str, Any], score: str,
     Comparing inside a run is what makes the pair exact: identical windows,
     labels, corruptions and masks by construction. A pair whose artifacts do
     not match is reported as a refusal, never dropped silently.
+
+    `score` may name several views, and every row carries the view it was
+    computed under.  Which view is reported is a result, not a formatting
+    detail: on FD001 `relational_max` ran ~0.11 AUROC below `conditional_max`
+    on the same artifacts, so a single-view report chosen by default decides
+    the headline before the data does.
     """
+    scores = (score,) if isinstance(score, str) else tuple(score)
+    if not scores:
+        raise ValueError("paired comparisons need at least one score view")
     from .compare_diagnosis import compare
     out: List[Dict[str, Any]] = []
     for run in inventory["runs"]:
@@ -222,18 +232,19 @@ def paired_comparisons(root: str, inventory: Dict[str, Any], score: str,
             others = sorted(f for f in os.listdir(art)
                             if f.endswith(f"_mask{index}.npz") and f != name)
             for other in others:
-                for metric in metrics:
-                    entry = {"run_dir": run["run_dir"], "seed": run["seed"],
-                             "mask_index": index, "a": name, "b": other,
-                             "score": score, "metric": metric}
-                    try:
-                        entry.update(compare(os.path.join(art, name),
-                                             os.path.join(art, other),
-                                             score=score, reps=reps, seed=seed,
-                                             metric=metric))
-                    except Exception as exc:                # refusal, recorded
-                        entry.update({"refused": True, "reason": str(exc)[:200]})
-                    out.append(entry)
+                for view in scores:
+                    for metric in metrics:
+                        entry = {"run_dir": run["run_dir"], "seed": run["seed"],
+                                 "mask_index": index, "a": name, "b": other,
+                                 "score": view, "metric": metric}
+                        try:
+                            entry.update(compare(os.path.join(art, name),
+                                                 os.path.join(art, other),
+                                                 score=view, reps=reps, seed=seed,
+                                                 metric=metric))
+                        except Exception as exc:            # refusal, recorded
+                            entry.update({"refused": True, "reason": str(exc)[:200]})
+                        out.append(entry)
     return out
 
 
@@ -399,12 +410,23 @@ def write_csv(path: str, rows: List[dict]) -> None:
             writer.writerow({k: r.get(k) for k in columns})
 
 
-def generate(root: str, out_dir: Optional[str] = None, score: str = "relational_max",
+# The paired comparison is reported on these views unless the caller says
+# otherwise. `relational_max` is kept BESIDE `conditional_max` rather than as
+# the default it used to be: it is the statistic the method is about, and it
+# was also the weakest view measured, so reporting it alone understated the
+# circuit and reporting the other alone would hide the deficit.
+DEFAULT_SCORES = ("conditional_max", "relational_max")
+
+
+def generate(root: str, out_dir: Optional[str] = None,
+             score: Union[str, Sequence[str], None] = None,
              reps: int = 1000, seed: int = 0, metrics: Sequence[str] = (),
              plots: bool = True, paired: bool = True) -> Dict[str, Any]:
     if not os.path.isdir(root):
         raise FileNotFoundError(f"no such log root: {root}")
     metrics = tuple(metrics) or ("auroc", "loc_ap", "end_to_end_unique_top1")
+    scores = ((score,) if isinstance(score, str)
+              else tuple(score) if score else DEFAULT_SCORES)
     out_dir = out_dir or os.path.join(root, "report")
     os.makedirs(out_dir, exist_ok=True)
     inventory = run_inventory(root)
@@ -421,12 +443,12 @@ def generate(root: str, out_dir: Optional[str] = None, score: str = "relational_
     # nothing to pair, so generating them there buys an empty table at the
     # price of the whole report.
     paired_requested = bool(paired)
-    paired = (paired_comparisons(root, inventory, score, reps, seed, metrics)
+    paired = (paired_comparisons(root, inventory, scores, reps, seed, metrics)
               if paired_requested else [])
     histories = read_histories(root, inventory)
     written = write_plots(out_dir, histories, frontier) if plots else []
 
-    report = {"header": HEADER, "root": root, "score": score,
+    report = {"header": HEADER, "root": root, "score": list(scores),
               "paired_requested": paired_requested,
               "bootstrap_reps": reps, "metrics": list(metrics),
               "inventory": inventory, "tables": tables, "paired": paired,
@@ -451,8 +473,9 @@ def main(argv=None) -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("root", help="a log root containing completed runs")
     ap.add_argument("--out", default=None, help="output directory (default: <root>/report)")
-    ap.add_argument("--score", default="relational_max",
-                    help="score view used for the paired comparisons")
+    ap.add_argument("--score", dest="scores", action="append", default=[],
+                    help="repeatable score view for the paired comparisons "
+                         f"(default: {', '.join(DEFAULT_SCORES)})")
     ap.add_argument("--reps", type=int, default=1000)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--metric", dest="metrics", action="append", default=[],
@@ -464,7 +487,7 @@ def main(argv=None) -> int:
                          "per run has nothing to pair)")
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args(argv)
-    report = generate(args.root, args.out, args.score, args.reps, args.seed,
+    report = generate(args.root, args.out, args.scores, args.reps, args.seed,
                       args.metrics, plots=not args.no_plots,
                       paired=not args.no_paired)
     if not args.quiet:

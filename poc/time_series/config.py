@@ -161,6 +161,17 @@ DEFAULTS: Dict[str, Any] = {
         "select_metric": "nll",
         "patience": 0,
         "min_epochs": 1,
+        # Optimisation reliability.  Five FD001 seeds of ONE architecture
+        # spanned 20.2-59.1 nats of checkpoint NLL, and the detection/
+        # localisation advantage tracked that spread (Spearman -0.86), so the
+        # binding term was initialisation, not structure.  `restarts` keeps
+        # the best initialisation by checkpoint loss (label-free); the
+        # schedule stops runs ending at the epoch ceiling instead of an
+        # optimum.  Defaults reproduce every earlier fit exactly.
+        "restarts": 1,
+        "lr_schedule": "none",        # 'cosine' | 'plateau'
+        "lr_min_factor": 0.05,
+        "restart_abandon_margin": 0.25,
     },
 
     "eval": {
@@ -336,6 +347,21 @@ def validate(cfg: Dict[str, Any]) -> None:
     if not cfg["seeds"]:
         raise ValueError("no seeds given")
     m = cfg["model"]
+    # The optimisation-reliability knobs, checked at LOAD time: a typo that
+    # only fires inside the training loop costs the whole run, and on the
+    # workstation that is hours after the launch.
+    if int(m.get("restarts", 1)) < 1:
+        raise ValueError("model.restarts must be a positive integer")
+    if m.get("lr_schedule", "none") not in ("none", "cosine", "plateau"):
+        raise ValueError("model.lr_schedule must be 'none', 'cosine' or 'plateau'")
+    if not 0 < float(m.get("lr_min_factor", 0.05)) <= 1:
+        raise ValueError("model.lr_min_factor must lie in (0, 1]")
+    if float(m.get("restart_abandon_margin", 0.25)) < 0:
+        raise ValueError("model.restart_abandon_margin must be >= 0")
+    weights = cfg.get("eval", {}).get("diagnosis_split_weights")
+    if weights is not None and (len(weights) != 3 or any(float(w) <= 0 for w in weights)):
+        raise ValueError("eval.diagnosis_split_weights needs three positive weights "
+                         "(checkpoint, calibration, evaluation)")
     if "structure_gate" in cfg["stages"] and (
             m.get("boundary_K") is not None or m.get("upper_K") is not None
             or m.get("channel_mixture") or m.get("conditional_weight", 0)):

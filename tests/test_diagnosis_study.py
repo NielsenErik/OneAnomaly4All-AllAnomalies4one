@@ -10,7 +10,8 @@ import torch
 from poc.time_series.circuits import WindowPC
 from poc.time_series.config import DEFAULTS
 from poc.time_series.diagnosis import (validation_partitions, one_per_unit,
-    conservative_threshold, score_views, localization_metrics, paired_engine_bootstrap)
+    partition_unit_counts, conservative_threshold, score_views,
+    localization_metrics, paired_engine_bootstrap)
 from poc.time_series.diagnosis_controls import (control_covariance,
     make_control_task, independent_replacement, gaussian_oracle_map)
 from poc.time_series.metrics import auroc
@@ -159,6 +160,43 @@ def test_validation_and_calibration_units_are_disjoint():
     assert len(idx) == len(set(units[idx].tolist()))
     with pytest.raises(ValueError, match="three"):
         validation_partitions(SimpleNamespace(unit_val=torch.tensor([0, 1]), X_val=torch.randn(2, 6)))
+
+
+def test_split_weights_move_engines_without_breaking_disjointness():
+    """More calibration engines is the only lever on the operating point.
+
+    One window per engine at alpha 0.10 cannot resolve a false-alarm rate
+    finer than 1/n, and the equal three-way split left n ~ 10 on FD001 (q95
+    0.33 against a nominal 0.10).  Re-weighting has to buy calibration
+    engines, and must not buy them by sharing engines between partitions.
+    """
+    units = torch.arange(20).repeat_interleave(3)
+    task = SimpleNamespace(unit_val=units, X_val=torch.randn(60, 6))
+    equal = validation_partitions(task, 7)
+    heavy = validation_partitions(task, 7, (1, 2, 1))
+    def engines(p):
+        return {k: set(units[idx].tolist()) for k, idx in p.items()}
+    e, h = engines(equal), engines(heavy)
+    assert len(h["calibration"]) > len(e["calibration"])
+    for groups in (e, h):
+        assert all(not a & b for a, b in itertools.combinations(groups.values(), 2))
+        assert set.union(*groups.values()) == set(range(20))
+        assert all(groups.values())
+    # Same seed, same split: the weights are a protocol choice, not a draw.
+    assert engines(validation_partitions(task, 7, (1, 2, 1))) == h
+
+
+def test_partition_counts_keep_every_partition_nonempty_and_reject_bad_weights():
+    assert partition_unit_counts(30, (1, 1, 1)) == [10, 10, 10]
+    assert sum(partition_unit_counts(31, (1, 2, 1))) == 31
+    # A weight small enough to round to nothing still gets an engine: an empty
+    # calibration or evaluation set is not a smaller experiment, it is none.
+    assert min(partition_unit_counts(5, (0.01, 10, 0.01))) >= 1
+    for bad in [(1, 1), (1, 0, 1), (1, -1, 1), (1, float("nan"), 1)]:
+        with pytest.raises(ValueError, match="weights"):
+            partition_unit_counts(30, bad)
+    with pytest.raises(ValueError, match="three"):
+        partition_unit_counts(2, (1, 1, 1))
 
 
 def test_fit_helper_uses_only_explicit_checkpoint_half(monkeypatch):

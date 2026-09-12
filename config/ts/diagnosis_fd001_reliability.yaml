@@ -1,0 +1,100 @@
+# FD001 — is the candidate's advantage real, or is it the luck of the draw?
+#
+# `diagnosis_fd001_candidate.yaml` ran five fresh seeds of ONE architecture
+# (chow_liu, leaf_components 6) and they did not agree with each other:
+#
+#   seed 21   best epoch 435 of 600   checkpoint NLL 25.70
+#   seed 22   best epoch  80 of 600   checkpoint NLL 59.06   collapsed
+#   seed 23   best epoch 596 of 600   checkpoint NLL 20.18   at the ceiling
+#   seed 24   best epoch 599 of 600   checkpoint NLL 27.23   at the ceiling
+#   seed 25   best epoch 129 of 600   checkpoint NLL 35.97   collapsed
+#
+# A 3x spread in checkpoint NLL across INITIALISATIONS of a fixed architecture,
+# against a 0.06 nat spread between architectures at a fixed learning rate on
+# the synthetic grid.  The detection and localisation advantage over the fitted
+# Gaussian tracked that spread (Spearman -0.86 AUROC, -0.88 locAP, n=8): the
+# well-fit seeds won by +0.017..+0.026 AUROC and the collapsed ones lost.  So
+# the candidate's number is currently a statement about initialisation luck,
+# and no protocol can be frozen on it.
+#
+# Two changes, and nothing else, so the difference is attributable:
+#
+#   RESTARTS       four initialisations per seed, keeping the best by
+#                  CHECKPOINT NLL — the label-free rule that already predicts
+#                  which seeds win.  A restart far behind the best completed
+#                  one is abandoned rather than trained out, which is what
+#                  makes four affordable: the collapsed fits above were
+#                  identifiable by epoch ~130.
+#   COSINE DECAY   seeds 23 and 24 selected their last epoch at a 600-epoch
+#                  ceiling, so their fits were not finished.  Decay ends a run
+#                  at an optimum instead of at the budget.
+#
+# And one protocol change that the same study has to answer for:
+#
+#   SPLIT WEIGHTS  the candidate FAILED the step-8 false-alarm condition
+#                  (observed FPR 0.110 at alpha 0.10, repeated-draw q95 0.33)
+#                  with ~10 calibration engines.  One window per engine cannot
+#                  resolve a rate finer than 1/n.  (1, 2, 1) roughly doubles
+#                  the calibration engines out of the same validation fleet.
+#
+# PRE-REGISTERED READ, written before the run:
+#   * reliability succeeds if the checkpoint-NLL spread over seeds falls below
+#     ~5 nats and no seed selects a checkpoint within `patience` of
+#     `min_epochs` (collapse) or at the epoch ceiling (unfinished).
+#   * the false-alarm condition succeeds if the repeated-draw q95 falls below
+#     ~0.15 at alpha 0.10.  It is NOT a success if only the point FPR moves.
+#   * a paired AUROC/locAP delta against the fitted Gaussian read off this
+#     study is still EXPLORATORY: these are the FD001 engines the candidate was
+#     selected on.  Confirmation needs a dataset that was never inspected.
+name: diagnosis_fd001_reliability
+description: Restarts, decayed learning rate and a larger calibration split for the chow_liu leaf6 candidate.
+seeds: [21, 22, 23, 24, 25]
+# CPU by default so the fitted float64 comparators are on one device with the
+# circuit; the workstation launcher passes --device cuda for the study arms.
+device: cpu
+stages: [diagnosis]
+log_root: logs/ts/diagnosis_fd001_reliability
+skip_if_missing_data: false
+dataset:
+  source: cmapss
+  subset: FD001
+  window: 20
+  stride: 2
+  val_units: 0.3
+  cap: 125
+model:
+  vtree: chow_liu
+  K: 8
+  leaf_components: 6
+  epochs: 600
+  min_epochs: 100
+  patience: 60
+  batch_size: 256
+  lr: 0.05
+  restarts: 4
+  lr_schedule: cosine
+  lr_min_factor: 0.05
+  restart_abandon_margin: 0.25
+variants:
+  # The candidate as it stands, so the reliability change is measured against
+  # it inside one config and on one device rather than across two studies.
+  - name: candidate_ref
+    model: {restarts: 1, lr_schedule: none}
+  - name: restarts4
+    model: {lr_schedule: none}
+  - name: restarts4_cosine
+eval:
+  diagnosis_max_windows: 512
+  diagnosis_alpha: 0.10
+  # Twice the calibration engines, at the cost of checkpoint and evaluation
+  # engines. The protocol records the resulting engine counts per partition.
+  diagnosis_split_weights: [1, 2, 1]
+  diagnosis_baselines: [gaussian]
+  diagnosis_detectors: [mahalanobis, gmm, knn]
+  diagnosis_detector_policies: [refit, impute]
+  diagnosis_operational_trials: 200
+  diagnosis_trajectory: false
+  mask_ks: [1, 3, 7]
+  masks_per_k: 1
+  oracle_check_windows: 16
+  plots: false

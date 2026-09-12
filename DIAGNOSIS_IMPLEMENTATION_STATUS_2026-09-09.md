@@ -27,3 +27,7 @@ The implemented inventory in the September 9 test plan is supported by the curre
 Still pending: the full trained controls and FD001 studies, optimized fitted Gaussian/GMM diagnosis baselines, matched donor construction and shortcut audit, graph-witness and informative-missingness experiments, unseen-mask statistical procedures, cross-family end-to-end benchmarks, localization uncertainty/report generation and independent confirmation. EM/Anemone and restructuring/distillation are conditional follow-ups. Existing generic anomaly baselines and the known-law Gaussian oracle do not complete the fitted masked-diagnosis baseline requirement.
 
 The historical gate remains FAIL. Neither passing regression tests nor a completed smoke run reverses it. The next execution task is the frozen known-law study; the next substantial implementation task is the fitted baseline interface in step 4 of the current roadmap.
+
+## Addendum, 12 September 2026
+
+Roadmap steps 1-7 were executed on 10-11 September (workstation results in `logs/ts/ws/`, commit `8e56173`). Step 8 is NOT frozen: the candidate's fit is decided by its initialisation (38.9-nat checkpoint-NLL spread across five seeds of one architecture) and it failed the false-alarm condition (repeated-draw q95 0.33 at alpha 0.10 on ~10 calibration engines). The reliability work that has to clear both before a protocol can be frozen is described, with its pre-registered criteria, in [RELIABILITY_STEP_2026-09-12.md](RELIABILITY_STEP_2026-09-12.md).

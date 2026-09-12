@@ -22,7 +22,7 @@ what `bench_scaling.py` demonstrates.
 from __future__ import annotations
 
 import copy
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 import torch
@@ -376,6 +376,9 @@ class WindowPC:
         self.val_history: List[float] = []
         self.best_epoch: int = -1
         self.best_val_nll: float = float("nan")
+        self.restart_traces: List[Dict[str, Any]] = []
+        self.selected_restart: int = -1
+        self.restart_selection_losses: List[float] = []
 
     def _prep(self, X: torch.Tensor) -> torch.Tensor:
         """Optional first-difference reparameterisation.  Unit-determinant, so
@@ -389,7 +392,8 @@ class WindowPC:
         c, m = self.leaf_components, self.mixture_at_1
         return lambda i: window_leaf(i, c, m)
 
-    def build(self, X: torch.Tensor) -> torch.Tensor:
+    def build(self, X: torch.Tensor,
+              init_seed: Optional[int] = None) -> torch.Tensor:
         """
         Structure + closed-form leaf initialisation, WITHOUT training.  Returns
         the (possibly delta-transformed) CPU data the structure was learned on.
@@ -397,8 +401,13 @@ class WindowPC:
         Split out of `fit` so a structure's parameter count is available before
         anyone pays for a training run — Tier 1.2 compares structures at
         MATCHED parameters, and picking K per structure needs exactly this.
+
+        `init_seed` reseeds the sum-weight jitter ONLY; the vtree keeps
+        `self.seed`, so a restart is a fresh initialisation of one fixed
+        structure rather than a second structure search.
         """
         self._relational = None       # parameters are about to change
+        init_seed = self.seed if init_seed is None else int(init_seed)
         X_cpu = X.detach().cpu()
         if self.delta:
             X_cpu = delta_window_transform(X_cpu, self.window, self.n_channels)
@@ -432,11 +441,11 @@ class WindowPC:
             # tree layout has the same K^depth blowup the rebuild removed.
             self.pc = SquaredPC(vt, n_sum_components=self.K,
                                 leaf_factory=self._leaf_factory(),
-                                seed=self.seed, region_graph=True)
+                                seed=init_seed, region_graph=True)
         else:
             self.pc = RegionGraphPC(vt, n_sum_components=self.K,
                                     leaf_factory=self._leaf_factory(),
-                                    weight_jitter=self.weight_jitter, seed=self.seed,
+                                    weight_jitter=self.weight_jitter, seed=init_seed,
                                     region_widths=widths, mixture_scopes=mixture_scopes)
         self.pc.validate()
         self.pc.fit_leaves(X_cpu)
@@ -449,7 +458,9 @@ class WindowPC:
             select_best: bool = True, val_max: int = 4096,
             conditional_weight: float = 0.0, mask_drop_prob: float = 0.25,
             select_metric: str = "nll", patience: int = 0,
-            min_epochs: int = 1) -> "WindowPC":
+            min_epochs: int = 1, restarts: int = 1,
+            lr_schedule: str = "none", lr_min_factor: float = 0.05,
+            restart_abandon_margin: float = 0.25) -> "WindowPC":
         """
         Structure learning and closed-form leaf initialisation happen on CPU
         (they are numpy/statistics, not tensor algebra); only the gradient loop
@@ -463,6 +474,23 @@ class WindowPC:
         oscillates late (one recorded Chow-Liu 3-component seed swung between
         67 and 81 nats over its last epochs) reports whichever point the epoch
         budget happened to stop on.  `val_max` caps the scoring cost per epoch.
+
+        `restarts` > 1 trains that many independent initialisations and keeps
+        the one with the best CHECKPOINT loss — the same label-free quantity
+        `select_metric` already uses within a run, never an evaluation score.
+        This exists because initialisation, not architecture, was the dominant
+        term on real data: five FD001 seeds of one fixed architecture spanned
+        20.2-59.1 nats of checkpoint NLL, two of them selecting a checkpoint
+        near `min_epochs` (a collapsed fit) and two still improving at the
+        epoch ceiling.  Restarts are only accepted with checkpoint data, since
+        without it there is nothing to select on.
+
+        `lr_schedule` ('cosine' or 'plateau') decays the step size so a run
+        ends at an optimum rather than at the budget; `lr_min_factor` is the
+        floor as a fraction of `lr`.  `restart_abandon_margin` stops a restart
+        early once it is that far (relatively) worse than the best completed
+        one — the collapsed fits above are visible long before their budget
+        runs out, and paying for them in full is what made restarts expensive.
         """
         if not len(X) or epochs < 1 or batch_size < 1 or val_max < 1:
             raise ValueError("fit requires nonempty data and positive epochs/batch_size/val_max")
@@ -472,8 +500,89 @@ class WindowPC:
             raise ValueError("invalid checkpoint selection or early stopping settings")
         if (patience or select_metric == "objective") and (X_val is None or not len(X_val)):
             raise ValueError("checkpoint objective / early stopping requires validation data")
-        torch.manual_seed(self.seed)
-        X_cpu = self.build(X)
+        if int(restarts) != restarts or restarts < 1:
+            raise ValueError("restarts must be a positive integer")
+        if lr_schedule not in ("none", "cosine", "plateau"):
+            raise ValueError("lr_schedule must be one of 'none', 'cosine', 'plateau'")
+        if not 0 < lr_min_factor <= 1 or restart_abandon_margin < 0:
+            raise ValueError("lr_min_factor in (0, 1] and restart_abandon_margin >= 0 required")
+        has_val = X_val is not None and len(X_val)
+        if restarts > 1 and not has_val:
+            raise ValueError(
+                "restart selection requires checkpoint data: pass X_val. Selecting "
+                "a restart on anything else would leak the evaluation split")
+        if lr_schedule == "plateau" and not has_val:
+            raise ValueError("the plateau schedule steps on the checkpoint loss: pass X_val")
+
+        opts = dict(epochs=epochs, lr=lr, batch_size=batch_size, verbose=verbose,
+                    log_every=log_every, X_val=X_val, select_best=select_best,
+                    val_max=val_max, conditional_weight=conditional_weight,
+                    mask_drop_prob=mask_drop_prob, select_metric=select_metric,
+                    patience=patience, min_epochs=min_epochs,
+                    lr_schedule=lr_schedule, lr_min_factor=lr_min_factor)
+
+        self.select_metric = select_metric
+        self.restart_traces: List[Dict[str, Any]] = []
+        total_steps = 0
+        best: Optional[Dict[str, Any]] = None
+        for r in range(int(restarts)):
+            floor = best["selection_loss"] if best is not None else float("inf")
+            attempt = self._fit_once(
+                X, attempt=r,
+                # A restart varies the INITIALISATION only.  The vtree keeps
+                # `self.seed`, so restarts cannot quietly become a structure
+                # search — which would make the comparison a different one.
+                init_seed=self.seed + 7919 * r,
+                floor=floor, abandon_margin=restart_abandon_margin, **opts)
+            total_steps += attempt["trace"]["optimizer_steps"]
+            self.restart_traces.append(attempt["trace"])
+            if best is None or attempt["selection_loss"] < best["selection_loss"]:
+                best = attempt                       # loser's circuit is dropped here
+        assert best is not None
+
+        self.pc, self.compiled = best["pc"], best["compiled"]
+        self._relational = None
+        self.history = best["history"]
+        self.val_history = best["val_history"]
+        self.objective_history = best["objective_history"]
+        self.val_objective_history = best["val_objective_history"]
+        self.best_epoch = best["trace"]["best_epoch"]
+        self.best_val_nll = best["trace"]["best_val_nll"]
+        self.best_selection_loss = best["selection_loss"]
+        self.stopped_early = best["trace"]["stopped_early"]
+        self.selected_restart = best["trace"]["restart"]
+        self.restart_selection_losses = [t["selection_loss"] for t in self.restart_traces]
+        self.selected_optimizer_steps = best["trace"]["optimizer_steps"]
+        # The COST of the fit is every restart, not the winner alone; anything
+        # quoting optimizer steps as a budget has to see all of them.
+        self.optimizer_steps = total_steps
+        if restarts > 1:
+            losses = " ".join(f"{x:.3f}" for x in self.restart_selection_losses)
+            print(f"    [pc] restart {self.selected_restart} of {restarts} selected "
+                  f"by {select_metric} (checkpoint losses: {losses})")
+        if self.compiled is not None:
+            # the DAG owns the semantics (validate/MPE/serialisation): give it
+            # the trained values back before anything else reads it
+            self.compiled.write_back()
+        return self
+
+    def _fit_once(self, X: torch.Tensor, *, attempt: int, init_seed: int,
+                  floor: float, abandon_margin: float, epochs: int, lr: float,
+                  batch_size: int, verbose: bool, log_every: int,
+                  X_val: Optional[torch.Tensor], select_best: bool, val_max: int,
+                  conditional_weight: float, mask_drop_prob: float,
+                  select_metric: str, patience: int, min_epochs: int,
+                  lr_schedule: str, lr_min_factor: float) -> Dict[str, Any]:
+        """One initialisation, trained to its own stopping point.
+
+        Returns the circuit, the compiled evaluator and the trace; the caller
+        keeps whichever attempt the checkpoint loss prefers.  `floor` is the
+        best checkpoint loss any completed attempt reached, and an attempt that
+        is `abandon_margin` (relative) worse than it after `min_epochs` is cut
+        off rather than trained out.
+        """
+        torch.manual_seed(init_seed)
+        X_cpu = self.build(X, init_seed=init_seed)
 
         Xd = X_cpu.to(self.device)
         # Compile to the layer-parallel evaluator, gated against the recursive
@@ -483,19 +592,27 @@ class WindowPC:
         model = self._compile_or_fallback(Xd[: min(len(Xd), 64)])
         params = list(model.parameters())
         opt = torch.optim.Adam(params, lr=lr)
+        sched = None
+        if lr_schedule == "cosine":
+            sched = torch.optim.lr_scheduler.CosineAnnealingLR(
+                opt, T_max=max(epochs - 1, 1), eta_min=lr * lr_min_factor)
+        elif lr_schedule == "plateau":
+            sched = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                opt, factor=0.5, patience=max(patience // 3, 1) if patience else 10,
+                min_lr=lr * lr_min_factor)
         n = len(Xd)
-        self.history = []
-        self.val_history = []
-        self.objective_history = []
-        self.val_objective_history = []
-        self.optimizer_steps = 0
-        self.stopped_early = False
-        self.select_metric = select_metric
-        self.best_epoch, self.best_val_nll = -1, float("nan")
-        self.best_selection_loss = float("inf")
-        rng = np.random.default_rng(self.seed + 931)
+        history: List[float] = []
+        val_history: List[float] = []
+        objective_history: List[float] = []
+        val_objective_history: List[float] = []
+        optimizer_steps = 0
+        stopped_early = False
+        abandoned = False
+        best_epoch, best_val_nll = -1, float("nan")
+        best_selection_loss = float("inf")
+        rng = np.random.default_rng(init_seed + 931)
         # Fixed validation query library, independent of training mask draws.
-        vrng = np.random.default_rng(self.seed + 932)
+        vrng = np.random.default_rng(init_seed + 932)
         val_queries = [(c, [k for k in range(self.n_channels)
                             if k != c and vrng.random() < mask_drop_prob])
                        for c in range(self.n_channels)]
@@ -522,8 +639,10 @@ class WindowPC:
             return float(-torch.cat(out).mean())
 
         best_state = None
-        for ep in track(range(epochs), f"fit {self.vtree_method} K={self.K}",
-                        total=epochs):
+        label = f"fit {self.vtree_method} K={self.K}"
+        if attempt:
+            label += f" restart {attempt}"
+        for ep in track(range(epochs), label, total=epochs):
             perm = torch.randperm(n, device=self.device)
             tot = obj_tot = 0.0
             for s in range(0, n, batch_size):
@@ -541,14 +660,14 @@ class WindowPC:
                 opt.zero_grad(); loss.backward()
                 torch.nn.utils.clip_grad_norm_(params, 1.0)
                 opt.step()
-                self.optimizer_steps += 1
+                optimizer_steps += 1
                 tot += float(joint_loss.detach()) * len(xb)
                 obj_tot += float(loss.detach()) * len(xb)
-            self.history.append(tot / max(n, 1))
-            self.objective_history.append(obj_tot / max(n, 1))
+            history.append(tot / max(n, 1))
+            objective_history.append(obj_tot / max(n, 1))
             if Xv is not None:
                 v = val_nll()
-                self.val_history.append(v)
+                val_history.append(v)
                 selection = v
                 if select_metric == "objective" and conditional_weight:
                     with torch.no_grad():
@@ -557,41 +676,61 @@ class WindowPC:
                                  for c, dead in val_queries
                                  for s in range(0, len(Xv), batch_size)) / len(Xv)
                     selection += conditional_weight * cv
-                self.val_objective_history.append(selection)
+                val_objective_history.append(selection)
                 # A diverged epoch must never become the selected checkpoint,
                 # and must not be able to lock out the finite epochs after it
                 # either — which is what a bare `v < best` does once `best` is
                 # NaN, since every comparison against NaN is False.
-                if np.isfinite(selection) and selection < self.best_selection_loss:
-                    self.best_val_nll, self.best_epoch = v, ep
-                    self.best_selection_loss = selection
+                if np.isfinite(selection) and selection < best_selection_loss:
+                    best_val_nll, best_epoch = v, ep
+                    best_selection_loss = selection
                     if select_best:
                         best_state = copy.deepcopy(model.state_dict())
+            if sched is not None:
+                sched.step(val_objective_history[-1]) if lr_schedule == "plateau" else sched.step()
             every = log_every or (max(epochs // 6, 1) if verbose else 0)
             if every and ep % every == 0:
-                msg = f"    [pc] epoch {ep:3d}  nll {self.history[-1]:8.3f}"
-                if self.val_history:
-                    msg += f"  val {self.val_history[-1]:8.3f}"
+                msg = f"    [pc] epoch {ep:3d}  nll {history[-1]:8.3f}"
+                if val_history:
+                    msg += f"  val {val_history[-1]:8.3f}"
                 print(msg)
-            if (patience and ep + 1 >= min_epochs and self.best_epoch >= 0
-                    and ep - self.best_epoch >= patience):
-                self.stopped_early = True
+            if (patience and ep + 1 >= min_epochs and best_epoch >= 0
+                    and ep - best_epoch >= patience):
+                stopped_early = True
                 break
-        if Xv is not None and self.best_epoch < 0:
+            # Abandon a restart that is already far behind a completed one.
+            # Only ever cuts a LOSING attempt short, so the selected fit is
+            # exactly the fit it would have been without the guard.
+            if (abandon_margin and ep + 1 >= min_epochs and np.isfinite(floor)
+                    and np.isfinite(best_selection_loss)
+                    and best_selection_loss - floor > abandon_margin * abs(floor)):
+                abandoned = True
+                print(f"    [pc] restart {attempt} abandoned at epoch {ep} "
+                      f"({best_selection_loss:.3f} vs {floor:.3f} best so far)")
+                break
+        if Xv is not None and best_epoch < 0:
             raise FloatingPointError("no finite validation checkpoint")
-        if best_state is not None and self.best_epoch != epochs - 1:
+        if best_state is not None and best_epoch != len(history) - 1:
             # Roll back to the epoch that generalised best.  Done BEFORE
             # write_back so the DAG, the compiled evaluator and every score
             # taken afterwards all describe the same parameters.
             model.load_state_dict(best_state)
-            print(f"    [pc] restored epoch {self.best_epoch} "
-                  f"(selected by {select_metric}; val nll {self.best_val_nll:.3f}, "
-                  f"last {self.val_history[-1]:.3f})")
-        if self.compiled is not None:
-            # the DAG owns the semantics (validate/MPE/serialisation): give it
-            # the trained values back before anything else reads it
-            self.compiled.write_back()
-        return self
+            print(f"    [pc] restored epoch {best_epoch} "
+                  f"(selected by {select_metric}; val nll {best_val_nll:.3f}, "
+                  f"last {val_history[-1]:.3f})")
+        trace = {"restart": attempt, "init_seed": int(init_seed),
+                 "best_epoch": best_epoch, "best_val_nll": best_val_nll,
+                 "selection_loss": best_selection_loss,
+                 "epochs_run": len(history), "epochs_budget": int(epochs),
+                 "stopped_early": stopped_early, "abandoned": abandoned,
+                 "optimizer_steps": optimizer_steps,
+                 "final_lr": float(opt.param_groups[0]["lr"]),
+                 "final_train_nll": float(history[-1]) if history else float("nan")}
+        return {"pc": self.pc, "compiled": self.compiled, "model": model,
+                "selection_loss": best_selection_loss, "trace": trace,
+                "history": history, "val_history": val_history,
+                "objective_history": objective_history,
+                "val_objective_history": val_objective_history}
 
     def _compile_or_fallback(self, x_probe: torch.Tensor, box_feature=None):
         return _compile_or_fallback(self, x_probe, box_feature)

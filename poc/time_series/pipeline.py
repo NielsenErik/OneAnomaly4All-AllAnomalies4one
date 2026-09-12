@@ -137,7 +137,11 @@ def _fit_window_pc(cfg: Dict[str, Any], task, seed: int, log: RunLogger,
            conditional_weight=float(m.get("conditional_weight", 0.0)),
            mask_drop_prob=float(m.get("train_mask_drop_prob", 0.25)),
            select_metric=m.get("select_metric", "nll"),
-           patience=int(m.get("patience", 0)), min_epochs=int(m.get("min_epochs", 1)))
+           patience=int(m.get("patience", 0)), min_epochs=int(m.get("min_epochs", 1)),
+           restarts=int(m.get("restarts", 1)),
+           lr_schedule=str(m.get("lr_schedule", "none")),
+           lr_min_factor=float(m.get("lr_min_factor", 0.05)),
+           restart_abandon_margin=float(m.get("restart_abandon_margin", 0.25)))
     fit_s = time.time() - t0
     log.history(f"{tag}_train_nll", pc.history)
     log.history(f"{tag}_train_objective", pc.objective_history)
@@ -153,6 +157,19 @@ def _fit_window_pc(cfg: Dict[str, Any], task, seed: int, log: RunLogger,
     ev = "layered" if pc.compiled is not None else "recursive"
     log.info(f"  {tag}: fit {fit_s:.1f}s · {pc.size()['parameters']:,} params · "
              f"score sd {sd:.3f} · device {pc.device} · {ev} · {thr:,.0f} win/s")
+    if getattr(pc, "restart_traces", None) and len(pc.restart_traces) > 1:
+        # Every attempt, not just the winner: a study that cannot see the
+        # losing restarts cannot tell a reliable architecture from a lucky one.
+        # These go to the log and to the model row, not to `log.history` —
+        # a history file is indexed by EPOCH, and these are indexed by restart.
+        for t in pc.restart_traces:
+            log.info(f"  {tag}: restart {t['restart']} (init seed {t['init_seed']}) "
+                     f"checkpoint {t['selection_loss']:.3f} at epoch {t['best_epoch']} "
+                     f"of {t['epochs_run']} run"
+                     + (" · abandoned" if t["abandoned"] else "")
+                     + (" · stopped early" if t["stopped_early"] else ""))
+        log.info(f"  {tag}: selected restart {pc.selected_restart} of "
+                 f"{len(pc.restart_traces)}")
     if pc.val_history:
         log.info(f"  {tag}: validation on {len(X_val)} windows from "
                  f"{len(set(task.unit_val.tolist())) if X_checkpoint is None and getattr(task, 'unit_val', None) is not None else 'explicit subset of'} "

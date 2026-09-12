@@ -36,8 +36,44 @@ from .metrics import average_precision, auroc, detection_report
 from .relational import mask_library, missingness_workload
 
 
-def validation_partitions(task, seed: int = 0) -> Dict[str, torch.Tensor]:
-    """Three engine-disjoint index sets. Never fall back to overlapping windows."""
+PARTITION_NAMES = ("checkpoint", "calibration", "evaluation")
+
+
+def partition_unit_counts(n_units: int, weights: Sequence[float]) -> List[int]:
+    """Engines per partition under `weights`, every partition non-empty.
+
+    Largest-remainder on the weights, then one engine is moved from the
+    largest partition to any empty one — an empty calibration or evaluation
+    set is not a smaller experiment, it is no experiment.
+    """
+    w = np.asarray(weights, dtype=float)
+    if len(w) != len(PARTITION_NAMES) or not np.all(np.isfinite(w)) or np.any(w <= 0):
+        raise ValueError(f"need {len(PARTITION_NAMES)} positive finite split weights")
+    if n_units < len(PARTITION_NAMES):
+        raise ValueError("at least three validation engines are required")
+    share = w / w.sum() * n_units
+    counts = np.floor(share).astype(int)
+    for i in np.argsort(-(share - counts))[: n_units - int(counts.sum())]:
+        counts[i] += 1
+    while counts.min() == 0:
+        counts[int(np.argmax(counts))] -= 1
+        counts[int(np.argmin(counts))] += 1
+    return [int(c) for c in counts]
+
+
+def validation_partitions(task, seed: int = 0,
+                          weights: Optional[Sequence[float]] = None
+                          ) -> Dict[str, torch.Tensor]:
+    """Three engine-disjoint index sets. Never fall back to overlapping windows.
+
+    `weights` sizes them (checkpoint, calibration, evaluation); the default
+    (1, 1, 1) is the equal three-way split every earlier study used.  It is a
+    knob because the equal split is what starved the operating point: FD001
+    with `val_units: 0.3` leaves ~10 calibration engines, and one window per
+    engine at alpha 0.10 gave a repeated-draw false-alarm q95 of 0.33 against
+    a nominal 0.10.  The threshold is only as good as the number of
+    independent calibration objects behind it, and that number is this.
+    """
     units = getattr(task, "unit_val", None)
     if units is None or len(units) != len(task.X_val):
         raise ValueError("diagnosis requires validation unit ids aligned with X_val")
@@ -45,9 +81,12 @@ def validation_partitions(task, seed: int = 0) -> Dict[str, torch.Tensor]:
     unique = np.unique(units)
     if len(unique) < 3:
         raise ValueError("at least three validation engines are required")
-    groups = np.array_split(np.random.default_rng(seed).permutation(unique), 3)
+    counts = partition_unit_counts(len(unique), weights if weights is not None
+                                   else (1.0, 1.0, 1.0))
+    order = np.random.default_rng(seed).permutation(unique)
+    groups = np.split(order, np.cumsum(counts)[:-1])
     return {name: torch.from_numpy(np.flatnonzero(np.isin(units, group)))
-            for name, group in zip(("checkpoint", "calibration", "evaluation"), groups)}
+            for name, group in zip(PARTITION_NAMES, groups)}
 
 
 def one_per_unit(indices, units, seed=0) -> torch.Tensor:
@@ -547,7 +586,8 @@ def stage_diagnosis(cfg, seed, log):
     else:
         _, task = prepare_task(cfg, seed, log, "ad")
     split_seed = int(ev.get("diagnosis_split_seed", 701))
-    parts = validation_partitions(task, split_seed)
+    split_weights = ev.get("diagnosis_split_weights", (1.0, 1.0, 1.0))
+    parts = validation_partitions(task, split_seed, split_weights)
     cal_idx = one_per_unit(parts["calibration"], task.unit_val, split_seed + 1)
     eval_idx = parts["evaluation"]
     operational = bool(ev.get("diagnosis_operational", False))
@@ -601,6 +641,13 @@ def stage_diagnosis(cfg, seed, log):
                 "independent_unit": "window" if covariance is not None else "engine",
                 "corruption_seed": seed + 12000,
                 "split_seed": split_seed,
+                "split_weights": [float(x) for x in split_weights],
+                # The count that bounds the operating point: a threshold from
+                # n calibration engines cannot be read as finer than 1/n.
+                "calibration_engines": int(len(np.unique(
+                    np.asarray(task.unit_val)[parts["calibration"]]))),
+                "evaluation_engines": int(len(np.unique(
+                    np.asarray(task.unit_val)[parts["evaluation"]]))),
                 "indices": {k: v.tolist() for k, v in parts.items()},
                 "unit_ids": {k: np.unique(np.asarray(task.unit_val)[v]).tolist() for k, v in parts.items()},
                 "calibration_indices_used": cal_idx.tolist(),
@@ -616,9 +663,22 @@ def stage_diagnosis(cfg, seed, log):
         **pc.size(), optimizer_steps=pc.optimizer_steps, epochs_run=len(pc.history),
         best_epoch=pc.best_epoch, stopped_early=pc.stopped_early,
         selection_metric=pc.select_metric, checkpoint_nll=pc.best_val_nll,
+        restarts_run=len(getattr(pc, "restart_traces", []) or []),
+        selected_restart=getattr(pc, "selected_restart", -1),
+        restart_checkpoint_losses=list(getattr(pc, "restart_selection_losses", [])),
+        restarts_abandoned=sum(bool(t["abandoned"])
+                               for t in getattr(pc, "restart_traces", []) or []),
+        selected_optimizer_steps=getattr(pc, "selected_optimizer_steps",
+                                         pc.optimizer_steps),
         fit_s=getattr(pc, "fit_seconds", float("nan")),
         final_train_nll=float(pc.history[-1]) if len(pc.history) else float("nan"),
         lr=float(cfg["model"]["lr"]), epochs_budget=int(cfg["model"]["epochs"]),
+        # The stopping rule, beside the epoch it stopped at: without these two
+        # a recorded best_epoch cannot be read as converged, collapsed or cut
+        # off by the budget.
+        min_epochs=int(cfg["model"].get("min_epochs", 1)),
+        patience=int(cfg["model"].get("patience", 0)),
+        lr_schedule=str(cfg["model"].get("lr_schedule", "none")),
         batch_size=int(cfg["model"]["batch_size"]),
         boundary_widths=[len(us) for us in pc.relational().units] if pc.is_channel_blocked else []))
 

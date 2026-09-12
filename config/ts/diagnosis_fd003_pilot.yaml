@@ -1,0 +1,67 @@
+# FD003 — pilot, for SIZING the step-8 confirmation.  Not the confirmation.
+#
+# What this file is for, and only this: the seed-to-seed and engine-to-engine
+# spread of the paired delta on a subset the candidate was NOT selected on, so
+# the confirmation's sample size comes from a pilot rather than from a guess
+# (IMPLEMENTATION_PLAN_2026-09-10, step 8).  FD003 shares C-MAPSS's generator
+# and preprocessing with FD001, so it is WITHIN-FAMILY REPLICATION — reading a
+# result here as external validation is exactly the error step 8 names.  It
+# differs from FD001 in fault modes (two, against one) at one operating
+# condition, which is why it is the cheapest honest next subset.
+#
+# Run it only AFTER `diagnosis_fd001_reliability.yaml` says the fit is
+# reliable.  Piloting the variance of an unreliable estimator measures the
+# unreliability, and sizes the confirmation from it.
+#
+# The candidate arm carries the reliability settings that won there; the
+# comparator is the fitted full-covariance Gaussian, which is what the
+# candidate has to beat, and the refit detectors, which are what a
+# practitioner would actually do under a missing sensor.
+#
+# NOT frozen here, deliberately: the primary endpoint, the margin, alpha as an
+# acceptance criterion, and the sample size.  Those go in a versioned
+# confirmation protocol written by `confirm_diagnosis.py` BEFORE the
+# confirmation data is examined, and they take their numbers from this pilot.
+name: diagnosis_fd003_pilot
+description: Pilot variance for step 8 on FD003 — within-family replication, not confirmation.
+seeds: [31, 32, 33, 34, 35]
+device: cpu
+stages: [diagnosis]
+log_root: logs/ts/diagnosis_fd003_pilot
+skip_if_missing_data: false
+dataset:
+  source: cmapss
+  subset: FD003
+  window: 20
+  stride: 2
+  val_units: 0.3
+  cap: 125
+model:
+  vtree: chow_liu
+  K: 8
+  leaf_components: 6
+  epochs: 600
+  min_epochs: 100
+  patience: 60
+  batch_size: 256
+  lr: 0.05
+  restarts: 4
+  lr_schedule: cosine
+  lr_min_factor: 0.05
+  restart_abandon_margin: 0.25
+variants:
+  - name: candidate
+eval:
+  diagnosis_max_windows: 512
+  diagnosis_alpha: 0.10
+  diagnosis_split_weights: [1, 2, 1]
+  diagnosis_baselines: [gaussian]
+  diagnosis_detectors: [mahalanobis, gmm, knn]
+  diagnosis_detector_policies: [refit, impute]
+  # The false-alarm spread is half of what the pilot is sizing.
+  diagnosis_operational_trials: 200
+  diagnosis_trajectory: true
+  mask_ks: [1, 3, 7]
+  masks_per_k: 1
+  oracle_check_windows: 16
+  plots: false

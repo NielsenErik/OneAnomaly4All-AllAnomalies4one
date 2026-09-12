@@ -10,9 +10,14 @@
 #                  THIS machine, and a five-arm smoke run completes on the GPU.
 #                  Any failure stops here: six FD001 runs were once lost to a
 #                  device bug that only fired after twelve minutes of training.
-#   1. studies     FD001 architecture study (18), donor study (12) and the
-#                  chow_liu leaf6 candidate (5 fresh seeds).  Parallel by
+#   1. studies     the FD001 reliability study (15 runs: the candidate as it
+#                  stands, +restarts, +restarts and cosine decay) and, unless
+#                  RUN_LEGACY=1 adds them back, nothing else.  Parallel by
 #                  default -- their accuracy numbers do not depend on timing.
+#   1b. gate       the pre-registered reliability gate.  The FD003 pilot runs
+#                  ONLY if it passes: piloting the variance of a fit that is
+#                  decided by its initialisation measures the initialisation,
+#                  and then sizes the confirmation from it.
 #   2. benchmark   run ALONE, so no other process contends for the machine.
 #                  It is the latency source of truth; the per-query seconds
 #                  inside the parallel studies are contaminated by concurrency
@@ -58,19 +63,26 @@ ${PY} -m pytest -q -x \
     tests/test_diagnosis_detectors.py tests/test_diagnosis_donors.py \
     tests/test_diagnosis_missingness.py tests/test_confirm_diagnosis.py \
     tests/test_report_diagnosis.py tests/test_tier1_relational.py \
+    tests/test_training_restarts.py tests/test_gate_reliability.py \
     > "${OUT}/preflight_tests.log" 2>&1 \
     || { echo "[preflight] tests FAILED — see ${OUT}/preflight_tests.log" >&2; exit 1; }
 tail -1 "${OUT}/preflight_tests.log"
 
-echo "[preflight] GPU smoke, all five arms incl. the generic chow_liu path $(stamp)"
+echo "[preflight] GPU smoke, five arms + restarts, decay and the new split $(stamp)"
 ${PY} -m poc.time_series.runner config/ts/diagnosis_smoke.yaml --device "${DEVICE}" \
     --stop-on-error --force --log-root "${ROOT}/diagnosis_smoke" \
+    --set model.restarts=2 --set model.lr_schedule=cosine \
+    --set 'eval.diagnosis_split_weights=[1,2,1]' \
     > "${OUT}/preflight_smoke.log" 2>&1 \
     || { echo "[preflight] smoke FAILED — see ${OUT}/preflight_smoke.log" >&2; exit 1; }
 echo "[preflight] ok $(stamp)"
 
 # ── 1. studies ──────────────────────────────────────────────────────────────
-STUDIES=(diagnosis_fd001 diagnosis_donors diagnosis_fd001_candidate)
+# The FD001 architecture/donor/candidate studies are RECORDED (logs/ts/ws at
+# commit 8e56173); re-running them buys nothing until the fit is reliable.
+# RUN_LEGACY=1 puts them back for a clean-machine reproduction.
+STUDIES=(diagnosis_fd001_reliability)
+[ "${RUN_LEGACY:-0}" = "1" ] && STUDIES+=(diagnosis_fd001 diagnosis_donors diagnosis_fd001_candidate)
 study() {
     local name=$1
     echo "[study] start ${name} $(stamp)"
@@ -97,6 +109,25 @@ else
     for s in "${STUDIES[@]}"; do study "${s}" || fail=1; done
 fi
 
+# ── 1b. reliability gate, then the FD003 pilot if it passes ─────────────────
+GATE_JSON="${OUT}/reliability_gate.json"
+echo "[gate] reliability $(stamp)"
+${PY} -m poc.time_series.gate_reliability "${ROOT}/diagnosis_fd001_reliability" \
+    --json "${GATE_JSON}" | tee "${OUT}/reliability_gate.log"
+gate_rc=${PIPESTATUS[0]}
+if [ "${gate_rc}" -eq 0 ]; then
+    echo "[study] start diagnosis_fd003_pilot $(stamp)"
+    ${PY} -m poc.time_series.runner config/ts/diagnosis_fd003_pilot.yaml \
+        --device "${DEVICE}" --log-root "${ROOT}/diagnosis_fd003_pilot" \
+        > "${OUT}/diagnosis_fd003_pilot.log" 2>&1 \
+        || { echo "[study] diagnosis_fd003_pilot FAILED" >&2; fail=1; }
+    STUDIES+=(diagnosis_fd003_pilot)
+    echo "[study] done  diagnosis_fd003_pilot $(stamp)"
+else
+    # Not a failure of the run: a failure of the gate, which is a RESULT.
+    echo "[gate] FAILED — the FD003 pilot is skipped by protocol; see ${GATE_JSON}"
+fi
+
 # ── 2. benchmark, alone ─────────────────────────────────────────────────────
 unset OMP_NUM_THREADS MKL_NUM_THREADS
 source "$(dirname "${BASH_SOURCE[0]}")/_common.sh" >/dev/null
@@ -112,6 +143,7 @@ echo "[bench] done $(stamp)"
 for s in "${STUDIES[@]}"; do
     echo "[report] ${s}"
     ${PY} -m poc.time_series.report_diagnosis "${ROOT}/${s}" --quiet --reps 1000 \
+        --score conditional_max --score relational_max \
         > "${OUT}/report_${s}.log" 2>&1 || { echo "[report] ${s} failed" >&2; fail=1; }
 done
 

@@ -29,13 +29,19 @@ def _evidence(rng, n=40, shift=0.0):
     affected = np.zeros((n, CHANNELS), dtype=bool)
     affected[labels == 1, 0] = True
     scores = attr.max(1)
+    # Both views, as the stage writes them: the artifact carries every score
+    # view and its attribution matrix, and a fixture with only one of them
+    # cannot catch a report that reads the wrong one.
     return {"labels": labels, "units": units,
             "kinds": np.array(["normal"] * (n // 2) + ["desync"] * (n // 2)),
             "observed": np.ones((n, CHANNELS), dtype=bool),
             "pair_index": np.tile(np.arange(n // 2), 2),
             "input_windows": rng.normal(size=(n, CHANNELS * 2)),
-            "affected": affected, "relational_max": scores,
-            "attr_R": attr, "alarm_relational_max": scores > 0.5}
+            "affected": affected,
+            "relational_max": scores, "conditional_max": scores,
+            "attr_R": attr, "attr_conditional": attr,
+            "alarm_relational_max": scores > 0.5,
+            "alarm_conditional_max": scores > 0.5}
 
 
 def _run_dir(tmp_path, name, evidence_list, status="ok", diagnosis="ok"):
@@ -138,7 +144,7 @@ def test_localization_comparison_refuses_artifacts_without_the_matrices(tmp_path
     thin = {k: v for k, v in e.items() if not k.startswith(("attr_", "alarm_"))}
     run = _run_dir(tmp_path, "thin", [("diagnosis_mask0", thin),
                                       ("diagnosis_gaussian_fitted_mask0", thin)])
-    with pytest.raises(ValueError, match="attr_R is absent"):
+    with pytest.raises(ValueError, match="attr_conditional is absent"):
         compare(run / "artifacts" / "diagnosis_mask0.npz",
                 run / "artifacts" / "diagnosis_gaussian_fitted_mask0.npz",
                 metric="loc_ap", reps=20)
