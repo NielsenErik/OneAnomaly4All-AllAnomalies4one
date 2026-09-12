@@ -1,0 +1,149 @@
+{
+  "root": "logs/ts/ws/diagnosis_fd001_reliability",
+  "spread_max": 5.0,
+  "variants": {
+    "candidate_ref": {
+      "n": 5,
+      "checkpoint_nll": [
+        28.7098388671875,
+        60.37044906616211,
+        33.167720794677734,
+        19.014835357666016,
+        23.331817626953125
+      ],
+      "spread": 41.355613708496094,
+      "best_epochs": [
+        355,
+        80,
+        128,
+        595,
+        572
+      ],
+      "epochs_budget": [
+        600,
+        600,
+        600,
+        600,
+        600
+      ],
+      "restarts_run": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restarts_abandoned": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "at_ceiling": [
+        "candidate_ref/seed23",
+        "candidate_ref/seed21"
+      ],
+      "collapsed": [
+        "candidate_ref/seed22",
+        "candidate_ref/seed25"
+      ],
+      "passes": false
+    },
+    "restarts4": {
+      "n": 5,
+      "checkpoint_nll": [
+        28.7098388671875,
+        41.178985595703125,
+        23.35980987548828,
+        19.014835357666016,
+        23.331817626953125
+      ],
+      "spread": 22.16415023803711,
+      "best_epochs": [
+        355,
+        168,
+        577,
+        595,
+        572
+      ],
+      "epochs_budget": [
+        600,
+        600,
+        600,
+        600,
+        600
+      ],
+      "restarts_run": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "restarts_abandoned": [
+        3,
+        1,
+        1,
+        3,
+        3
+      ],
+      "at_ceiling": [
+        "restarts4/seed25",
+        "restarts4/seed23",
+        "restarts4/seed21"
+      ],
+      "collapsed": [],
+      "passes": false
+    },
+    "restarts4_cosine": {
+      "n": 5,
+      "checkpoint_nll": [
+        -17.183809280395508,
+        -8.477996826171875,
+        -28.949522018432617,
+        -18.978580474853516,
+        -28.762392044067383
+      ],
+      "spread": 20.471525192260742,
+      "best_epochs": [
+        599,
+        599,
+        599,
+        599,
+        599
+      ],
+      "epochs_budget": [
+        600,
+        600,
+        600,
+        600,
+        600
+      ],
+      "restarts_run": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "restarts_abandoned": [
+        3,
+        3,
+        3,
+        2,
+        3
+      ],
+      "at_ceiling": [
+        "restarts4_cosine/seed24",
+        "restarts4_cosine/seed22",
+        "restarts4_cosine/seed25",
+        "restarts4_cosine/seed23",
+        "restarts4_cosine/seed21"
+      ],
+      "collapsed": [],
+      "passes": false
+    }
+  },
+  "passes": false
+}

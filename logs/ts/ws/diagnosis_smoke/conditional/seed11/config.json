@@ -1,7 +1,7 @@
 {
   "seed": 11,
-  "config_hash": "7d53bcd5c0fb",
-  "attempt": "20260911T160331-dadd6b",
+  "config_hash": "daedee8fcfde",
+  "attempt": "20260912T155218-deca97",
   "name": "diagnosis_smoke",
   "device": "cuda",
   "evaluator": "layered",
@@ -102,7 +102,11 @@
     "train_mask_drop_prob": 0.25,
     "select_metric": "objective",
     "patience": 0,
-    "min_epochs": 1
+    "min_epochs": 1,
+    "restarts": 2,
+    "lr_schedule": "cosine",
+    "lr_min_factor": 0.05,
+    "restart_abandon_margin": 0.25
   },
   "eval": {
     "fast_baselines": false,
@@ -202,7 +206,12 @@
     "relational_alpha": 0.05,
     "diagnosis_control": true,
     "control_train": 64,
-    "control_val": 60
+    "control_val": 60,
+    "diagnosis_split_weights": [
+      1,
+      2,
+      1
+    ]
   },
   "variant": "conditional",
   "variant_axes": {

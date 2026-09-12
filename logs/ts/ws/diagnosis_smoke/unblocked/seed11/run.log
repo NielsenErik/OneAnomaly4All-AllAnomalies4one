@@ -19,3 +19,31 @@
 [16:03:32]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
 [16:03:32] --- stage diagnosis done in 0.1s ---
 [16:03:32] === run ok · 0.1s · peak RSS 1.474 GB ===
+[15:52:18] === run start · seed11 · seed 11 · hash e9415b26c46f ===
+[15:52:18] stages ['diagnosis'] · device cuda · dataset synthetic
+[15:52:18] --- stage: diagnosis ---
+    [pc] epoch   0  nll    8.772  val    8.715
+    [pc] epoch   1  nll    8.699  val    8.737
+    [pc] epoch   2  nll    8.677  val    8.741
+    [pc] restored epoch 0 (selected by nll; val nll 8.715, last 8.741)
+    [pc] epoch   0  nll    8.734  val    8.935
+    [pc] epoch   1  nll    8.678  val    8.928
+    [pc] epoch   2  nll    8.663  val    8.924
+    [pc] restart 0 of 2 selected by nll (checkpoint losses: 8.715 8.924)
+[15:52:18]   pc_train_nll: first=8.7722 last=8.6770 (3 epochs)
+[15:52:18]   pc_train_objective: first=8.7722 last=8.6770 (3 epochs)
+[15:52:18]   pc_selection_loss: first=8.7150 last=8.7406 (3 epochs)
+[15:52:18]   pc_val_nll: first=8.7150 last=8.7406 (3 epochs)
+[15:52:18]   pc: fit 0.0s · 60 params · score sd 2.865 · device cuda · layered · 6,223 win/s
+[15:52:18]   pc: restart 0 (init seed 11) checkpoint 8.715 at epoch 0 of 3 run
+[15:52:18]   pc: restart 1 (init seed 7930) checkpoint 8.924 at epoch 2 of 3 run
+[15:52:18]   pc: selected restart 0 of 2
+[15:52:18]   pc: validation on 15 windows from explicit subset of held-out units · best epoch 0 of 3 · val nll 8.715
+[15:52:18]   shortcut audit: target-channel-only AUROC 0.564 (0.5 = no marginal shortcut)
+[15:52:18]   diagnosis: full (3.0 observed on average), 30 paired windows, 2 method(s)
+[15:52:18]   diagnosis: random1:0 (2.0 observed on average), 30 paired windows, 2 method(s)
+[15:52:18]   diagnosis: bank0:0 (2.0 observed on average), 30 paired windows, 2 method(s)
+[15:52:18]   diagnosis: single_sensor_0 (1.0 observed on average), 30 paired windows, 2 method(s)
+[15:52:18]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[15:52:18] --- stage diagnosis done in 0.1s ---
+[15:52:18] === run ok · 0.1s · peak RSS 1.472 GB ===

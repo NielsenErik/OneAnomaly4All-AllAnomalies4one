@@ -104,7 +104,11 @@
     "train_mask_drop_prob": 0.25,
     "select_metric": "nll",
     "patience": 0,
-    "min_epochs": 1
+    "min_epochs": 1,
+    "restarts": 2,
+    "lr_schedule": "cosine",
+    "lr_min_factor": 0.05,
+    "restart_abandon_margin": 0.25
   },
   "eval": {
     "fast_baselines": false,
@@ -206,7 +210,12 @@
     "relational_alpha": 0.05,
     "diagnosis_control": true,
     "control_train": 64,
-    "control_val": 60
+    "control_val": 60,
+    "diagnosis_split_weights": [
+      1,
+      2,
+      1
+    ]
   },
   "config_path": "config/ts/diagnosis_smoke.yaml",
   "variant": "upper_capacity",

@@ -1,0 +1,4 @@
+candidate_ref            n= 5  spread  41.36 nats  (NLL 19.01-60.37)  ceiling 2  collapsed 2  -> FAIL
+restarts4                n= 5  spread  22.16 nats  (NLL 19.01-41.18)  ceiling 3  collapsed 0  -> FAIL
+restarts4_cosine         n= 5  spread  20.47 nats  (NLL -28.95--8.48)  ceiling 5  collapsed 0  -> FAIL
+gate: FAIL

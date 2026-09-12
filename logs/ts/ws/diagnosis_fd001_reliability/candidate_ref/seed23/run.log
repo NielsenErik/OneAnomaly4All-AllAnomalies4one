@@ -1,0 +1,40 @@
+[15:56:43] === run start · seed23 · seed 23 · hash b36592f860b5 ===
+[15:56:43] stages ['diagnosis'] · device cuda · dataset cmapss:FD001
+[15:56:43] --- stage: diagnosis ---
+[15:56:43]   data: FleetPair(cmapss:FD001: train=100 units, test=100 units, C=15, regimes=1, cap=125)  (0.1s)
+[15:56:43]   task: {'kind': 'ad', 'n_train': 3759, 'n_val': 1531, 'n_test': 4639, 'd': 300, 'window': 20, 'n_channels': 15, 'anomaly_rate': 0.1215779259800911, 'kind_counts': {'normal': 4075, 'spike': 115, 'decouple': 106, 'offset': 91, 'desync': 105, 'drift': 95, 'organic': 52}, 'train_units': 100, 'val_units': 30, 'test_units': 100, 'n_val_windows': 1531, 'n_regimes': 1, 'seed': 23, 'per_regime_norm': False, 'official_test_fleet': True, 'dataset': 'cmapss:FD001', 'cap': 125.0, 'subset': 'FD001', 'dropped_constant_sensors': 6, 'source': 'NASA C-MAPSS (real)', 'source_name': 'cmapss', 'source_kind': 'fleet'}
+[15:56:43]   caveat: Ships no anomaly annotations: detection anomalies are injected.
+    [pc] epoch   0  nll  493.322  val  251.496
+    [pc] epoch  75  nll   50.181  val   48.223
+    fit chow_liu K=8: 124/600 (21%) · 4.11 it/s · elapsed 00:30 · ETA 01:55
+    [pc] epoch 150  nll   41.962  val   46.665
+    [pc] epoch 225  nll   38.023  val   37.871
+    fit chow_liu K=8: 248/600 (41%) · 4.11 it/s · elapsed 01:00 · ETA 01:25
+    [pc] epoch 300  nll   58.740  val   47.031
+    fit chow_liu K=8: 371/600 (62%) · 4.10 it/s · elapsed 01:30 · ETA 00:55
+    [pc] epoch 375  nll   29.567  val   30.074
+    [pc] epoch 450  nll   29.422  val   30.359
+    fit chow_liu K=8: 494/600 (82%) · 4.10 it/s · elapsed 02:00 · ETA 00:25
+    [pc] epoch 525  nll   22.781  val   23.233
+    fit chow_liu K=8: done 600/600 in 02:26
+    [pc] restored epoch 595 (selected by nll; val nll 19.015, last 20.343)
+[15:59:12]   pc_train_nll: first=493.3217 last=18.8921 (600 epochs)
+[15:59:12]   pc_train_objective: first=493.3217 last=18.8921 (600 epochs)
+[15:59:12]   pc_selection_loss: first=251.4957 last=20.3431 (600 epochs)
+[15:59:12]   pc_val_nll: first=251.4957 last=20.3431 (600 epochs)
+[15:59:12]   pc: fit 148.6s · 195,840 params · score sd 16.399 · device cuda · layered · 15,180 win/s
+[15:59:12]   pc: validation on 416 windows from explicit subset of held-out units · best epoch 595 of 600 · val nll 19.015
+[15:59:13]   shortcut audit: target-channel-only AUROC 0.561 (0.5 = no marginal shortcut)
+[15:59:13]   baseline gaussian_fitted: fit 0.15s · 45,450 params · selection {'shrinkage': 0.01}
+[15:59:15]   detection comparators: ['mahalanobis_refit', 'mahalanobis_impute', 'gmm_refit', 'gmm_impute', 'knn_refit', 'knn_impute']
+[15:59:15]   diagnosis: full (15.0 observed on average), 640 paired windows, 2 method(s)
+[15:59:21]   diagnosis: random1:1 (14.0 observed on average), 640 paired windows, 2 method(s)
+[15:59:29]   diagnosis: random3:5-8-14 (12.0 observed on average), 640 paired windows, 2 method(s)
+[15:59:36]   diagnosis: random7:3-4-8-10-11-12-14 (8.0 observed on average), 640 paired windows, 2 method(s)
+[15:59:38]   diagnosis: bank0:0-1-2-4-5-7-8 (8.0 observed on average), 640 paired windows, 2 method(s)
+[15:59:41]   diagnosis: bank1:3 (14.0 observed on average), 640 paired windows, 2 method(s)
+[15:59:46]   diagnosis: bank2:6-10 (13.0 observed on average), 640 paired windows, 2 method(s)
+[15:59:49]   diagnosis: single_sensor_0 (1.0 observed on average), 640 paired windows, 2 method(s)
+[15:59:51]   Diagnosis completed on validation engines only; no confirmatory PASS/FAIL inferred.
+[15:59:51] --- stage diagnosis done in 188.1s ---
+[15:59:51] === run ok · 188.1s · peak RSS 2.42 GB ===
