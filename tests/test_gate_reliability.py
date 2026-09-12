@@ -50,6 +50,24 @@ def test_a_reliable_study_passes_and_the_spread_threshold_binds(tmp_path):
     assert not gate(str(r), spread_max=1.0)["passes"]
 
 
+def test_tail_improvement_is_diagnostic_and_never_moves_the_verdict(tmp_path):
+    # A run that keeps descending under a decayed learning rate looks exactly
+    # like a truncated one to the ceiling test, which is why the tail is
+    # reported beside it — and why it must not change the verdict.
+    r = _study(tmp_path, "restarts4_cosine",
+               [_row(21.0, 599, stopped_early=False)] * 3)
+    curve = "\n".join(f"{i},{100 - i * 0.1:.4f}" for i in range(600))
+    for seed in range(3):
+        (r / "restarts4_cosine" / f"seed{seed}" / "history_pc_val_nll.csv"
+         ).write_text("epoch,value\n" + curve + "\n")
+    out = gate(str(r))["variants"]["restarts4_cosine"]
+    assert all(t is not None and t < 0 for t in out["tail_improvement_nats"])
+    assert not out["passes"] and len(out["at_ceiling"]) == 3
+    # No curve on disk is reported as unknown, not as zero.
+    bare = _study(tmp_path / "bare", "restarts4", [_row(21.0, 300)])
+    assert gate(str(bare))["variants"]["restarts4"]["tail_improvement_nats"] == [None]
+
+
 def test_unfinished_runs_are_not_evidence(tmp_path):
     r = _study(tmp_path, "restarts4", [_row(21.0, 300), _row(22.0, 310)])
     (r / "restarts4" / "seed1" / "status.json").write_text(json.dumps(

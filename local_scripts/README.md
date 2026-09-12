@@ -82,9 +82,13 @@ and queue again — it is the same failure that once made the test job die in
 tsp -C          # clear the finished/skipped list before re-queueing
 ```
 
-Stages are chained with `-W` (run only if the previous finished well), so a
-failed stage stops the ones that depend on it; the reports and the bundle use
-`-D` (run once the previous ends, either way) so a failure still leaves a
-readable record. The FD003 pilot hanging off `-W` on the gate is the protocol,
+Stages 1-4 are chained with `-W` (run only if the previous finished well), so
+a failed stage stops the ones that depend on it. The benchmark, the reports and
+the bundle carry **no** dependency: the single slot already runs them in order,
+and they must run whatever the gate said — a failed gate is a result to write
+up, not a reason to throw away the study that produced it. (`-D` looked like
+the right flag and is not: on task-spooler 1.0 a `-D` job whose dependency was
+*skipped* is skipped too, which silently discarded the reports and the bundle
+after the first failed gate.) The FD003 pilot hanging off `-W` on the gate is the protocol,
 not a convenience: a pilot run on an unreliable fit measures the unreliability
 and then sizes the confirmation from it.

@@ -25,9 +25,10 @@
 #   6 reports    one per study root that exists
 #   7 bundle     logs/ws_results_<date>.tgz
 #
-# Each stage runs only if the previous one finished WELL (-W), except the
-# reports and the bundle, which run after whatever happened (-D) so a failed
-# stage still leaves a readable record.
+# Stages 1-4 run only if the previous one finished WELL (-W). The benchmark,
+# the reports and the bundle carry NO dependency: one slot means they still run
+# in order, and they must run whatever the gate said -- a failed gate is a
+# result to be written up, not a reason to discard the run that produced it.
 #
 #   TS_SOCKET=/tmp/ts_diagnosis_ws tsp          # the queue
 #   TS_SOCKET=/tmp/ts_diagnosis_ws tsp -c <id>  # one job's output
@@ -79,9 +80,15 @@ CHAIN=1
 [ "${CHAIN}" -eq 0 ] && echo "[queue] this tsp has no -W/-D: chaining with -d, " \
     "so a FAILED stage will NOT skip the ones after it — watch the queue"
 
-# after_ok <id> / after_any <id> -> the flags for a job that follows it
+# after_ok <id> -> flags for a job that must only run if <id> succeeded.
 after_ok()  { [ "${CHAIN}" -eq 1 ] && echo "-W $1" || echo "-d"; }
-after_any() { [ "${CHAIN}" -eq 1 ] && echo "-D $1" || echo "-d"; }
+# after_any -> NO dependency flag at all. The queue holds one slot, so a job
+# queued later runs after every job queued before it anyway, and it runs
+# whatever they did. `-D` was wrong here: on task-spooler 1.0 a -D job whose
+# dependency was SKIPPED is skipped too, which is how the benchmark, the
+# reports and the bundle were all skipped after the gate failed — losing the
+# record of a study that had just cost an hour of GPU time.
+after_any() { echo ""; }
 
 queue() {   # queue <label> <dep-flags> <command…>
     local label=$1; shift
@@ -132,7 +139,7 @@ id_pilot=$(queue fd003_pilot "$(after_ok "${id_gate}")" \
         > ${OUT}/diagnosis_fd003_pilot.log 2>&1")
 echo "[queue] ${id_pilot}  FD003 pilot (runs only if the gate passes)"
 
-id_bench=$(queue bench "$(after_any "${id_pilot}")" \
+id_bench=$(queue bench "$(after_any)" \
     "'${PY}' -m poc.time_series.bench_relational --methods \
         --out ${ROOT}/bench_relational_methods.json \
         --method-channels 8 12 16 --method-windows 4 8 12 \
@@ -140,7 +147,7 @@ id_bench=$(queue bench "$(after_any "${id_pilot}")" \
         > ${OUT}/bench.log 2>&1")
 echo "[queue] ${id_bench}  benchmark (alone on the machine)"
 
-id_report=$(queue reports "$(after_any "${id_bench}")" \
+id_report=$(queue reports "$(after_any)" \
     "for s in diagnosis_fd001_reliability diagnosis_fd003_pilot; do \
         [ -d ${ROOT}/\$s ] || continue; \
         '${PY}' -m poc.time_series.report_diagnosis ${ROOT}/\$s --quiet --reps 1000 \
@@ -149,7 +156,7 @@ id_report=$(queue reports "$(after_any "${id_bench}")" \
      done")
 echo "[queue] ${id_report}  reports"
 
-id_bundle=$(queue bundle "$(after_any "${id_report}")" \
+id_bundle=$(queue bundle "$(after_any)" \
     "tar czf logs/ws_results_\$(date +%Y%m%d_%H%M).tgz ${ROOT} ${OUT} && \
      ls -lh logs/ws_results_*.tgz | tail -1")
 echo "[queue] ${id_bundle}  bundle"

@@ -18,10 +18,11 @@ Criteria (from config/ts/diagnosis_fd001_reliability.yaml):
   ceiling   no seed selects its last budgeted epoch
 """
 import argparse
+import csv
 import json
 import os
 import sys
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
 def model_rows(root: str) -> List[Dict]:
@@ -40,8 +41,32 @@ def model_rows(root: str) -> List[Dict]:
                 r = json.loads(line)
                 if r.get("method") == "model" and "checkpoint_nll" in r:
                     r["run_dir"] = os.path.relpath(dirpath, root)
+                    r["_dir"] = dirpath
                     rows.append(r)
     return rows
+
+
+def tail_improvement(run_dir: str, frac: float = 0.1) -> Optional[float]:
+    """How much the checkpoint curve still moved over its last `frac` of epochs.
+
+    DIAGNOSTIC ONLY — it changes no verdict.  It exists because "selected the
+    last epoch" means different things under a flat and a decayed learning
+    rate: a cosine run keeps improving by construction and so never triggers
+    patience, and calling that "at the ceiling" would confuse a run that was
+    cut off with one that was still descending slowly on purpose.  Negative
+    means the curve was still going down; near zero means it had flattened.
+    """
+    path = os.path.join(run_dir, "history_pc_val_nll.csv")
+    if not os.path.exists(path):
+        return None
+    with open(path) as f:
+        values = [float(row["value"]) for row in csv.DictReader(f)]
+    k = max(int(len(values) * frac), 1)
+    if len(values) < 2 * k:
+        return None
+    last = sum(values[-k:]) / k
+    before = sum(values[-2 * k:-k]) / k
+    return last - before
 
 
 def gate(root: str, variant=None, spread_max=5.0) -> Dict:
@@ -72,7 +97,9 @@ def gate(root: str, variant=None, spread_max=5.0) -> Dict:
                      if best[i] >= 0 and best[i] <= int(r.get("min_epochs", 1))
                      + int(r.get("patience", 0))]
         spread = max(nlls) - min(nlls)
+        tails = [tail_improvement(r["_dir"]) for r in rs]
         report["variants"][name] = {
+            "tail_improvement_nats": tails,
             "n": len(rs), "checkpoint_nll": nlls, "spread": spread,
             "best_epochs": best, "epochs_budget": budget,
             "restarts_run": [int(r.get("restarts_run", 1)) for r in rs],
@@ -95,10 +122,16 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
     report = gate(args.root, args.variant, args.spread)
     for name, v in report["variants"].items():
+        tails = [t for t in v["tail_improvement_nats"] if t is not None]
+        tail = f"  tail {max(tails):+.2f}" if tails else ""
         print(f"{name:24s} n={v['n']:2d}  spread {v['spread']:6.2f} nats  "
               f"(NLL {min(v['checkpoint_nll']):.2f}-{max(v['checkpoint_nll']):.2f})  "
-              f"ceiling {len(v['at_ceiling'])}  collapsed {len(v['collapsed'])}  "
-              f"-> {'PASS' if v['passes'] else 'FAIL'}")
+              f"ceiling {len(v['at_ceiling'])}  collapsed {len(v['collapsed'])}"
+              f"{tail}  -> {'PASS' if v['passes'] else 'FAIL'}")
+    if any(v["tail_improvement_nats"] for v in report["variants"].values()):
+        print("tail = worst per-variant change in checkpoint NLL over the last "
+              "10% of epochs (negative = still descending). Diagnostic; it "
+              "changes no verdict above.")
     if args.json:
         with open(args.json, "w") as f:
             json.dump(report, f, indent=2)
