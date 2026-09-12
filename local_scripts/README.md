@@ -11,6 +11,8 @@ workstation analogue of `cluster_scripts/`.
 | `run_all_local.sh`    | `submit_all.sh` / `run_all.sbatch` | every config, every metric |
 | `run_config_local.sh` | `run_config.sbatch`                | one config, all seeds + summary |
 | `run_seed_local.sh`   | `run_config_array.sbatch` (one task) | one seed of one config |
+| `run_diagnosis_ws.sh` | —                                  | the diagnosis programme, start to finish, in one process |
+| `queue_diagnosis_ws_tsp.sh` | —                            | the same programme as a task-spooler (`tsp`) chain |
 
 ## Usage
 
@@ -44,3 +46,32 @@ env if available, and sources `.env` for `HF_TOKEN`.
 
 `config/multimodal_demo.yaml` featurizes images and wants a GPU + `HF_TOKEN`;
 the tabular/text configs are CPU-only.
+
+## The diagnosis programme (task spooler)
+
+`run_diagnosis_ws.sh` runs preflight, the FD001 reliability study, the
+pre-registered gate, the FD003 pilot (only if the gate passes), the benchmark
+and the reports in one foreground process. `queue_diagnosis_ws_tsp.sh` queues
+the same stages as separate `tsp` jobs instead, which is what you want when the
+session can drop: the jobs outlive the SSH connection, each stage keeps its own
+exit status, and a single queue slot guarantees the benchmark — the latency
+source of truth — never shares the machine with a training run.
+
+```bash
+# needs: apt install task-spooler   (binary `tsp`, or `ts` on some distros)
+bash local_scripts/queue_diagnosis_ws_tsp.sh              # the whole chain
+bash local_scripts/queue_diagnosis_ws_tsp.sh --tests-only # just the suites
+DEVICE=cuda:1 bash local_scripts/queue_diagnosis_ws_tsp.sh
+
+export TS_SOCKET=/tmp/ts_diagnosis_ws   # the queue this script uses
+tsp             # the queue and each job's exit status
+tsp -c <id>     # one job's output (-t <id> tails a running one)
+tsp -k <id>     # kill the running job;  tsp -r <id> removes a queued one
+```
+
+Stages are chained with `-W` (run only if the previous finished well), so a
+failed stage stops the ones that depend on it; the reports and the bundle use
+`-D` (run once the previous ends, either way) so a failure still leaves a
+readable record. The FD003 pilot hanging off `-W` on the gate is the protocol,
+not a convenience: a pilot run on an unreliable fit measures the unreliability
+and then sizes the confirmation from it.
