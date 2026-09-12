@@ -69,6 +69,19 @@ tsp -c <id>     # one job's output (-t <id> tails a running one)
 tsp -k <id>     # kill the running job;  tsp -r <id> removes a queued one
 ```
 
+A queued job inherits the environment and working directory of the tsp
+**server**, not of the shell that queues it, so an active conda env and any
+`export` around the queue command are both lost. The script therefore resolves
+the interpreter to an absolute path, checks at QUEUE time that it can import
+pytest/torch/yaml, and prefixes every job with its own `cd` and `PYTHONPATH`.
+If the check refuses, activate the env (or pass `PY=/path/to/env/bin/python`)
+and queue again — it is the same failure that once made the test job die in
+0.02 s with `No module named pytest` hidden inside a redirected log.
+
+```bash
+tsp -C          # clear the finished/skipped list before re-queueing
+```
+
 Stages are chained with `-W` (run only if the previous finished well), so a
 failed stage stops the ones that depend on it; the reports and the bundle use
 `-D` (run once the previous ends, either way) so a failure still leaves a
